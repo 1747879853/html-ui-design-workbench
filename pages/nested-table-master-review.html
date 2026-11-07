@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>嵌套表格自我评审与终极重构方案</title>
+  
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    
+    body {
+      background: #f1f5f9;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+      margin: 0;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* 评审说明看板 */
+    .critique-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .critique-card h1 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .critique-card p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    /* 方案外壳 */
+    .table-panel {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(15,23,42,0.03);
+      overflow: hidden;
+    }
+
+    .table-panel__head {
+      padding: 14px 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .table-panel__title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 表格基础重置 */
+    .master-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+    }
+
+    .master-table th,
+    .master-table td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mono {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      text-align: right;
+    }
+
+    .order-link {
+      color: #1677ff;
+      text-decoration: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .order-link:hover {
+      text-decoration: underline;
+    }
+
+    /* 折叠按钮 */
+    .toggle-square {
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border: 1px solid #d9d9d9;
+      border-radius: 3px;
+      background: #ffffff;
+      color: #595959;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.2s ease;
+    }
+    .toggle-square:hover {
+      border-color: #1677ff;
+      color: #1677ff;
+    }
+    .toggle-square.active {
+      background: #e6f4ff;
+      border-color: #91caff;
+      color: #1677ff;
+    }
+
+    /* 状态与收付 */
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+    }
+    .status-dot::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .status-dot.warn { color: #b45309; }
+    .status-dot.warn::before { background: #fa8c16; }
+    .status-dot.success { color: #15803d; }
+    .status-dot.success::before { background: #52c41a; }
+
+    .badge-pay {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 5px;
+      height: 19px;
+      line-height: 17px;
+      border-radius: 3px;
+      font-size: 11px;
+      background: #fff1f0;
+      color: #cf1322;
+      border: 1px solid #ffa39e;
+    }
+
+    .seq-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* =========================================================================
+       重构终极方案：【工业级阶梯沉降流 (Stepped Inset Ledger)】
+       核心原则：
+       1. 绝不搞“盒子套盒子”！子表直接嵌入在浅灰沉降底板（#f8fafc）中；
+       2. 绝不搞“满宽假平铺”！严格按展开列（36px）留出缩进，子表头与子数据列整齐下沉；
+       3. 表头明显降级：主表头 38px 渐变，子表头 28px 浅冷灰微字，主次分明；
+       4. 行高严格阶梯：主行 40px，子行 30px；
+       5. 父行展开有浅蓝微光（#f0f7ff），且在展开列下方自然贯通一条 1px 细线。
+       ========================================================================= */
+    .master-table > thead > tr > th {
+      height: 38px;
+      padding: 0 10px;
+      background: linear-gradient(180deg, #f8faff 0%, #edf3fa 100%);
+      color: #334155;
+      font-weight: 600;
+      border-bottom: 1px solid #dbeafe;
+      text-align: left;
+    }
+
+    .master-table > tbody > .parent-tr > td {
+      height: 40px;
+      padding: 0 10px;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.15s ease;
+    }
+    .master-table > tbody > .parent-tr:hover > td {
+      background: #f8fbff;
+    }
+
+    /* 展开父行：微光浅蓝底色，底边线淡化 */
+    .master-table > tbody > .parent-tr.is-expanded > td {
+      background: #f0f7ff !important;
+      border-top: 1px solid #cfe2fe;
+      border-bottom: 1px solid #e0edfe;
+    }
+    .master-table > tbody > .parent-tr.is-expanded > td:first-child {
+      border-left: 3px solid #1677ff; /* 极其轻细的聚焦指示 */
+    }
+
+    /* 展开托盘：纯净清浅底色 */
+    .master-table .inset-deck-cell {
+      padding: 0 !important;
+      background: #f8fbff;
+      border-left: 3px solid #1677ff;
+      border-bottom: 1px solid #dbeafe;
+    }
+
+    /* 子表格容器：缩进 36px 对齐第二列数据 */
+    .sub-table-wrapper {
+      padding: 4px 16px 12px 36px; /* 36px 精确匹配第一列宽度 */
+      position: relative;
+    }
+
+    /* 极细 1px 优雅引导线 */
+    .sub-table-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 24px;
+      left: 17px; /* 展开按钮正中 */
+      width: 1px;
+      background: #91caff;
+    }
+    .sub-table-wrapper::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 17px;
+      width: 19px;
+      height: 1px;
+      background: #91caff;
+    }
+
+    /* 内层子表格：纯正、平整、紧凑 */
+    .inner-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #ffffff;
+      border: 1px solid #dbeafe;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(37,99,235,0.03);
+    }
+
+    .inner-table th {
+      height: 28px;
+      padding: 0 8px;
+      background: #edf4fa !important;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 600;
+      border-bottom: 1px solid #dbeafe;
+      text-align: left;
+    }
+
+    .inner-table td {
+      height: 30px;
+      padding: 0 8px;
+      background: #ffffff;
+      border-bottom: 1px solid #f8fafc;
+      font-size: 11.5px;
+    }
+
+    .inner-table tr:hover td {
+      background: #f0f7ff;
+    }
+
+    .inner-table tr:last-child td {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <div class="critique-card">
+      <h1>深度自省与评审报告：为什么之前的嵌套表格屡屡通不过？</h1>
+      <p><b>1. 根本症结——“套娃”与“散架”的两极跳</b>：<br>
+      前几轮我们在两个极端反复横跳：一开始为了强化归属感，把子表包在“文件夹卡片”里，结果卡片套卡片、大框套小框，被您批评<b>“太丑、臃肿”</b>；后来为了去套娃，矫枉过正把子表满宽平铺，结果两排不同列宽的表头直接相撞，没有任何缩进指引，被您一语道破<b>“层级都没体现”</b>。</p>
+      <p><b>2. 真正的工业级标准解法</b>：<br>
+      嵌套表格的灵魂在于<b>【3 维梯度感】</b>——① <b>行高差（父 40px / 子 30px）</b>形成主次节奏；② <b>物理缩进（36px）</b>使子表避开首列，精准沉入数据列下方；③ <b>微光沉降底色 + 极细 1px 折角引导线</b>，在不增加视觉负担的前提下，建立不可撼动的“父子血缘关系”。</p>
+    </div>
+
+    <!-- 方案呈现 -->
+    <div class="table-panel">
+      <div class="table-panel__head">
+        <div class="table-panel__title">
+          <iconify-icon icon="ant-design:table-outlined" style="color: #1677ff; font-size: 16px;"></iconify-icon>
+          工业级终极重构方案：【阶梯沉降树导流 (Stepped Inset Ledger)】
+        </div>
+        <div>
+          <a-tag color="blue">委托单 JHTSE26102208 真实数据</a-tag>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th style="width: 36px; text-align: center;"></th>
+              <th style="width: 50px;">序号</th>
+              <th style="width: 130px;">主提单号</th>
+              <th style="width: 90px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 80px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 父行 1 (展开态) -->
+            <tr class="parent-tr is-expanded">
+              <td style="text-align: center;">
+                <button type="button" class="toggle-square active" title="收起">
+                  <iconify-icon icon="ant-design:minus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>
+                <div class="seq-box">
+                  <input type="checkbox" checked />
+                  <span>1</span>
+                </div>
+              </td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="status-dot warn">未结算</span></td>
+              <td><a class="order-link">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="mono" style="color: #1677ff; font-weight: 600;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <!-- 展开托盘 -->
+            <tr>
+              <td colspan="9" class="inset-deck-cell">
+                <div class="sub-table-wrapper">
+                  <table class="inner-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 36px; text-align: center;"><input type="checkbox" checked /></th>
+                        <th style="width: 40px;">序号</th>
+                        <th style="width: 50px;">收付</th>
+                        <th style="width: 130px;">费用名称</th>
+                        <th style="width: 80px;">原始币别</th>
+                        <th style="width: 110px; text-align: right;">原始金额</th>
+                        <th style="width: 90px; text-align: right;">原始汇率</th>
+                        <th style="width: 110px; text-align: right;">已核销金额</th>
+                        <th style="width: 120px; text-align: right;">本次申请金额</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="text-align: center;"><input type="checkbox" checked /></td>
+                        <td>1</td>
+                        <td><span class="badge-pay">应付</span></td>
+                        <td><b>驳船费</b></td>
+                        <td>RMB</td>
+                        <td class="mono">60.00</td>
+                        <td class="mono">1.0000</td>
+                        <td class="mono">0.00</td>
+                        <td class="mono" style="color: #1677ff; font-weight: 600;">¥ 1.00</td>
+                      </tr>
+                      <tr>
+                        <td style="text-align: center;"><input type="checkbox" /></td>
+                        <td>2</td>
+                        <td><span class="badge-pay">应付</span></td>
+                        <td><b>港杂费</b></td>
+                        <td>RMB</td>
+                        <td class="mono">120.00</td>
+                        <td class="mono">1.0000</td>
+                        <td class="mono">0.00</td>
+                        <td class="mono" style="color: #475569;">¥ 0.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 父行 2 (收起态) -->
+            <tr class="parent-tr">
+              <td style="text-align: center;">
+                <button type="button" class="toggle-square" title="展开">
+                  <iconify-icon icon="ant-design:plus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>
+                <div class="seq-box">
+                  <input type="checkbox" />
+                  <span>2</span>
+                </div>
+              </td>
+              <td>MSKU9821371</td>
+              <td><span class="status-dot success">已结算</span></td>
+              <td><a class="order-link">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="mono" style="font-weight: 600;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

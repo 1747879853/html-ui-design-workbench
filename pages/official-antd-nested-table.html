@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ant Design 官方原生嵌套子表格 Demo</title>
+  
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.full.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    body {
+      background: #f0f2f5;
+      padding: 30px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+    }
+    .demo-wrapper {
+      max-width: 1360px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="demo-wrapper">
+    <div style="margin-bottom: 20px;">
+      <h2 style="margin: 0 0 6px;">Ant Design Vue 官方正版嵌套表格（100% 原厂无任何魔改）</h2>
+      <p style="margin: 0; color: #64748b; font-size: 13px;">这就是 Ant Design 官方规范里的 <code>&lt;a-table&gt;</code> + <code>#expandedRowRender</code>，没有任何人工添加的外框和卡片。</p>
+    </div>
+
+    <a-table
+      :columns="columns"
+      :data-source="data"
+      :pagination="false"
+      row-key="key"
+      :default-expanded-row-keys="['1']"
+      size="middle"
+    >
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'status'">
+          <span v-if="record.status === 0" style="color: #fa8c16;">● 未结算</span>
+          <span v-else style="color: #52c41a;">● 已结算</span>
+        </template>
+        <template v-else-if="column.key === 'commissionNum'">
+          <a style="color: #1677ff; font-weight: 600;">{{ record.commissionNum }}</a>
+        </template>
+      </template>
+
+      <!-- 官方原生 expandedRowRender 插槽 -->
+      <template #expandedRowRender="{ record }">
+        <a-table
+          :columns="innerColumns"
+          :data-source="record.fees"
+          :pagination="false"
+          size="small"
+          row-key="id"
+        >
+          <template #bodyCell="{ column, record: fee }">
+            <template v-if="column.key === 'paySide'">
+              <a-tag color="red">应付</a-tag>
+            </template>
+            <template v-else-if="column.key === 'appliedAmount'">
+              <span style="color: #1677ff; font-weight: 600;">{{ fee.appliedAmount }}</span>
+            </template>
+          </template>
+        </a-table>
+      </template>
+    </a-table>
+  </div>
+
+  <script>
+    const { createApp, ref } = Vue;
+
+    createApp({
+      setup() {
+        const columns = [
+          { title: '序号', dataIndex: 'seq', key: 'seq', width: 60 },
+          { title: '主提单号', dataIndex: 'mblNum', key: 'mblNum', width: 140 },
+          { title: '应收状态', dataIndex: 'status', key: 'status', width: 100 },
+          { title: '委托编号', dataIndex: 'commissionNum', key: 'commissionNum', width: 150 },
+          { title: '起运港', dataIndex: 'pol', key: 'pol', width: 150 },
+          { title: '客服', dataIndex: 'operator', key: 'operator', width: 90 },
+          { title: 'RMB 申请合计', dataIndex: 'totalApplied', key: 'totalApplied', align: 'right', width: 130 },
+          { title: '应收未结算', dataIndex: 'unsettled', key: 'unsettled', width: 180 },
+        ];
+
+        const innerColumns = [
+          { title: '序号', dataIndex: 'seq', key: 'seq', width: 50 },
+          { title: '收付', dataIndex: 'paySide', key: 'paySide', width: 70 },
+          { title: '费用名称', dataIndex: 'feeName', key: 'feeName', width: 140 },
+          { title: '原始币别', dataIndex: 'currency', key: 'currency', width: 90 },
+          { title: '原始金额', dataIndex: 'origAmount', key: 'origAmount', align: 'right', width: 110 },
+          { title: '原始汇率', dataIndex: 'rate', key: 'rate', align: 'right', width: 90 },
+          { title: '已核销金额', dataIndex: 'settled', key: 'settled', align: 'right', width: 110 },
+          { title: '本次申请金额', dataIndex: 'appliedAmount', key: 'appliedAmount', align: 'right', width: 120 },
+        ];
+
+        const data = ref([
+          {
+            key: '1',
+            seq: 1,
+            mblNum: '-',
+            status: 0,
+            commissionNum: 'JHTSE26102208',
+            pol: 'QINGDAO, CHINA',
+            operator: '-',
+            totalApplied: '¥ 1.00',
+            unsettled: 'RMB 943.00 / USD 470.00',
+            fees: [
+              { id: '101', seq: 1, paySide: '应付', feeName: '驳船费', currency: 'RMB', origAmount: '60.00', rate: '1.0000', settled: '0.00', appliedAmount: '¥ 1.00' },
+              { id: '102', seq: 2, paySide: '应付', feeName: '港杂费', currency: 'RMB', origAmount: '120.00', rate: '1.0000', settled: '0.00', appliedAmount: '¥ 0.00' },
+            ]
+          },
+          {
+            key: '2',
+            seq: 2,
+            mblNum: 'MSKU9821371',
+            status: 1,
+            commissionNum: 'JHTSE26102245',
+            pol: 'QINGDAO / HAMBURG',
+            operator: '李静',
+            totalApplied: '¥ 4,250.00',
+            unsettled: 'USD 0.00',
+            fees: []
+          }
+        ]);
+
+        return {
+          columns,
+          innerColumns,
+          data
+        };
+      }
+    }).use(antd).mount('#app');
+  </script>
+</body>
+</html>

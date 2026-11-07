@@ -1,0 +1,2918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>报销付款管理 - 财务结算中心</title>
+
+  <!-- 核心样式：Ant Design Vue 4 重置样式与通用规范 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <!-- 本地核心依赖 (全量包含 7 项 Dayjs 插件、Vue 3、Ant Design Vue 4.2.6、Iconify) -->
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       企业级 B2B 财务结算·报销付款高保真页面规范
+       设计基准：1920×1080 视口，去除空洞留白，严谨专业金融级排版，杜绝冗余AI花哨
+       ========================================================================== */
+
+    body {
+      background-color: #f4f6f9;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .pay-page-wrap {
+      min-height: 100vh;
+      padding: 12px 16px 24px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 顶部快速统计与检索区 */
+    .filter-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px 16px 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px 14px;
+      align-items: center;
+    }
+
+    .filter-grid .ant-form-item {
+      margin-bottom: 8px !important;
+    }
+
+    .filter-grid .ant-form-item-label > label {
+      font-size: 12px;
+      color: #4b5563;
+      font-weight: 500;
+    }
+
+    .amount-range-input {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .amount-range-input .ant-input-number {
+      width: 100%;
+    }
+
+    /* 主体表格工作台容器 */
+    .table-container-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 表格顶部工具栏 */
+    .table-head-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f3f4f6;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tab-badge-count {
+      margin-left: 4px;
+      font-size: 11px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: #e5e7eb;
+      color: #4b5563;
+    }
+
+    .ant-tabs-tab-active .tab-badge-count {
+      background: #eff6ff;
+      color: #2563eb;
+      font-weight: 600;
+    }
+
+    .selection-tip-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: #1e40af;
+    }
+
+    /* 表格样式增强 */
+    .pay-table .ant-table-thead > tr > th {
+      background: #f9fafb !important;
+      color: #374151 !important;
+      font-weight: 600 !important;
+      font-size: 12px !important;
+      padding: 8px 10px !important;
+      border-bottom: 1px solid #e5e7eb !important;
+      white-space: nowrap;
+    }
+
+    .pay-table .ant-table-tbody > tr > td {
+      padding: 8px 10px !important;
+      font-size: 12px !important;
+      border-bottom: 1px solid #f3f4f6 !important;
+    }
+
+    .pay-table .ant-table-tbody > tr:hover > td {
+      background-color: #f0f7ff !important;
+      cursor: pointer;
+    }
+
+    .claim-no-cell {
+      font-family: monospace;
+      font-weight: 600;
+      color: #2563eb;
+      letter-spacing: 0.3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .claim-no-cell:hover {
+      text-decoration: underline;
+    }
+
+    .amount-cell {
+      font-family: monospace;
+      font-weight: 700;
+      color: #dc2626;
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .bank-account-text {
+      font-family: monospace;
+      letter-spacing: 0.8px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    /* 抽屉内样式：报销详情 (1180px) */
+    .drawer-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding-right: 24px;
+    }
+
+    .drawer-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .drawer-title-no {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      font-family: monospace;
+    }
+
+    /* 顶部财务核心看板横幅 */
+    .drawer-summary-hero {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .summary-hero-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .summary-hero-item.hero-amount {
+      min-width: 180px;
+    }
+
+    .hero-label {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .hero-val-amount {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      font-family: monospace;
+    }
+
+    .hero-val-amount .currency-symbol {
+      font-size: 16px;
+      font-weight: 700;
+      color: #dc2626;
+    }
+
+    .hero-val-amount .amount-num {
+      font-size: 22px;
+      font-weight: 800;
+      color: #dc2626;
+      line-height: 1;
+    }
+
+    .hero-val-amount .currency-code {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .hero-user-val {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-user-val .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .hero-user-val .user-dept {
+      font-size: 11px;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .hero-time-val {
+      font-size: 12px;
+      color: #475569;
+      font-family: monospace;
+    }
+
+    .summary-hero-divider {
+      width: 1px;
+      height: 32px;
+      background: #e2e8f0;
+    }
+
+    /* 模块通用卡片容器 */
+    .detail-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .detail-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .card-head-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .card-head-title .head-icon {
+      font-size: 16px;
+    }
+    .card-head-title .head-icon.text-blue { color: #2563eb; }
+    .card-head-title .head-icon.text-emerald { color: #059669; }
+    .card-head-title .head-icon.text-indigo { color: #4f46e5; }
+    .card-head-title .head-icon.text-amber { color: #d97706; }
+    .card-head-title .head-icon.text-purple { color: #7c3aed; }
+
+    .card-head-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .item-count-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 8px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    /* 银行结算快照卡片布局 */
+    .bank-card-container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 12px;
+    }
+
+    .bank-card-main {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .bank-badge-icon {
+      width: 44px;
+      height: 44px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #2563eb;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .bank-card-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .bank-title-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bank-title-line .bank-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .bank-title-line .bank-type-tag {
+      font-size: 11px;
+      background: #e2e8f0;
+      color: #475569;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .bank-number-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px 0 6px;
+    }
+
+    .bank-card-digits {
+      font-family: monospace;
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 1.5px;
+    }
+
+    .bank-number-line .copy-btn {
+      color: #2563eb;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 0 6px;
+      height: 24px;
+      background: #eff6ff;
+      border-radius: 4px;
+    }
+
+    .bank-payee-line {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .bank-payee-line .payee-lbl {
+      color: #64748b;
+    }
+
+    .bank-payee-line .payee-name {
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .bank-card-side {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .bank-card-side.paid-state {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .side-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #059669;
+      margin-bottom: 6px;
+    }
+
+    .side-status-badge.pending {
+      color: #d97706;
+    }
+
+    .side-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 8px;
+      font-size: 11px;
+    }
+
+    .side-info-grid .side-item {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .side-info-grid .lbl {
+      color: #15803d;
+      white-space: nowrap;
+    }
+
+    .side-info-grid .val {
+      color: #14532d;
+      font-weight: 600;
+    }
+
+    .side-pending-desc {
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.5;
+    }
+
+    /* 终审批注引用框 */
+    .audit-quote-box {
+      display: flex;
+      align-items: center;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      width: 100%;
+    }
+
+    /* 发票合规警示框 */
+    .warning-alert-wrap {
+      margin-bottom: 12px;
+    }
+
+    .warning-alert-card {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+
+    .warning-alert-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #b45309;
+    }
+
+    .warning-alert-body {
+      padding-left: 20px;
+      margin-top: 4px;
+    }
+
+    .warning-item {
+      font-size: 12px;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .warning-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #d97706;
+    }
+
+    /* 费用明细表格优化 */
+    .clean-item-table .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #334155 !important;
+      padding: 7px 10px !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .clean-item-table .ant-table-tbody > tr > td {
+      padding: 7px 10px !important;
+      font-size: 12px !important;
+      border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    /* 展开的发票子项 */
+    .expanded-invoice-wrap {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 4px 0;
+    }
+
+    .expanded-invoice-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 0;
+      border-bottom: 1px dashed #e2e8f0;
+      font-size: 12px;
+    }
+
+    .expanded-invoice-item:last-child {
+      border-bottom: none;
+    }
+
+    /* 附件卡片双栏规范 */
+    .attachment-layout-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .att-column {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+
+    .att-column-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .att-col-count {
+      color: #94a3b8;
+      font-size: 11px;
+    }
+
+    .file-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-card-item {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+
+    .file-card-item:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
+    }
+
+    .file-card-item.success-border {
+      border-color: #86efac;
+      background: #f0fdf4;
+    }
+
+    .file-type-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .file-type-icon.blue {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .file-type-icon.green {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .file-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-card-info .file-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-card-info .file-meta {
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 1px;
+    }
+
+    .file-card-actions {
+      display: flex;
+      align-items: center;
+    }
+
+    .file-empty-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 18px 0;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    /* 审批流时间轴卡片 */
+    .custom-timeline-container {
+      padding: 8px 10px 0;
+    }
+
+    .timeline-dot-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .timeline-dot-circle.blue {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+    .timeline-dot-circle.green {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+
+    .timeline-dot-circle.gray {
+      background: #f1f5f9;
+      color: #94a3b8;
+      border: 1px solid #cbd5e1;
+    }
+
+    .timeline-content-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 2px;
+    }
+
+    .timeline-content-card.highlight-card {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .timeline-content-card.paid-card {
+      background: #f0fdfa;
+      border-color: #99f6e4;
+    }
+
+    .t-line-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .t-node-title {
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .t-operator {
+      font-weight: 500;
+      color: #475569;
+    }
+
+    .t-time {
+      font-family: monospace;
+      color: #94a3b8;
+      font-size: 11px;
+      margin-left: auto;
+    }
+
+    .t-line-note {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .t-line-comment {
+      font-size: 12px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .t-line-comment.success {
+      color: #047857;
+      font-weight: 500;
+    }
+
+    .t-line-comment.cyan {
+      color: #0f766e;
+      font-weight: 500;
+    }
+
+    /* 付款确认弹窗 (PayModal) 样式 */
+    .pay-voucher-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+
+    .voucher-amount-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+
+    .voucher-amount-header .v-amount-lbl {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .voucher-amount-header .v-amount-num {
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+      font-family: monospace;
+    }
+
+    .voucher-amount-header .v-currency {
+      font-size: 15px;
+      font-weight: 700;
+      color: #dc2626;
+    }
+
+    .voucher-amount-header .v-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: #dc2626;
+    }
+
+    .voucher-amount-header .v-unit {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+      margin-left: 2px;
+    }
+
+    .voucher-account-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .voucher-account-strip .v-account-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .voucher-account-strip .v-bank {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .voucher-account-strip .v-digits {
+      font-family: monospace;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: 1px;
+    }
+
+    .voucher-account-strip .v-copy-icon {
+      cursor: pointer;
+      color: #2563eb;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .voucher-account-strip .v-copy-icon:hover {
+      color: #1d4ed8;
+    }
+
+    .voucher-account-strip .v-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .voucher-account-strip .v-lbl {
+      color: #64748b;
+    }
+
+    .voucher-account-strip .v-name {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .voucher-account-strip .v-no {
+      font-family: monospace;
+      font-weight: 600;
+      color: #2563eb;
+    }
+
+    .voucher-account-strip .v-user {
+      color: #1e293b;
+      font-weight: 500;
+    }
+
+    .voucher-batch-list {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      background: #ffffff;
+      padding: 6px 10px;
+    }
+
+    .voucher-batch-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed #f1f5f9;
+      font-size: 12px;
+    }
+
+    .voucher-batch-item:last-child {
+      border-bottom: none;
+    }
+
+    /* 凭证上传模拟框 */
+    .upload-drag-box {
+      border: 1px dashed #cbd5e1;
+      border-radius: 6px;
+      background: #f9fafb;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upload-drag-box:hover {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .upload-drag-box .upload-icon {
+      font-size: 22px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    .upload-drag-box .upload-text {
+      font-size: 12px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .upload-drag-box .upload-tip {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .uploaded-file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+
+    iconify-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: -0.15em;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app"></div>
+
+  <script type="text/x-template" id="app-template">
+    <a-config-provider :theme="themeConfig">
+      <div class="pay-page-wrap">
+
+        <!-- 1. 顶部结构化多维过滤区 -->
+        <div class="filter-card">
+          <a-form layout="vertical" :model="queryForm">
+            <div class="filter-grid">
+              <!-- 关键字 -->
+              <a-form-item label="关键字" style="margin-bottom: 0;">
+                <a-input
+                  v-model:value="queryForm.keyword"
+                  placeholder="报销单号 / 事由说明"
+                  allow-clear
+                  @press-enter="handleSearch"
+                >
+                  <template #prefix>
+                    <iconify-icon icon="lucide:search" style="color: #9ca3af;"></iconify-icon>
+                  </template>
+                </a-input>
+              </a-form-item>
+
+              <!-- 报销人 -->
+              <a-form-item label="报销人" style="margin-bottom: 0;">
+                <a-select
+                  v-model:value="queryForm.userId"
+                  :options="userFilterOptions"
+                  placeholder="全部报销人"
+                  allow-clear
+                  show-search
+                  style="width: 100%;"
+                  @change="handleSearch"
+                />
+              </a-form-item>
+
+              <!-- 归属组织 -->
+              <a-form-item label="归属业务组织" style="margin-bottom: 0;">
+                <a-select
+                  v-model:value="queryForm.orgId"
+                  :options="orgFilterOptions"
+                  placeholder="全部组织"
+                  allow-clear
+                  style="width: 100%;"
+                  @change="handleSearch"
+                />
+              </a-form-item>
+
+              <!-- 付款日期范围 -->
+              <a-form-item label="付款日期" style="margin-bottom: 0;">
+                <a-range-picker
+                  v-model:value="queryForm.payTimeRange"
+                  value-format="YYYY-MM-DD"
+                  style="width: 100%;"
+                  @change="handleSearch"
+                />
+              </a-form-item>
+            </div>
+
+            <!-- 展开更多过滤 (金额起止) -->
+            <div v-show="filterExpanded" class="filter-grid" style="margin-top: 8px;">
+              <a-form-item label="报销金额范围 (RMB)" style="margin-bottom: 0; grid-column: span 2;">
+                <div class="amount-range-input">
+                  <a-input-number
+                    v-model:value="queryForm.totalAmountStart"
+                    placeholder="金额起 (¥)"
+                    :min="0"
+                    :precision="2"
+                    style="width: 50%;"
+                  />
+                  <span style="color: #9ca3af;">~</span>
+                  <a-input-number
+                    v-model:value="queryForm.totalAmountEnd"
+                    placeholder="金额止 (¥)"
+                    :min="0"
+                    :precision="2"
+                    style="width: 50%;"
+                  />
+                </div>
+              </a-form-item>
+
+              <a-form-item label="单据类型" style="margin-bottom: 0;">
+                <a-select
+                  v-model:value="queryForm.claimType"
+                  :options="[
+                    { label: '全部类型', value: null },
+                    { label: '日常报销', value: 0 },
+                    { label: '差旅报销', value: 1 }
+                  ]"
+                  placeholder="全部类型"
+                  allow-clear
+                  style="width: 100%;"
+                  @change="handleSearch"
+                />
+              </a-form-item>
+
+              <!-- 搜索操作按钮 -->
+              <div style="display: flex; align-items: flex-end; justify-content: flex-end; gap: 8px; margin-bottom: 0; padding-top: 24px;">
+                <a-button @click="handleReset">重置</a-button>
+                <a-button type="primary" @click="handleSearch">
+                  <template #icon><iconify-icon icon="lucide:search"></iconify-icon></template>
+                  查询
+                </a-button>
+                <a-button type="link" size="small" style="padding: 0 4px;" @click="filterExpanded = !filterExpanded">
+                  {{ filterExpanded ? '收起' : '展开' }}
+                  <iconify-icon :icon="filterExpanded ? 'lucide:chevron-up' : 'lucide:chevron-down'"></iconify-icon>
+                </a-button>
+              </div>
+            </div>
+
+            <!-- 收起状态下的快捷按钮 -->
+            <div v-show="!filterExpanded" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 6px;">
+              <a-button size="small" @click="handleReset">重置</a-button>
+              <a-button size="small" type="primary" @click="handleSearch">
+                <template #icon><iconify-icon icon="lucide:search"></iconify-icon></template>
+                查询
+              </a-button>
+              <a-button type="link" size="small" style="padding: 0 4px;" @click="filterExpanded = !filterExpanded">
+                展开高级筛选
+                <iconify-icon icon="lucide:chevron-down"></iconify-icon>
+              </a-button>
+            </div>
+          </a-form>
+        </div>
+
+        <!-- 2. 主体表格与操作栏 -->
+        <div class="table-container-card">
+
+          <!-- 顶部工具条：待付/已付页签 + 批量操作 -->
+          <div class="table-head-bar">
+            <!-- 左侧：Tabs 切换 -->
+            <a-tabs v-model:active-key="activeTab" class="pay-tabs" size="small" @change="handleTabChange">
+              <a-tab-pane key="pending">
+                <template #tab>
+                  <span style="font-weight: 500;">
+                    待付款
+                    <span class="tab-badge-count">{{ pendingList.length }}</span>
+                  </span>
+                </template>
+              </a-tab-pane>
+              <a-tab-pane key="paid">
+                <template #tab>
+                  <span style="font-weight: 500;">
+                    已付款
+                    <span class="tab-badge-count">{{ paidList.length }}</span>
+                  </span>
+                </template>
+              </a-tab-pane>
+            </a-tabs>
+
+            <!-- 中间：勾选状态提示条 -->
+            <div v-if="selectedRowKeys.length > 0" class="selection-tip-bar">
+              <iconify-icon icon="lucide:info" style="color: #2563eb; font-size: 14px;"></iconify-icon>
+              <span>已勾选 <b>{{ selectedRowKeys.length }}</b> 笔报销单，合计待付金额：</span>
+              <span style="font-weight: 700; color: #dc2626; font-family: monospace;">¥ {{ selectedTotalAmount.toFixed(2) }} RMB</span>
+              <a-button type="link" size="small" style="padding: 0; font-size: 11px; margin-left: 6px;" @click="clearSelection">取消勾选</a-button>
+            </div>
+
+            <!-- 右侧：批量动作按钮 -->
+            <a-space size="small">
+              <span style="font-size: 11px; color: #9ca3af; margin-right: 4px;">
+                💡 双击表格任意行或点击单号可查看详情
+              </span>
+
+              <!-- 待付款 Tab 下的批量付款 -->
+              <a-button
+                v-if="activeTab === 'pending'"
+                type="primary"
+                :disabled="selectedRowKeys.length === 0"
+                @click="openBatchPayModal"
+              >
+                <template #icon><iconify-icon icon="lucide:credit-card"></iconify-icon></template>
+                批量付款 {{ selectedRowKeys.length > 0 ? `(${selectedRowKeys.length})` : '' }}
+              </a-button>
+
+              <!-- 已付款 Tab 下的批量取消付款 -->
+              <a-button
+                v-if="activeTab === 'paid'"
+                danger
+                :disabled="selectedRowKeys.length === 0"
+                @click="handleBatchCancelPay"
+              >
+                <template #icon><iconify-icon icon="lucide:undo-2"></iconify-icon></template>
+                批量取消付款 {{ selectedRowKeys.length > 0 ? `(${selectedRowKeys.length})` : '' }}
+              </a-button>
+
+              <a-tooltip title="刷新列表数据">
+                <a-button @click="refreshList">
+                  <template #icon><iconify-icon icon="lucide:refresh-cw"></iconify-icon></template>
+                </a-button>
+              </a-tooltip>
+            </a-space>
+          </div>
+
+          <!-- 数据表格 -->
+          <a-table
+            class="pay-table"
+            :columns="currentColumns"
+            :data-source="filteredList"
+            row-key="id"
+            size="small"
+            bordered
+            :pagination="paginationConfig"
+            :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+            :custom-row="customRowEvents"
+            :customRow="customRowEvents"
+            :scroll="{ x: 1400, y: 'calc(100vh - 360px)' }"
+          >
+            <template #bodyCell="{ column, record }">
+              
+              <!-- 报销单号 -->
+              <template v-if="column.key === 'claimNo'">
+                <a class="claim-no-cell" @click.stop="openDetailDrawer(record)">
+                  <iconify-icon icon="lucide:file-text" style="font-size: 13px;"></iconify-icon>
+                  <span>{{ record.claimNo }}</span>
+                </a>
+              </template>
+
+              <!-- 状态 -->
+              <template v-else-if="column.key === 'status'">
+                <a-tag :color="record.status === 4 ? 'cyan' : 'green'" style="margin: 0; font-weight: 500;">
+                  {{ record.status === 4 ? '已付款' : '审核通过' }}
+                </a-tag>
+              </template>
+
+              <!-- 单据类型 -->
+              <template v-else-if="column.key === 'claimType'">
+                <a-tag :color="record.claimType === 1 ? 'purple' : 'blue'" size="small">
+                  {{ record.claimType === 1 ? '差旅报销' : '日常报销' }}
+                </a-tag>
+              </template>
+
+              <!-- 报销人 -->
+              <template v-else-if="column.key === 'user'">
+                <div style="font-weight: 500;">{{ record.user?.nickName || '-' }}</div>
+                <div style="font-size: 11px; color: #9ca3af;">{{ getPrimaryOrg(record) }}</div>
+              </template>
+
+              <!-- 报销合计 -->
+              <template v-else-if="column.key === 'totalAmount'">
+                <div class="amount-cell">
+                  ¥ {{ Number(record.totalAmount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </div>
+              </template>
+
+              <!-- 收款户名 -->
+              <template v-else-if="column.key === 'payeeAccountName'">
+                <span>{{ record.payeeAccountName || '-' }}</span>
+              </template>
+
+              <!-- 收款开户行 -->
+              <template v-else-if="column.key === 'payeeBankName'">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <iconify-icon icon="lucide:building-2" style="color: #6b7280; font-size: 13px;"></iconify-icon>
+                  <span>{{ record.payeeBankName || '-' }}</span>
+                </div>
+              </template>
+
+              <!-- 收款账号 -->
+              <template v-else-if="column.key === 'payeeBankAccount'">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="bank-account-text">{{ formatBankAccount(record.payeeBankAccount) }}</span>
+                  <a-tooltip title="复制收款账号">
+                    <iconify-icon
+                      icon="lucide:copy"
+                      style="cursor: pointer; color: #9ca3af; font-size: 13px;"
+                      @click.stop="copyText(record.payeeBankAccount, '收款账号已复制')"
+                    ></iconify-icon>
+                  </a-tooltip>
+                </div>
+              </template>
+
+              <!-- 终审时间 -->
+              <template v-else-if="column.key === 'auditTime'">
+                <span style="font-family: monospace; color: #4b5563;">{{ formatDateTime(record.auditTime) }}</span>
+              </template>
+
+              <!-- 已付款专属列：付款日期 -->
+              <template v-else-if="column.key === 'payTime'">
+                <span style="font-family: monospace; color: #059669; font-weight: 500;">{{ formatDate(record.payTime) }}</span>
+              </template>
+
+              <!-- 已付款专属列：付款方式 -->
+              <template v-else-if="column.key === 'payMethod'">
+                <a-tag color="blue" size="small">{{ getPayMethodLabel(record.payMethod) }}</a-tag>
+              </template>
+
+              <!-- 已付款专属列：付款人 -->
+              <template v-else-if="column.key === 'payUserName'">
+                <span>{{ record.payUserName || '-' }}</span>
+              </template>
+
+              <!-- 已付款专属列：付款备注 -->
+              <template v-else-if="column.key === 'payRemark'">
+                <span :title="record.payRemark" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                  {{ record.payRemark || '-' }}
+                </span>
+              </template>
+
+              <!-- 操作列 -->
+              <template v-else-if="column.key === 'operation'">
+                <a-space size="small">
+                  <!-- 待付款状态：付款与驳回 -->
+                  <template v-if="record.status === 3">
+                    <a-button type="link" size="small" style="padding: 0; font-weight: 500;" @click.stop="openSinglePayModal(record)">
+                      <iconify-icon icon="lucide:credit-card" style="margin-right: 2px;"></iconify-icon>
+                      付款
+                    </a-button>
+                    <a-divider type="vertical" />
+                    <a-button type="link" danger size="small" style="padding: 0;" @click.stop="openRejectModal(record)">
+                      驳回
+                    </a-button>
+                  </template>
+
+                  <!-- 已付款状态：查看 -->
+                  <template v-else>
+                    <a-button type="link" size="small" style="padding: 0;" @click.stop="openDetailDrawer(record)">
+                      查看详情
+                    </a-button>
+                  </template>
+                </a-space>
+              </template>
+
+            </template>
+          </a-table>
+        </div>
+
+        <!-- 3. 【双击列表弹出的报销详情】详情抽屉 (Drawer 1180px) -->
+        <a-drawer
+          v-model:open="detailDrawerOpen"
+          :width="1180"
+          :destroy-on-close="true"
+          :header-style="{ padding: '12px 20px', borderBottom: '1px solid #e5e7eb' }"
+          :body-style="{ padding: '16px 20px', background: '#f8fafc' }"
+        >
+          <!-- 抽屉顶部自定义标题栏 -->
+          <template #title>
+            <div class="drawer-header-bar">
+              <div class="drawer-title-group">
+                <iconify-icon icon="lucide:receipt" style="color: #2563eb; font-size: 18px;"></iconify-icon>
+                <span class="drawer-title-no">报销单详情 · {{ activeDetail?.claimNo }}</span>
+                <a-tag :color="activeDetail?.status === 4 ? 'cyan' : 'green'" style="margin: 0; font-weight: 600;">
+                  {{ activeDetail?.status === 4 ? '已付款' : '审核通过 · 待付款' }}
+                </a-tag>
+                <a-tag :color="activeDetail?.claimType === 1 ? 'purple' : 'blue'" size="small">
+                  {{ activeDetail?.claimType === 1 ? '差旅报销流程' : '日常报销流程' }}
+                </a-tag>
+              </div>
+
+              <!-- 抽屉顶部快捷操作 (如果是待付款单据，支持直接付款或驳回) -->
+              <a-space size="middle" v-if="activeDetail && activeDetail.status === 3">
+                <a-button danger size="small" @click="openRejectModal(activeDetail)">
+                  <template #icon><iconify-icon icon="lucide:x-circle"></iconify-icon></template>
+                  审核后驳回
+                </a-button>
+                <a-button type="primary" size="small" @click="openSinglePayModal(activeDetail)">
+                  <template #icon><iconify-icon icon="lucide:credit-card"></iconify-icon></template>
+                  立即标记付款
+                </a-button>
+              </a-space>
+            </div>
+          </template>
+
+          <template v-if="activeDetail">
+            
+            <!-- 1. 顶部核心财务指标看板横幅 -->
+            <div class="drawer-summary-hero">
+              <div class="summary-hero-item hero-amount">
+                <div class="hero-label">报销应付总额 (本位币)</div>
+                <div class="hero-val-amount">
+                  <span class="currency-symbol">¥</span>
+                  <span class="amount-num">{{ Number(activeDetail.totalAmount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                  <span class="currency-code">{{ activeDetail.localCurrencyCode || 'RMB' }}</span>
+                </div>
+              </div>
+
+              <div class="summary-hero-divider"></div>
+
+              <div class="summary-hero-item" style="min-width: 170px;">
+                <div class="hero-label">报销申请人</div>
+                <div class="hero-user-val">
+                  <span class="user-name">{{ activeDetail.user?.nickName || '-' }}</span>
+                  <span class="user-dept">{{ getPrimaryOrg(activeDetail) }}</span>
+                </div>
+              </div>
+
+              <div class="summary-hero-divider"></div>
+
+              <div class="summary-hero-item">
+                <div class="hero-label">申请提交时间</div>
+                <div class="hero-time-val">{{ formatDateTime(activeDetail.submitTime) }}</div>
+              </div>
+
+              <div class="summary-hero-divider"></div>
+
+              <div class="summary-hero-item">
+                <div class="hero-label">终审责任人与时间</div>
+                <div class="hero-user-val">
+                  <span class="user-name">{{ activeDetail.auditUserName || '-' }}</span>
+                  <span class="hero-time-val">{{ formatDateTime(activeDetail.auditTime) }}</span>
+                </div>
+              </div>
+
+              <div class="summary-hero-divider"></div>
+
+              <div class="summary-hero-item" style="text-align: right;">
+                <div class="hero-label">当前流转状态</div>
+                <div style="margin-top: 2px;">
+                  <a-tag :color="activeDetail.status === 4 ? 'cyan' : 'green'" style="margin: 0; font-weight: 600;">
+                    {{ activeDetail.status === 4 ? '已付款打款' : '审核通过 · 待出纳付款' }}
+                  </a-tag>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. 指定收款银行账户与结算快照 -->
+            <div class="detail-card">
+              <div class="detail-card-head">
+                <div class="card-head-title">
+                  <iconify-icon icon="lucide:landmark" class="head-icon text-blue"></iconify-icon>
+                  <span>收款银行账户与结算事实快照</span>
+                  <span class="card-head-badge">提交时账户存根 · 不可篡改</span>
+                </div>
+                <div class="card-head-extra">
+                  <a-tag color="success" style="margin: 0; font-weight: 500;">
+                    <template #icon><iconify-icon icon="lucide:shield-check"></iconify-icon></template>
+                    银联原路打款入账
+                  </a-tag>
+                </div>
+              </div>
+
+              <div class="bank-card-container">
+                <!-- 左主卡：持卡人与开户行卡号 -->
+                <div class="bank-card-main">
+                  <div class="bank-badge-icon">
+                    <iconify-icon icon="lucide:credit-card"></iconify-icon>
+                  </div>
+                  <div class="bank-card-content">
+                    <div class="bank-title-line">
+                      <span class="bank-name">{{ activeDetail.payeeBankName || '未指定开户行' }}</span>
+                      <span class="bank-type-tag">借记卡 / 个人结算账户</span>
+                    </div>
+                    <div class="bank-number-line">
+                      <span class="bank-card-digits">{{ formatBankAccount(activeDetail.payeeBankAccount) }}</span>
+                      <a-tooltip title="复制收款卡号">
+                        <a-button type="text" size="small" class="copy-btn" @click="copyText(activeDetail.payeeBankAccount, '收款卡号已复制')">
+                          <iconify-icon icon="lucide:copy"></iconify-icon>
+                          <span>复制</span>
+                        </a-button>
+                      </a-tooltip>
+                    </div>
+                    <div class="bank-payee-line">
+                      <span class="payee-lbl">收款法定户名：</span>
+                      <span class="payee-name">{{ activeDetail.payeeAccountName || activeDetail.user?.nickName || '-' }}</span>
+                      <a-tag color="blue" size="small" style="margin-left: 8px;">实名匹配一致</a-tag>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 右侧：付款经办事实快照 (已付则展示打款事实，待付则展示提示) -->
+                <div class="bank-card-side" :class="{ 'paid-state': activeDetail.status === 4 || activeDetail.payTime }">
+                  <template v-if="activeDetail.status === 4 || activeDetail.payTime">
+                    <div class="side-status-badge">
+                      <iconify-icon icon="lucide:check-circle-2" style="color: #059669; font-size: 15px;"></iconify-icon>
+                      <span>款项已结算汇出</span>
+                    </div>
+                    <div class="side-info-grid">
+                      <div class="side-item"><span class="lbl">付款日期：</span><span class="val">{{ formatDate(activeDetail.payTime) }}</span></div>
+                      <div class="side-item"><span class="lbl">付款方式：</span><span class="val">{{ getPayMethodLabel(activeDetail.payMethod) }}</span></div>
+                      <div class="side-item"><span class="lbl">出纳经办：</span><span class="val">{{ activeDetail.payUserName || '财务管理员' }}</span></div>
+                      <div class="side-item" style="grid-column: span 2;"><span class="lbl">打款备注：</span><span class="val">{{ activeDetail.payRemark || '网银转账成功，流水已对账' }}</span></div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="side-status-badge pending">
+                      <iconify-icon icon="lucide:clock" style="color: #d97706; font-size: 15px;"></iconify-icon>
+                      <span>等待出纳标记付款</span>
+                    </div>
+                    <div class="side-pending-desc">
+                      单据审批已终审归档。请财务出纳使用企业网银按左侧账户完成转账，并点击右上角【立即标记付款】登记付款事实并挂载电子回单。
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. 发票合规警示 (若有) -->
+            <div v-if="activeDetail.warnings && activeDetail.warnings.length > 0" class="warning-alert-wrap">
+              <div class="warning-alert-card">
+                <div class="warning-alert-head">
+                  <iconify-icon icon="lucide:alert-triangle" class="warning-icon"></iconify-icon>
+                  <span>发票与合规校验提示 (共 {{ activeDetail.warnings.length }} 项，仅合规提示不阻断付款)</span>
+                </div>
+                <div class="warning-alert-body">
+                  <div v-for="(w, idx) in activeDetail.warnings" :key="idx" class="warning-item">
+                    <span class="warning-dot"></span>
+                    <span>{{ w.message }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. 单据事由与业务详情 -->
+            <div class="detail-card">
+              <div class="detail-card-head">
+                <div class="card-head-title">
+                  <iconify-icon icon="lucide:file-text" class="head-icon text-indigo"></iconify-icon>
+                  <span>单据事由与业务详情</span>
+                </div>
+                <div class="card-head-extra">
+                  <span style="font-size: 12px; color: #64748b;">单据编号：</span>
+                  <span style="font-family: monospace; font-weight: 600; color: #1e293b;">{{ activeDetail.claimNo }}</span>
+                </div>
+              </div>
+
+              <a-descriptions bordered size="small" :column="4">
+                <a-descriptions-item label="单据类型">
+                  <a-tag :color="activeDetail.claimType === 1 ? 'purple' : 'blue'" size="small">
+                    {{ activeDetail.claimType === 1 ? '差旅报销流程' : '日常报销流程' }}
+                  </a-tag>
+                </a-descriptions-item>
+                <a-descriptions-item label="单据状态">
+                  <a-tag :color="activeDetail.status === 4 ? 'cyan' : 'green'" size="small">
+                    {{ activeDetail.status === 4 ? '已付款' : '审核通过 · 待付款' }}
+                  </a-tag>
+                </a-descriptions-item>
+                <a-descriptions-item label="归属业务组织" :span="2">
+                  {{ getOrgFullNames(activeDetail) }}
+                </a-descriptions-item>
+
+                <!-- 差旅专项字段 -->
+                <template v-if="activeDetail.claimType === 1">
+                  <a-descriptions-item label="出差地点">
+                    <span style="color: #2563eb; font-weight: 500;">{{ activeDetail.tripPlace || '-' }}</span>
+                  </a-descriptions-item>
+                  <a-descriptions-item label="出差起止日期" :span="3">
+                    <span style="font-family: monospace;">
+                      {{ formatDate(activeDetail.tripStartDate) }} ~ {{ formatDate(activeDetail.tripEndDate) }}
+                    </span>
+                  </a-descriptions-item>
+                </template>
+
+                <a-descriptions-item label="报销核心事由" :span="4">
+                  <div style="font-size: 13px; font-weight: 500; color: #1e293b; line-height: 1.5;">
+                    {{ activeDetail.reason || '-' }}
+                  </div>
+                </a-descriptions-item>
+
+                <a-descriptions-item label="补充说明备注" :span="4">
+                  <span style="color: #64748b;">{{ activeDetail.remark || '无补充说明' }}</span>
+                </a-descriptions-item>
+
+                <a-descriptions-item label="终审责任人">
+                  {{ activeDetail.auditUserName || '-' }}
+                </a-descriptions-item>
+                <a-descriptions-item label="终审归档时间">
+                  <span style="font-family: monospace;">{{ formatDateTime(activeDetail.auditTime) }}</span>
+                </a-descriptions-item>
+                <a-descriptions-item label="终审批注意见" :span="2">
+                  <div class="audit-quote-box">
+                    <iconify-icon icon="lucide:message-square-check" style="color: #059669; font-size: 14px; margin-right: 6px;"></iconify-icon>
+                    <span style="font-weight: 600; color: #047857;">{{ activeDetail.auditUserName }}：</span>
+                    <span style="color: #065f46;">{{ activeDetail.auditRemark || '审批通过' }}</span>
+                  </div>
+                </a-descriptions-item>
+              </a-descriptions>
+            </div>
+
+            <!-- 5. 费用明细行清单 (自适应铺满，去除滚动条) -->
+            <div class="detail-card">
+              <div class="detail-card-head">
+                <div class="card-head-title">
+                  <iconify-icon icon="lucide:list-ordered" class="head-icon text-blue"></iconify-icon>
+                  <span>费用明细行清单</span>
+                  <span class="item-count-badge">共 {{ (activeDetail.items || []).length }} 笔明细</span>
+                </div>
+                <div class="card-head-extra">
+                  <span style="font-size: 12px; color: #64748b;">明细合计应付：</span>
+                  <span style="font-size: 14px; font-weight: 700; color: #dc2626; font-family: monospace;">
+                    ¥ {{ Number(activeDetail.totalAmount).toFixed(2) }} RMB
+                  </span>
+                </div>
+              </div>
+
+              <a-table
+                class="clean-item-table"
+                :columns="drawerItemColumns"
+                :data-source="activeDetail.items || []"
+                :pagination="false"
+                bordered
+                size="small"
+                row-key="id"
+                :expanded-row-keys="expandedDrawerItemKeys"
+                :show-expand-column="false"
+              >
+                <template #bodyCell="{ column, record, index }">
+                  <!-- 序号 -->
+                  <template v-if="column.key === 'index'">
+                    <span style="color: #9ca3af; font-weight: 600;">{{ index + 1 }}</span>
+                  </template>
+
+                  <!-- 报销类型 -->
+                  <template v-else-if="column.key === 'type'">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <iconify-icon :icon="getItemIcon(record)" style="color: #4b5563; font-size: 14px;"></iconify-icon>
+                      <span style="font-weight: 500;">{{ record.expenseType?.name }}</span>
+                      <a-tag size="small" color="blue">{{ getCategoryLabel(record.expenseType?.category) }}</a-tag>
+                    </div>
+                  </template>
+
+                  <!-- 发生日期 -->
+                  <template v-else-if="column.key === 'occurDate'">
+                    <span style="font-family: monospace;">{{ formatDate(record.occurDate) }}</span>
+                  </template>
+
+                  <!-- 原币金额 -->
+                  <template v-else-if="column.key === 'amount'">
+                    <span style="font-weight: 600; font-family: monospace;">
+                      {{ Number(record.amount).toFixed(2) }}
+                    </span>
+                    <span style="font-size: 11px; color: #9ca3af; margin-left: 3px;">{{ record.currency?.code }}</span>
+                  </template>
+
+                  <!-- 汇率 -->
+                  <template v-else-if="column.key === 'rate'">
+                    <span style="font-family: monospace; color: #6b7280;">{{ Number(record.rate).toFixed(4) }}</span>
+                  </template>
+
+                  <!-- 本位币金额 -->
+                  <template v-else-if="column.key === 'localAmount'">
+                    <span style="font-weight: 700; color: #dc2626; font-family: monospace;">
+                      ¥ {{ Number(record.localAmount).toFixed(2) }}
+                    </span>
+                  </template>
+
+                  <!-- 发票 -->
+                  <template v-else-if="column.key === 'invoices'">
+                    <template v-if="record.invoices && record.invoices.length > 0">
+                      <a-button
+                        type="link"
+                        size="small"
+                        style="padding: 0; font-size: 12px;"
+                        @click="toggleDrawerInvoices(record.id)"
+                      >
+                        <iconify-icon :icon="expandedDrawerItemKeys.includes(record.id) ? 'lucide:chevron-up' : 'lucide:file-check'" style="margin-right: 3px;"></iconify-icon>
+                        发票 {{ record.invoices.length }} 张 · {{ expandedDrawerItemKeys.includes(record.id) ? '收起' : '查看' }}
+                      </a-button>
+                    </template>
+                    <template v-else>
+                      <span style="color: #9ca3af; font-size: 12px;">无发票</span>
+                    </template>
+                  </template>
+
+                  <!-- 明细专项说明 -->
+                  <template v-else-if="column.key === 'extra'">
+                    <span style="font-size: 12px; color: #4b5563;">{{ getExtraText(record) || '-' }}</span>
+                  </template>
+
+                  <!-- 说明/无票说明 -->
+                  <template v-else-if="column.key === 'description'">
+                    <div v-if="record.description" :title="record.description" style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      {{ record.description }}
+                    </div>
+                    <div v-if="record.noInvoiceReason" style="font-size: 11px; color: #d97706;" :title="record.noInvoiceReason">
+                      无票：{{ record.noInvoiceReason }}
+                    </div>
+                    <span v-if="!record.description && !record.noInvoiceReason" style="color: #9ca3af;">-</span>
+                  </template>
+                </template>
+
+                <!-- 发票子表格展开行 -->
+                <template #expandedRowRender="{ record }">
+                  <div class="expanded-invoice-wrap">
+                    <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                      关联发票清单 ({{ record.invoices.length }} 张)：
+                    </div>
+                    <div v-for="(inv, invIdx) in record.invoices" :key="invIdx" class="expanded-invoice-item">
+                      <span style="color: #9ca3af; font-weight: 600;">{{ invIdx + 1 }}.</span>
+                      <a-tag :color="inv.source === 2 ? 'orange' : 'blue'" size="small">
+                        {{ inv.source === 2 ? '手工录入' : '进项采集' }}
+                      </a-tag>
+                      <span style="font-weight: 500;">{{ getInvoiceKindLabel(inv.invoiceKind) }}</span>
+                      <span style="font-family: monospace;">号码：{{ inv.invoiceNo || '-' }}</span>
+                      <span style="color: #4b5563;">销方：{{ inv.sellerHeader || '-' }}</span>
+                      <span style="font-weight: 700; color: #dc2626; margin-left: auto; font-family: monospace;">
+                        ¥ {{ Number(inv.amount).toFixed(2) }}
+                      </span>
+                      <a-button type="link" size="small" style="padding: 0;" @click="openAttachmentPreview(inv.attachment)">
+                        查看票面
+                      </a-button>
+                    </div>
+                  </div>
+                </template>
+              </a-table>
+            </div>
+
+            <!-- 6. 单据附件与回单凭据 (卡片化双栏规范) -->
+            <div class="detail-card">
+              <div class="detail-card-head">
+                <div class="card-head-title">
+                  <iconify-icon icon="lucide:paperclip" class="head-icon text-amber"></iconify-icon>
+                  <span>单据附件与打款凭证存根</span>
+                  <span class="item-count-badge">
+                    共 {{ (activeDetail.attachments || []).length + (activeDetail.payReceipts || []).length }} 份凭证
+                  </span>
+                </div>
+              </div>
+
+              <div class="attachment-layout-grid">
+                <!-- 员工报销申请附件 -->
+                <div class="att-column">
+                  <div class="att-column-header">
+                    <iconify-icon icon="lucide:file-text" style="color: #2563eb;"></iconify-icon>
+                    <span class="att-col-title">员工报销申请附件</span>
+                    <span class="att-col-count">({{ (activeDetail.attachments || []).length }})</span>
+                  </div>
+
+                  <div v-if="(activeDetail.attachments || []).length > 0" class="file-cards-list">
+                    <div
+                      v-for="att in activeDetail.attachments"
+                      :key="att.id"
+                      class="file-card-item"
+                    >
+                      <div class="file-type-icon blue">
+                        <iconify-icon icon="lucide:image"></iconify-icon>
+                      </div>
+                      <div class="file-card-info">
+                        <div class="file-name" :title="att.friendlyFileName || att.fileName">
+                          {{ att.friendlyFileName || att.fileName }}
+                        </div>
+                        <div class="file-meta">
+                          <span>{{ formatFileSize(att.fileLength) }}</span>
+                          <span>·</span>
+                          <span>{{ att.creatorUserName || '申请人' }}</span>
+                        </div>
+                      </div>
+                      <div class="file-card-actions">
+                        <a-button type="link" size="small" @click="openAttachmentPreview(att)">
+                          <iconify-icon icon="lucide:eye"></iconify-icon>
+                          <span style="margin-left: 2px;">预览</span>
+                        </a-button>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="file-empty-box">
+                    <iconify-icon icon="lucide:folder-closed" style="font-size: 20px; color: #cbd5e1;"></iconify-icon>
+                    <span>未上传单据申请附件</span>
+                  </div>
+                </div>
+
+                <!-- 财务付款回单凭据 -->
+                <div class="att-column">
+                  <div class="att-column-header">
+                    <iconify-icon icon="lucide:receipt" style="color: #059669;"></iconify-icon>
+                    <span class="att-col-title">财务付款回单凭证</span>
+                    <span class="att-col-count">({{ (activeDetail.payReceipts || []).length }})</span>
+                  </div>
+
+                  <div v-if="(activeDetail.payReceipts || []).length > 0" class="file-cards-list">
+                    <div
+                      v-for="rcp in activeDetail.payReceipts"
+                      :key="rcp.id"
+                      class="file-card-item success-border"
+                    >
+                      <div class="file-type-icon green">
+                        <iconify-icon icon="lucide:check-circle-2"></iconify-icon>
+                      </div>
+                      <div class="file-card-info">
+                        <div class="file-name" :title="rcp.friendlyFileName || rcp.fileName">
+                          {{ rcp.friendlyFileName || rcp.fileName }}
+                        </div>
+                        <div class="file-meta">
+                          <span>{{ formatFileSize(rcp.fileLength) }}</span>
+                          <span>·</span>
+                          <span style="color: #059669;">财务对账凭据</span>
+                        </div>
+                      </div>
+                      <div class="file-card-actions">
+                        <a-button type="link" size="small" @click="openAttachmentPreview(rcp)">
+                          <iconify-icon icon="lucide:eye"></iconify-icon>
+                          <span style="margin-left: 2px;">预览</span>
+                        </a-button>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="file-empty-box">
+                    <iconify-icon icon="lucide:file-clock" style="font-size: 20px; color: #cbd5e1;"></iconify-icon>
+                    <span>待标记付款后归档网银电子回单</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7. 审批流时间轴 (多轮次全量追踪) -->
+            <div class="detail-card">
+              <div class="detail-card-head">
+                <div class="card-head-title">
+                  <iconify-icon icon="lucide:git-commit" class="head-icon text-purple"></iconify-icon>
+                  <span>多轮次审批流转履历</span>
+                  <span class="item-count-badge">第 {{ activeDetail.currentRound?.round || 1 }} 轮 · 终审通过</span>
+                </div>
+              </div>
+
+              <div class="custom-timeline-container">
+                <a-timeline>
+                  <!-- 提交节点 -->
+                  <a-timeline-item color="blue">
+                    <template #dot>
+                      <div class="timeline-dot-circle blue">
+                        <iconify-icon icon="lucide:send"></iconify-icon>
+                      </div>
+                    </template>
+                    <div class="timeline-content-card">
+                      <div class="t-line-top">
+                        <span class="t-node-title">提交报销申请</span>
+                        <span class="t-operator">{{ activeDetail.user?.nickName }}</span>
+                        <a-tag color="blue" size="small">流程发起</a-tag>
+                        <span class="t-time">{{ formatDateTime(activeDetail.submitTime) }}</span>
+                      </div>
+                      <div class="t-line-note">
+                        事由：{{ activeDetail.reason }}
+                      </div>
+                    </div>
+                  </a-timeline-item>
+
+                  <!-- 一级审核 -->
+                  <a-timeline-item color="green">
+                    <template #dot>
+                      <div class="timeline-dot-circle green">
+                        <iconify-icon icon="lucide:check"></iconify-icon>
+                      </div>
+                    </template>
+                    <div class="timeline-content-card">
+                      <div class="t-line-top">
+                        <span class="t-node-title">第 1 级审批 · 部门初审</span>
+                        <span class="t-operator">WF332报销审核</span>
+                        <a-tag color="success" size="small">审核通过</a-tag>
+                        <span class="t-time">2026-10-18 11:39:27</span>
+                      </div>
+                      <div class="t-line-comment">
+                        <iconify-icon icon="lucide:corner-down-right" style="color: #64748b;"></iconify-icon>
+                        <span>审批意见：WF332返修2一级通过供财务首开复验</span>
+                      </div>
+                    </div>
+                  </a-timeline-item>
+
+                  <!-- 二级终审通过 -->
+                  <a-timeline-item color="green">
+                    <template #dot>
+                      <div class="timeline-dot-circle green">
+                        <iconify-icon icon="lucide:shield-check"></iconify-icon>
+                      </div>
+                    </template>
+                    <div class="timeline-content-card highlight-card">
+                      <div class="t-line-top">
+                        <span class="t-node-title">第 2 级审批 · 财务终审</span>
+                        <span class="t-operator">{{ activeDetail.auditUserName }}</span>
+                        <a-tag color="success" size="small">终审归档</a-tag>
+                        <span class="t-time">{{ formatDateTime(activeDetail.auditTime) }}</span>
+                      </div>
+                      <div class="t-line-comment success">
+                        <iconify-icon icon="lucide:corner-down-right" style="color: #059669;"></iconify-icon>
+                        <span>终审批注：{{ activeDetail.auditRemark || 'WF332真实长ID账号终审通过' }}</span>
+                      </div>
+                    </div>
+                  </a-timeline-item>
+
+                  <!-- 款项结算状态节点 -->
+                  <a-timeline-item :color="activeDetail.status === 4 ? 'green' : 'gray'">
+                    <template #dot>
+                      <div class="timeline-dot-circle" :class="activeDetail.status === 4 ? 'green' : 'gray'">
+                        <iconify-icon :icon="activeDetail.status === 4 ? 'lucide:badge-check' : 'lucide:clock'"></iconify-icon>
+                      </div>
+                    </template>
+                    <div class="timeline-content-card" :class="{ 'paid-card': activeDetail.status === 4 }">
+                      <div class="t-line-top">
+                        <span class="t-node-title">资金结算与打款</span>
+                        <span class="t-operator">{{ activeDetail.payUserName || '财务出纳' }}</span>
+                        <a-tag :color="activeDetail.status === 4 ? 'cyan' : 'default'" size="small">
+                          {{ activeDetail.status === 4 ? '已打款支付' : '待出纳标记付款' }}
+                        </a-tag>
+                        <span v-if="activeDetail.payTime" class="t-time">{{ formatDate(activeDetail.payTime) }}</span>
+                      </div>
+                      <div v-if="activeDetail.status === 4" class="t-line-comment cyan">
+                        <span>经办批注：{{ activeDetail.payRemark || '网银转账支付完成' }}</span>
+                      </div>
+                      <div v-else class="t-line-note" style="color: #94a3b8;">
+                        等待财务出纳在待付款列表或本抽屉点击【立即标记付款】完成资金结算事实归档。
+                      </div>
+                    </div>
+                  </a-timeline-item>
+                </a-timeline>
+              </div>
+            </div>
+
+          </template>
+        </a-drawer>
+
+        <!-- 4. 【点击付款弹窗】付款经办与确认弹窗 (PayModal) -->
+        <a-modal
+          v-model:open="payModalOpen"
+          :title="payModalTitle"
+          width="700px"
+          destroy-on-close
+          :confirm-loading="paySubmitting"
+          ok-text="确认标记付款"
+          cancel-text="取消"
+          @ok="handleConfirmPay"
+        >
+          <!-- 顶部醒目说明 -->
+          <a-alert
+            type="info"
+            show-icon
+            message="只记录付款状态，不发起银行转账"
+            description="请确保财务网银或对公账户已完成实际资金打款转账，本系统仅登记付款经办事实并归档回单凭据。"
+            style="margin-bottom: 14px; border-radius: 6px;"
+          ></a-alert>
+
+          <!-- A. 付款凭据核对卡片：单笔模式 -->
+          <div v-if="!isBatchPay && payTargetSingle" class="pay-voucher-card">
+            <div class="voucher-amount-header">
+              <div class="v-amount-lbl">本次拟登记付款金额 (本位币)</div>
+              <div class="v-amount-num">
+                <span class="v-currency">¥</span>
+                <span class="v-val">{{ Number(payTargetSingle.totalAmount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                <span class="v-unit">{{ payTargetSingle.localCurrencyCode || 'RMB' }}</span>
+              </div>
+            </div>
+
+            <div class="voucher-account-strip">
+              <div class="v-account-row">
+                <span class="v-lbl">收款账户：</span>
+                <span class="v-bank">{{ payTargetSingle.payeeBankName }}</span>
+                <span class="v-digits">{{ formatBankAccount(payTargetSingle.payeeBankAccount) }}</span>
+                <a-tooltip title="复制收款卡号">
+                  <iconify-icon
+                    icon="lucide:copy"
+                    class="v-copy-icon"
+                    @click="copyText(payTargetSingle.payeeBankAccount, '收款卡号已复制')"
+                  ></iconify-icon>
+                </a-tooltip>
+              </div>
+              <div class="v-meta-row">
+                <span class="v-lbl">收款户名：</span>
+                <span class="v-name">{{ payTargetSingle.payeeAccountName }}</span>
+                <a-tag color="blue" size="small" style="margin-left: 6px;">实名匹配</a-tag>
+                <span class="v-lbl" style="margin-left: 20px;">报销单号：</span>
+                <span class="v-no">{{ payTargetSingle.claimNo }}</span>
+                <span class="v-lbl" style="margin-left: 14px;">申请人：</span>
+                <span class="v-user">{{ payTargetSingle.user?.nickName }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- B. 付款凭据核对卡片：批量模式 -->
+          <div v-if="isBatchPay" class="pay-voucher-card">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+              <span style="font-size: 13px; font-weight: 700; color: #1e293b;">
+                批量付款单据清单 (共 {{ payTargetBatch.length }} 笔)：
+              </span>
+              <span style="font-size: 14px; font-weight: 700; color: #dc2626; font-family: monospace;">
+                应付合计：¥ {{ batchTotalAmount.toFixed(2) }} RMB
+              </span>
+            </div>
+
+            <!-- 可滚动的批量单据清单 -->
+            <div class="voucher-batch-list">
+              <div v-for="item in payTargetBatch" :key="item.id" class="voucher-batch-item">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: monospace; font-weight: 600; color: #2563eb;">{{ item.claimNo }}</span>
+                  <span style="color: #4b5563;">{{ item.user?.nickName }}</span>
+                  <span style="color: #94a3b8; font-size: 11px;">
+                    ({{ item.payeeBankName }} · {{ maskBankCard(item.payeeBankAccount) }})
+                  </span>
+                </div>
+                <div style="font-weight: 700; color: #dc2626; font-family: monospace;">
+                  ¥ {{ Number(item.totalAmount).toFixed(2) }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- C. 付款经办表单 -->
+          <a-form layout="vertical" :model="payForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <a-form-item label="付款日期" help="不填默认今天" required style="margin-bottom: 8px;">
+                <a-date-picker
+                  v-model:value="payForm.payTime"
+                  value-format="YYYY-MM-DD"
+                  style="width: 100%;"
+                />
+              </a-form-item>
+
+              <a-form-item label="付款方式" required style="margin-bottom: 8px;">
+                <a-select
+                  v-model:value="payForm.payMethod"
+                  :options="[
+                    { label: '银行转账 (网银/对公)', value: 0 },
+                    { label: '现金支付', value: 1 },
+                    { label: '其他方式 (支票/承兑)', value: 2 }
+                  ]"
+                  style="width: 100%;"
+                />
+              </a-form-item>
+            </div>
+
+            <a-form-item label="付款备注与网银流水" style="margin-bottom: 10px;">
+              <a-textarea
+                v-model:value="payForm.payRemark"
+                placeholder="请输入付款经办说明、银行流水号或财务记账批注..."
+                :rows="2"
+                :maxlength="1024"
+                show-count
+              />
+            </a-form-item>
+
+            <a-form-item
+              label="付款回单凭据"
+              :help="isBatchPay ? '同一回单会挂到所选的每一张报销单，只追加不覆盖' : '只追加不覆盖，用于对账存根'"
+              style="margin-bottom: 0;"
+            >
+              <div class="upload-drag-box" @click="simulateFileUpload">
+                <iconify-icon icon="lucide:upload-cloud" class="upload-icon"></iconify-icon>
+                <div class="upload-text">点击或将电子回单凭证拖拽至此处</div>
+                <div class="upload-tip">支持 JPG、PNG、PDF 文件，单文件不超过 20MB</div>
+              </div>
+
+              <!-- 模拟已上传的回单列表 -->
+              <div v-if="payReceiptsList.length > 0" style="margin-top: 8px;">
+                <div v-for="(file, fIdx) in payReceiptsList" :key="fIdx" class="uploaded-file-item">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <iconify-icon icon="lucide:file-check" style="color: #059669; font-size: 16px;"></iconify-icon>
+                    <span style="font-weight: 500; color: #1e293b;">{{ file.name }}</span>
+                    <span style="font-size: 11px; color: #94a3b8;">({{ file.size }})</span>
+                  </div>
+                  <iconify-icon
+                    icon="lucide:trash-2"
+                    style="color: #ef4444; cursor: pointer; font-size: 14px;"
+                    title="移除"
+                    @click="payReceiptsList.splice(fIdx, 1)"
+                  ></iconify-icon>
+                </div>
+              </div>
+            </a-form-item>
+          </a-form>
+        </a-modal>
+
+        <!-- 5. 审核后驳回二次确认弹窗 (RejectModal) -->
+        <a-modal
+          v-model:open="rejectModalOpen"
+          :title="`审核后驳回 · ${rejectTarget?.claimNo || ''}`"
+          ok-text="确认驳回"
+          ok-type="danger"
+          cancel-text="取消"
+          width="500px"
+          @ok="handleConfirmReject"
+        >
+          <a-alert
+            type="warning"
+            show-icon
+            message="驳回后该报销单将移出待付款，回到报销人草稿箱修改"
+            style="margin-bottom: 12px;"
+          ></a-alert>
+
+          <a-form layout="vertical">
+            <a-form-item label="驳回原因说明" required>
+              <a-textarea
+                v-model:value="rejectRemark"
+                placeholder="请详细说明驳回原因（如：发票金额与明细不符、缺少交通证明等）..."
+                :rows="3"
+                :maxlength="1024"
+                show-count
+              />
+            </a-form-item>
+          </a-form>
+        </a-modal>
+
+        <!-- 6. 附件/票面预览浮层 -->
+        <a-modal
+          v-model:open="previewModalOpen"
+          :title="`凭证预览 · ${previewAttachment?.friendlyFileName || previewAttachment?.fileName || '电子附件'}`"
+          :footer="null"
+          width="820px"
+          centered
+        >
+          <div style="text-align: center; background: #1e293b; padding: 20px; border-radius: 6px;">
+            <div style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">
+              上传人：<b>{{ previewAttachment?.creatorUserName || 'WF332报销申请' }}</b> &nbsp;|&nbsp;
+              上传时间：{{ formatDateTime(previewAttachment?.creationTime) }}
+            </div>
+            <!-- 凭证模拟画布 -->
+            <div style="background: #ffffff; padding: 24px; border-radius: 4px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 90%; text-align: left;">
+              <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #2563eb; padding-bottom: 8px; margin-bottom: 14px;">
+                <span style="font-size: 16px; font-weight: 700; color: #1e293b;">增值税电子普通发票 / 财务报销凭据</span>
+                <span style="font-family: monospace; color: #dc2626; font-weight: 700;">NO. WF332-CROSS-ONLY</span>
+              </div>
+              <div style="font-size: 12px; color: #475569; line-height: 1.8;">
+                <div>开票日期：2026年10月18日</div>
+                <div>销售方名称：WF332虚拟测试票据中心</div>
+                <div>购买方名称：青岛佳越软件科技有限公司</div>
+                <div>货物或应税劳务：企业运营通用技术服务费 / 业务差旅费</div>
+                <div style="font-size: 16px; font-weight: 700; color: #dc2626; margin-top: 10px;">
+                  价税合计金额（大写）：伍元整 &nbsp;&nbsp; (小写：¥ 5.00 RMB)
+                </div>
+              </div>
+            </div>
+          </div>
+        </a-modal>
+
+      </div>
+    </a-config-provider>
+  </script>
+
+  <script>
+    const { createApp, ref, reactive, computed, onMounted } = Vue;
+
+    const app = createApp({
+      template: "#app-template",
+      setup() {
+        // 主题配置
+        const themeConfig = {
+          token: {
+            colorPrimary: '#2563eb',
+            borderRadius: 4,
+            fontSize: 12,
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
+          }
+        };
+
+        // 当前页签：pending 待付款 / paid 已付款
+        const activeTab = ref('pending');
+        const filterExpanded = ref(false);
+        const selectedRowKeys = ref([]);
+
+        // 查询表单模型
+        const queryForm = reactive({
+          keyword: '',
+          userId: null,
+          orgId: null,
+          payTimeRange: [],
+          totalAmountStart: null,
+          totalAmountEnd: null,
+          claimType: null
+        });
+
+        // 报销人下拉选项
+        const userFilterOptions = [
+          { label: '全部报销人', value: null },
+          { label: 'WF332报销申请 (ID 28)', value: 28 },
+          { label: 'WF332报销审核 (ID 29)', value: 29 },
+          { label: 'WF332长ID审核测试', value: 9007199254740993 },
+          { label: '超级管理员 (admin)', value: 2 }
+        ];
+
+        // 归属组织下拉选项
+        const orgFilterOptions = [
+          { label: '全部组织', value: null },
+          { label: '青岛佳越软件科技有限公司', value: 6 },
+          { label: '管理部', value: 11 },
+          { label: '财务部', value: 12 },
+          { label: '供应链调度中心', value: 13 }
+        ];
+
+        // 1. 真实 Mock 数据池：待付款 (4笔)
+        const pendingList = ref([
+          {
+            id: 'bbd54995-c734-4994-8b94-314a7d6b5cd0',
+            claimNo: 'BX202610180006',
+            user: { id: 28, nickName: 'WF332报销申请' },
+            claimType: 0, // 日常
+            reason: 'WF332跨单重复票fixture',
+            totalAmount: 5.0,
+            status: 3, // 审核通过待付款
+            userBankAccountId: 2,
+            payeeAccountName: 'WF332报销申请',
+            payeeBankName: 'TAPD验收专用银行-已修改',
+            payeeBankAccount: '6222020000332000188',
+            submitTime: '2026-10-18T10:19:17',
+            auditUserName: 'WF332长ID审核测试',
+            auditTime: '2026-10-18T11:56:10',
+            auditRemark: 'WF332真实长ID账号终审通过',
+            localCurrencyCode: 'RMB',
+            orgs: [{ id: 6, name: '青岛佳越软件科技有限公司' }, { id: 11, name: '管理部' }],
+            warnings: [
+              { warningType: 3, lineNo: 1, message: '第1行 发票 WF332-CROSS-ONLY 为手工录入,请核对原件' }
+            ],
+            items: [
+              {
+                id: '1a94570a-ef50-4448-9824-188a87040720',
+                expenseType: { name: 'WF332验收通用', code: 'WF332-GEN', category: 0 },
+                occurDate: '2026-10-18',
+                currency: { code: 'RMB' },
+                amount: 5.0,
+                rate: 1.0,
+                localAmount: 5.0,
+                description: 'WF332全量保存行5',
+                invoices: [
+                  {
+                    source: 2, // 手工录入
+                    invoiceKind: 9,
+                    invoiceNo: 'WF332-CROSS-ONLY',
+                    sellerHeader: 'WF332虚拟测试票据中心',
+                    amount: 5.0,
+                    attachment: { friendlyFileName: 'wf332-test-receipt.png', fileLength: 7306 }
+                  }
+                ]
+              }
+            ],
+            attachments: [
+              { id: 113, friendlyFileName: 'wf332-test-receipt.png', fileLength: 7306, creationTime: '2026-10-18T08:30:55', creatorUserName: 'WF332报销申请' }
+            ],
+            payReceipts: []
+          },
+          {
+            id: '7bfa9c11-9876-4321-ba33-890123456789',
+            claimNo: 'BX202610180004',
+            user: { id: 28, nickName: 'WF332报销申请' },
+            claimType: 1, // 差旅
+            tripPlace: '山东济南',
+            tripStartDate: '2026-10-17',
+            tripEndDate: '2026-10-18',
+            reason: '华北区域出差客户拜访与技术服务支持',
+            totalAmount: 5.0,
+            status: 3,
+            userBankAccountId: 2,
+            payeeAccountName: 'WF332报销申请',
+            payeeBankName: 'TAPD验收专用银行-已修改',
+            payeeBankAccount: '6222020000332000188',
+            submitTime: '2026-10-18T10:05:00',
+            auditUserName: 'WF332财务审核',
+            auditTime: '2026-10-18T10:18:00',
+            auditRemark: '经办费用合规，准予付款',
+            localCurrencyCode: 'RMB',
+            orgs: [{ id: 6, name: '青岛佳越软件科技有限公司' }, { id: 11, name: '管理部' }],
+            items: [
+              {
+                id: 'item-004-1',
+                expenseType: { name: '市内交通费', code: 'TRA-LOCAL', category: 1 },
+                occurDate: '2026-10-17',
+                currency: { code: 'RMB' },
+                amount: 5.0,
+                rate: 1.0,
+                localAmount: 5.0,
+                description: '济南西站至客户厂区往返打车',
+                invoices: []
+              }
+            ],
+            attachments: [],
+            payReceipts: []
+          },
+          {
+            id: '5ce43210-aaaa-bbbb-cccc-112233445566',
+            claimNo: 'BX202610180003',
+            user: { id: 29, nickName: 'WF332报销审核' },
+            claimType: 0,
+            reason: '港口堆场业务协调及调度工作餐费',
+            totalAmount: 9.0,
+            status: 3,
+            userBankAccountId: 3,
+            payeeAccountName: 'WF332报销审核',
+            payeeBankName: 'WF332同公司第二人虚拟银行',
+            payeeBankAccount: '6222020000332002988',
+            submitTime: '2026-10-18T08:45:00',
+            auditUserName: 'WF332长ID审核测试',
+            auditTime: '2026-10-18T08:51:00',
+            auditRemark: '同意报销',
+            localCurrencyCode: 'RMB',
+            orgs: [{ id: 6, name: '青岛佳越软件科技有限公司' }, { id: 11, name: '管理部' }],
+            items: [
+              {
+                id: 'item-003-1',
+                expenseType: { name: '加班误餐费', code: 'MEAL-01', category: 0 },
+                occurDate: '2026-10-17',
+                currency: { code: 'RMB' },
+                amount: 9.0,
+                rate: 1.0,
+                localAmount: 9.0,
+                description: '大宗散货装船夜班工作餐',
+                invoices: []
+              }
+            ],
+            attachments: [],
+            payReceipts: []
+          },
+          {
+            id: '1234abcd-ef01-2345-6789-aabbccddeeff',
+            claimNo: 'BX202610180001',
+            user: { id: 28, nickName: 'WF332报销申请' },
+            claimType: 0,
+            reason: '跨境电商保税仓清关及海运提单交接',
+            totalAmount: 88.0,
+            status: 3,
+            userBankAccountId: 2,
+            payeeAccountName: 'WF332报销申请',
+            payeeBankName: 'TAPD验收专用银行-已修改',
+            payeeBankAccount: '6222020000332000188',
+            submitTime: '2026-10-18T08:15:00',
+            auditUserName: 'WF332长ID审核测试',
+            auditTime: '2026-10-18T08:28:00',
+            auditRemark: '单据附件核对无误，同意支付',
+            localCurrencyCode: 'RMB',
+            orgs: [{ id: 6, name: '青岛佳越软件科技有限公司' }, { id: 11, name: '管理部' }],
+            items: [
+              {
+                id: 'item-001-1',
+                expenseType: { name: '提单换单费', code: 'DOC-EXCHANGE', category: 0 },
+                occurDate: '2026-10-17',
+                currency: { code: 'RMB' },
+                amount: 88.0,
+                rate: 1.0,
+                localAmount: 88.0,
+                description: '前海保税港区报关提单换单费',
+                invoices: []
+              }
+            ],
+            attachments: [],
+            payReceipts: []
+          }
+        ]);
+
+        // 2. 真实 Mock 数据池：已付款 (1笔)
+        const paidList = ref([
+          {
+            id: 'c6d1d4f0-d000-4b63-89be-8179e0b7ad36',
+            claimNo: 'BX202610180002',
+            user: { id: 28, nickName: 'WF332报销申请' },
+            claimType: 1, // 差旅
+            tripPlace: '青岛 / 济南',
+            tripStartDate: '2026-10-18',
+            tripEndDate: '2026-10-20',
+            reason: 'WF332全量类型差旅报销验收单据（含通用、交通、住宿、招待、出差补贴）',
+            totalAmount: 6457.0,
+            status: 4, // 已付款
+            userBankAccountId: 2,
+            payeeAccountName: 'WF332报销申请',
+            payeeBankName: 'TAPD验收专用银行-已修改',
+            payeeBankAccount: '6222020000332000188',
+            submitTime: '2026-10-18T08:36:41',
+            auditUserName: 'WF332总经理审核',
+            auditTime: '2026-10-18T08:37:35',
+            auditRemark: 'WF332三级流程总经理终审通过',
+            payUserName: '超级管理员',
+            payTime: '2026-10-18T08:40:09',
+            payMethod: 0, // 银行转账
+            payRemark: '招商银行网银批量代发完成，流水号 B20261018991823',
+            localCurrencyCode: 'RMB',
+            orgs: [{ id: 6, name: '青岛佳越软件科技有限公司' }, { id: 11, name: '管理部' }],
+            items: [
+              {
+                id: 'p-item-1',
+                expenseType: { name: 'WF332验收通用', code: 'WF332-GEN', category: 0 },
+                occurDate: '2026-10-18',
+                currency: { code: 'RMB' },
+                amount: 22.0,
+                rate: 1.0,
+                localAmount: 22.0,
+                description: '办公文具与打印资料装订',
+                invoices: []
+              },
+              {
+                id: 'p-item-2',
+                expenseType: { name: 'WF332验收交通', code: 'WF332-TRA', category: 1 },
+                occurDate: '2026-10-18',
+                currency: { code: 'RMB' },
+                amount: 35.0,
+                rate: 1.0,
+                localAmount: 35.0,
+                fromPlace: '青岛',
+                toPlace: '济南',
+                vehicle: 1, // 火车
+                description: '高铁二等座车票',
+                invoices: []
+              },
+              {
+                id: 'p-item-3',
+                expenseType: { name: 'WF332验收住宿', code: 'WF332-HOT', category: 2 },
+                occurDate: '2026-10-18',
+                currency: { code: 'RMB' },
+                amount: 200.0,
+                rate: 1.0,
+                localAmount: 200.0,
+                city: '青岛',
+                checkInDate: '2026-10-18',
+                checkOutDate: '2026-10-20',
+                nights: 2,
+                description: '商务大床房 2 晚',
+                invoices: []
+              },
+              {
+                id: 'p-item-4',
+                expenseType: { name: 'WF332验收招待', code: 'WF332-ENT', category: 3 },
+                occurDate: '2026-10-18',
+                currency: { code: 'RMB' },
+                amount: 6000.0,
+                rate: 1.0,
+                localAmount: 6000.0,
+                guestCount: 2,
+                guestDescription: 'WF332测试招待对象',
+                description: '大客户商务交流餐费',
+                invoices: []
+              },
+              {
+                id: 'p-item-5',
+                expenseType: { name: 'WF332验收补贴', code: 'WF332-ALL', category: 4 },
+                occurDate: '2026-10-18',
+                currency: { code: 'RMB' },
+                amount: 200.0,
+                rate: 1.0,
+                localAmount: 200.0,
+                allowanceDays: 2.5,
+                allowanceStandard: 80.0,
+                description: '出差出勤补贴 2.5 天 × 80 元/天',
+                invoices: []
+              }
+            ],
+            attachments: [
+              { id: 100, friendlyFileName: 'wf332-test-receipt.png', fileLength: 7306, creationTime: '2026-10-18T08:30:55', creatorUserName: 'WF332报销申请' }
+            ],
+            payReceipts: [
+              { id: 105, friendlyFileName: 'bank-receipt-20261018-01.png', fileLength: 14200, creationTime: '2026-10-18T08:40:09', creatorUserName: '超级管理员' }
+            ]
+          }
+        ]);
+
+        // 表格列定义
+        const currentColumns = computed(() => {
+          const common = [
+            { title: '报销单号', key: 'claimNo', width: 160, fixed: 'left' },
+            { title: '状态', key: 'status', width: 90, align: 'center' },
+            { title: '单据类型', key: 'claimType', width: 96, align: 'center' },
+            { title: '报销人', key: 'user', width: 140 },
+            { title: '报销合计', key: 'totalAmount', width: 120, align: 'right' },
+            { title: '收款户名', key: 'payeeAccountName', width: 130, ellipsis: true },
+            { title: '收款开户行', key: 'payeeBankName', width: 200, ellipsis: true },
+            { title: '收款账号', key: 'payeeBankAccount', width: 210 },
+            { title: '终审时间', key: 'auditTime', width: 140 }
+          ];
+
+          if (activeTab.value === 'paid') {
+            return [
+              ...common,
+              { title: '付款日期', key: 'payTime', width: 110 },
+              { title: '付款方式', key: 'payMethod', width: 100, align: 'center' },
+              { title: '付款人', key: 'payUserName', width: 110 },
+              { title: '付款备注', key: 'payRemark', ellipsis: true },
+              { title: '操作', key: 'operation', width: 90, align: 'center', fixed: 'right' }
+            ];
+          }
+
+          return [
+            ...common,
+            { title: '操作', key: 'operation', width: 130, align: 'center', fixed: 'right' }
+          ];
+        });
+
+        // 过滤后列表
+        const filteredList = computed(() => {
+          const list = activeTab.value === 'pending' ? pendingList.value : paidList.value;
+          return list.filter(item => {
+            if (queryForm.keyword) {
+              const kw = queryForm.keyword.trim().toLowerCase();
+              const matchNo = item.claimNo.toLowerCase().includes(kw);
+              const matchReason = (item.reason || '').toLowerCase().includes(kw);
+              if (!matchNo && !matchReason) return false;
+            }
+            if (queryForm.userId && item.user?.id !== queryForm.userId) {
+              return false;
+            }
+            if (queryForm.claimType !== null && item.claimType !== queryForm.claimType) {
+              return false;
+            }
+            if (queryForm.totalAmountStart !== null && item.totalAmount < queryForm.totalAmountStart) {
+              return false;
+            }
+            if (queryForm.totalAmountEnd !== null && item.totalAmount > queryForm.totalAmountEnd) {
+              return false;
+            }
+            return true;
+          });
+        });
+
+        // 已勾选金额统计
+        const selectedTotalAmount = computed(() => {
+          const list = activeTab.value === 'pending' ? pendingList.value : paidList.value;
+          return list
+            .filter(item => selectedRowKeys.value.includes(item.id))
+            .reduce((sum, item) => sum + Number(item.totalAmount || 0), 0);
+        });
+
+        const onSelectChange = (keys) => {
+          selectedRowKeys.value = keys;
+        };
+
+        const clearSelection = () => {
+          selectedRowKeys.value = [];
+        };
+
+        // 切换 Tab
+        const handleTabChange = () => {
+          selectedRowKeys.value = [];
+        };
+
+        const handleSearch = () => {
+          antd.message.success('查询完成');
+        };
+
+        const handleReset = () => {
+          queryForm.keyword = '';
+          queryForm.userId = null;
+          queryForm.orgId = null;
+          queryForm.payTimeRange = [];
+          queryForm.totalAmountStart = null;
+          queryForm.totalAmountEnd = null;
+          queryForm.claimType = null;
+          antd.message.info('筛选已重置');
+        };
+
+        const refreshList = () => {
+          antd.message.loading({ content: '正在刷新报销单数据...', key: 'refresh' });
+          setTimeout(() => {
+            antd.message.success({ content: '已同步最新数据', key: 'refresh' });
+          }, 400);
+        };
+
+        // ==================== 双击列表弹出的报销详情 ====================
+        const detailDrawerOpen = ref(false);
+        const activeDetail = ref(null);
+        const expandedDrawerItemKeys = ref([]);
+
+        const openDetailDrawer = (record) => {
+          activeDetail.value = JSON.parse(JSON.stringify(record));
+          expandedDrawerItemKeys.value = [];
+          detailDrawerOpen.value = true;
+        };
+
+        // 表格行双击事件
+        const customRowEvents = (record) => {
+          return {
+            onDblclick: () => {
+              openDetailDrawer(record);
+            }
+          };
+        };
+
+        const toggleDrawerInvoices = (itemId) => {
+          if (expandedDrawerItemKeys.value.includes(itemId)) {
+            expandedDrawerItemKeys.value = expandedDrawerItemKeys.value.filter(k => k !== itemId);
+          } else {
+            expandedDrawerItemKeys.value.push(itemId);
+          }
+        };
+
+        const drawerItemColumns = [
+          { title: '#', key: 'index', width: 42, align: 'center' },
+          { title: '费用类型', key: 'type', width: 165 },
+          { title: '发生日期', key: 'occurDate', width: 105, align: 'center' },
+          { title: '原币金额', key: 'amount', width: 110, align: 'right' },
+          { title: '汇率', key: 'rate', width: 75, align: 'right' },
+          { title: '本位币金额', key: 'localAmount', width: 115, align: 'right' },
+          { title: '发票凭据', key: 'invoices', width: 135, align: 'center' },
+          { title: '明细说明', key: 'extra', width: 145 },
+          { title: '费用说明 / 无票原因', key: 'description' }
+        ];
+
+        // ==================== 付款弹窗 PayModal ====================
+        const payModalOpen = ref(false);
+        const paySubmitting = ref(false);
+        const isBatchPay = ref(false);
+        const payTargetSingle = ref(null);
+        const payTargetBatch = ref([]);
+        const payReceiptsList = ref([]);
+
+        const payForm = reactive({
+          payTime: dayjs().format('YYYY-MM-DD'),
+          payMethod: 0, // 银行转账
+          payRemark: ''
+        });
+
+        const payModalTitle = computed(() => {
+          return isBatchPay.value
+            ? `批量付款确认（共 ${payTargetBatch.value.length} 张单据）`
+            : `确认标记付款 · ${payTargetSingle.value?.claimNo || ''}`;
+        });
+
+        const batchTotalAmount = computed(() => {
+          return payTargetBatch.value.reduce((sum, item) => sum + Number(item.totalAmount || 0), 0);
+        });
+
+        // 单笔付款弹窗
+        const openSinglePayModal = (record) => {
+          isBatchPay.value = false;
+          payTargetSingle.value = record;
+          payForm.payTime = dayjs().format('YYYY-MM-DD');
+          payForm.payMethod = 0;
+          payForm.payRemark = '';
+          payReceiptsList.value = [];
+          payModalOpen.value = true;
+        };
+
+        // 批量付款弹窗
+        const openBatchPayModal = () => {
+          const selected = pendingList.value.filter(item => selectedRowKeys.value.includes(item.id));
+          if (selected.length === 0) {
+            antd.message.warning('请先勾选待付款的报销单');
+            return;
+          }
+          isBatchPay.value = true;
+          payTargetBatch.value = selected;
+          payForm.payTime = dayjs().format('YYYY-MM-DD');
+          payForm.payMethod = 0;
+          payForm.payRemark = '';
+          payReceiptsList.value = [];
+          payModalOpen.value = true;
+        };
+
+        // 模拟电子回单上传
+        const simulateFileUpload = () => {
+          const fileNames = ['招商银行网银转账电子回单.png', '企业网银对公打款回单_PDF.png', '中国银行转账流水证明.jpg'];
+          const randomName = fileNames[payReceiptsList.value.length % fileNames.length];
+          payReceiptsList.value.push({
+            name: randomName,
+            size: `${(Math.random() * 200 + 45).toFixed(1)} KB`
+          });
+          antd.message.success(`已追加上传付款回单：${randomName}`);
+        };
+
+        // 确认标记付款执行
+        const handleConfirmPay = () => {
+          paySubmitting.value = true;
+          setTimeout(() => {
+            paySubmitting.value = false;
+            payModalOpen.value = false;
+
+            if (isBatchPay.value) {
+              const ids = payTargetBatch.value.map(i => i.id);
+              // 将选中的单据移入已付款
+              payTargetBatch.value.forEach(item => {
+                item.status = 4;
+                item.payTime = payForm.payTime;
+                item.payMethod = payForm.payMethod;
+                item.payUserName = '超级管理员';
+                item.payRemark = payForm.payRemark || '网银批量代发完成';
+                paidList.value.unshift(item);
+              });
+              pendingList.value = pendingList.value.filter(item => !ids.includes(item.id));
+              selectedRowKeys.value = [];
+              antd.message.success(`已成功标记付款 ${ids.length} 张报销单，合计 ¥ ${batchTotalAmount.value.toFixed(2)} RMB`);
+            } else {
+              const target = payTargetSingle.value;
+              target.status = 4;
+              target.payTime = payForm.payTime;
+              target.payMethod = payForm.payMethod;
+              target.payUserName = '超级管理员';
+              target.payRemark = payForm.payRemark || '网银转账支付完成';
+              paidList.value.unshift(target);
+              pendingList.value = pendingList.value.filter(item => item.id !== target.id);
+              antd.message.success(`报销单 ${target.claimNo} 已成功标记付款`);
+              if (detailDrawerOpen.value && activeDetail.value?.id === target.id) {
+                activeDetail.value.status = 4;
+                activeDetail.value.payTime = target.payTime;
+                activeDetail.value.payUserName = target.payUserName;
+                activeDetail.value.payMethod = target.payMethod;
+                activeDetail.value.payRemark = target.payRemark;
+              }
+            }
+          }, 500);
+        };
+
+        // 批量取消付款
+        const handleBatchCancelPay = () => {
+          const selected = paidList.value.filter(item => selectedRowKeys.value.includes(item.id));
+          if (selected.length === 0) return;
+          const total = selected.reduce((s, i) => s + Number(i.totalAmount), 0);
+
+          antd.Modal.confirm({
+            title: '批量取消付款确认',
+            content: `预计取消 ${selected.length} 张单据，合计金额 ¥ ${total.toFixed(2)} RMB。取消后单据将重置回「待付款」状态。`,
+            okText: '确认取消付款',
+            okType: 'danger',
+            cancelText: '放弃',
+            onOk: () => {
+              const ids = selected.map(i => i.id);
+              selected.forEach(item => {
+                item.status = 3;
+                item.payTime = null;
+                item.payMethod = null;
+                item.payUserName = null;
+                item.payRemark = null;
+                pendingList.value.push(item);
+              });
+              paidList.value = paidList.value.filter(i => !ids.includes(i.id));
+              selectedRowKeys.value = [];
+              antd.message.success(`已取消付款 ${ids.length} 张单据，已退回待付款`);
+            }
+          });
+        };
+
+        // ==================== 审核后驳回弹窗 ====================
+        const rejectModalOpen = ref(false);
+        const rejectTarget = ref(null);
+        const rejectRemark = ref('');
+
+        const openRejectModal = (record) => {
+          rejectTarget.value = record;
+          rejectRemark.value = '';
+          rejectModalOpen.value = true;
+        };
+
+        const handleConfirmReject = () => {
+          if (!rejectRemark.value.trim()) {
+            antd.message.warning('请填写驳回原因说明');
+            return;
+          }
+          const target = rejectTarget.value;
+          pendingList.value = pendingList.value.filter(i => i.id !== target.id);
+          rejectModalOpen.value = false;
+          if (detailDrawerOpen.value && activeDetail.value?.id === target.id) {
+            detailDrawerOpen.value = false;
+          }
+          antd.message.success(`已驳回报销单 ${target.claimNo}，已退回申请人草稿箱`);
+        };
+
+        // ==================== 附件与凭证大图预览 ====================
+        const previewModalOpen = ref(false);
+        const previewAttachment = ref(null);
+
+        const openAttachmentPreview = (attachment) => {
+          previewAttachment.value = attachment;
+          previewModalOpen.value = true;
+        };
+
+        // 辅助格式化函数
+        const formatDateTime = (val) => {
+          if (!val) return '-';
+          return dayjs(val).format('YYYY-MM-DD HH:mm');
+        };
+
+        const formatDate = (val) => {
+          if (!val) return '-';
+          return dayjs(val).format('YYYY-MM-DD');
+        };
+
+        const formatBankAccount = (account) => {
+          if (!account) return '-';
+          return String(account).replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim();
+        };
+
+        const maskBankCard = (num) => {
+          if (!num) return '-';
+          const s = String(num);
+          if (s.length <= 8) return s;
+          return `${s.slice(0, 4)} **** **** ${s.slice(-4)}`;
+        };
+
+        const formatFileSize = (bytes) => {
+          if (!bytes) return '7.3 KB';
+          return `${(bytes / 1024).toFixed(1)} KB`;
+        };
+
+        const getPrimaryOrg = (record) => {
+          if (record.orgs && record.orgs.length > 0) {
+            return record.orgs[record.orgs.length - 1].name;
+          }
+          return '管理部';
+        };
+
+        const getOrgFullNames = (record) => {
+          if (record.orgs && record.orgs.length > 0) {
+            return record.orgs.map(o => o.name).join(' / ');
+          }
+          return '青岛佳越软件科技有限公司 / 管理部';
+        };
+
+        const getPayMethodLabel = (val) => {
+          const map = { 0: '银行转账', 1: '现金', 2: '其他方式' };
+          return map[val] || '银行转账';
+        };
+
+        const getInvoiceKindLabel = (kind) => {
+          const map = {
+            0: '增值税专用发票',
+            1: '增值税普通发票',
+            2: '火车票',
+            3: '航空行程单',
+            4: '客运汽车票',
+            5: '出租车发票',
+            6: '定额发票',
+            9: '其他票据凭证'
+          };
+          return map[kind] || '普通发票';
+        };
+
+        const getCategoryLabel = (cat) => {
+          const map = { 0: '通用', 1: '交通', 2: '住宿', 3: '招待', 4: '补贴' };
+          return map[cat] || '通用';
+        };
+
+        const getItemIcon = (record) => {
+          const cat = record.expenseType?.category;
+          if (cat === 1) return 'lucide:car';
+          if (cat === 2) return 'lucide:hotel';
+          if (cat === 3) return 'lucide:utensils';
+          if (cat === 4) return 'lucide:wallet';
+          return 'lucide:file-text';
+        };
+
+        const getExtraText = (item) => {
+          const cat = item.expenseType?.category;
+          if (cat === 1) {
+            return `${item.fromPlace || '始发'} → ${item.toPlace || '到达'}`;
+          }
+          if (cat === 2) {
+            return `${item.city || ''} · ${item.nights || 1} 晚`;
+          }
+          if (cat === 3) {
+            return `${item.guestCount || 1} 人 · ${item.guestDescription || '商务招待'}`;
+          }
+          if (cat === 4) {
+            return `${item.allowanceDays || 1} 天 × ¥${item.allowanceStandard || 80}`;
+          }
+          return '';
+        };
+
+        const copyText = (txt, msg) => {
+          if (!txt) return;
+          navigator.clipboard.writeText(String(txt)).then(() => {
+            antd.message.success(msg || '已复制到剪贴板');
+          });
+        };
+
+        const paginationConfig = {
+          pageSize: 20,
+          showSizeChanger: true,
+          showTotal: (total) => `共 ${total} 笔单据`
+        };
+
+        return {
+          themeConfig,
+          activeTab,
+          filterExpanded,
+          selectedRowKeys,
+          queryForm,
+          userFilterOptions,
+          orgFilterOptions,
+          pendingList,
+          paidList,
+          filteredList,
+          currentColumns,
+          selectedTotalAmount,
+          onSelectChange,
+          clearSelection,
+          handleTabChange,
+          handleSearch,
+          handleReset,
+          refreshList,
+          customRowEvents,
+
+          // 详情抽屉
+          detailDrawerOpen,
+          activeDetail,
+          openDetailDrawer,
+          drawerItemColumns,
+          expandedDrawerItemKeys,
+          toggleDrawerInvoices,
+
+          // 付款弹窗
+          payModalOpen,
+          paySubmitting,
+          isBatchPay,
+          payTargetSingle,
+          payTargetBatch,
+          payReceiptsList,
+          payForm,
+          payModalTitle,
+          batchTotalAmount,
+          openSinglePayModal,
+          openBatchPayModal,
+          simulateFileUpload,
+          handleConfirmPay,
+          handleBatchCancelPay,
+
+          // 驳回
+          rejectModalOpen,
+          rejectTarget,
+          rejectRemark,
+          openRejectModal,
+          handleConfirmReject,
+
+          // 预览
+          previewModalOpen,
+          previewAttachment,
+          openAttachmentPreview,
+
+          // 格式化函数
+          formatDateTime,
+          formatDate,
+          formatBankAccount,
+          maskBankCard,
+          formatFileSize,
+          getPrimaryOrg,
+          getOrgFullNames,
+          getPayMethodLabel,
+          getInvoiceKindLabel,
+          getCategoryLabel,
+          getItemIcon,
+          getExtraText,
+          copyText,
+          paginationConfig
+        };
+      }
+    });
+
+    app.use(antd).mount('#app');
+  </script>
+</body>
+</html>

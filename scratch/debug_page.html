@@ -1,0 +1,3441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>银企直连工作台 - 交易处理与核对中心</title>
+
+  <!-- 核心样式：Ant Design Vue 4 重置样式与通用规范 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <!-- 本地核心依赖 (全量包含 Dayjs 插件、Vue 3、Ant Design Vue 4.2.6、Iconify) -->
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       企业级 B2B 银企直连交易与核对工作台 · 高保真生产级样式规范
+       设计基准：1920×1080 视口，极致紧凑、严谨克制、零 AI 浮夸、100% 业务字段保真
+       ========================================================================== */
+
+    body {
+      background-color: #f4f6f9;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .wb-layout {
+      min-height: 100vh;
+      padding: 10px 14px 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 顶部作用域栏 (所属环境 / 路由定位 / 银行通道状态 / 权限说明 / 演示场景切换) */
+    .wb-scope-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 8px 14px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .wb-scope-left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .wb-page-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .wb-channel-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+
+    .wb-scope-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* 状态与指标看板 (大盘点击联动筛选) */
+    .wb-stat-bar {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .wb-stat-pill {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      position: relative;
+    }
+
+    .wb-stat-pill:hover {
+      border-color: #93c5fd;
+      background: #f8fafc;
+    }
+
+    .wb-stat-pill.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      box-shadow: 0 0 0 1.5px #2563eb;
+    }
+
+    .wb-stat-pill__label {
+      font-size: 12px;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wb-stat-pill__value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.2;
+    }
+
+    .wb-stat-pill__sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* 搜索过滤卡片 (4 列高密度自适应网格) */
+    .wb-filter-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 10px 14px 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .wb-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px 14px;
+    }
+
+    .wb-filter-grid .ant-form-item {
+      margin-bottom: 8px !important;
+    }
+
+    .wb-filter-grid .ant-form-item-label > label {
+      font-size: 12px;
+      color: #4b5563;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .amount-range-flex {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .amount-range-flex .ant-input-number {
+      width: 100%;
+    }
+
+    .filter-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    /* 主体表格与集成工具栏卡片 */
+    .wb-table-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 10px 14px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .wb-table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .wb-toolbar-left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .wb-toolbar-right {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .wb-selected-pill {
+      font-size: 12px;
+      color: #1e40af;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 2px 10px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .wb-tip-text {
+      font-size: 12px;
+      color: #6b7280;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 表格增强规范 */
+    .wb-table .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      color: #334155 !important;
+      font-weight: 600 !important;
+      font-size: 12px !important;
+      padding: 8px 8px !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+      white-space: nowrap;
+    }
+
+    .wb-table .ant-table-tbody > tr > td {
+      padding: 7px 8px !important;
+      font-size: 12px !important;
+      border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    .wb-table .ant-table-tbody > tr:hover > td {
+      background-color: #f1f5f9 !important;
+      cursor: pointer;
+    }
+
+    .wb-table .ant-table-tbody > tr.row-selected > td {
+      background-color: #eff6ff !important;
+    }
+
+    /* 财务金融单元格排版 */
+    .num-tabular {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .amount-in {
+      font-weight: 700;
+      color: #16a34a;
+      text-align: right;
+    }
+
+    .amount-out {
+      font-weight: 700;
+      color: #ea580c;
+      text-align: right;
+    }
+
+    .bank-serial-link {
+      color: #2563eb;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .bank-serial-link:hover {
+      text-decoration: underline;
+    }
+
+    /* 决策状态+原因组合单元格 */
+    .decision-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .decision-reason-text {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.25;
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 对方信息紧凑组合单元格 */
+    .counterparty-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      line-height: 1.25;
+    }
+
+    .counterparty-name {
+      font-weight: 600;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    .counterparty-sub {
+      font-size: 11px;
+      color: #64748b;
+      font-family: monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    /* 空态卡片排版 */
+    .wb-empty-box {
+      padding: 48px 24px;
+      text-align: center;
+      background: #ffffff;
+      border-radius: 6px;
+    }
+
+    .wb-empty-icon {
+      font-size: 48px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    .wb-empty-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .wb-empty-desc {
+      font-size: 13px;
+      color: #64748b;
+      max-width: 520px;
+      margin: 0 auto 16px;
+      line-height: 1.5;
+    }
+
+    /* 抽屉全息展示 */
+    .drawer-sec-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 14px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .drawer-sec-title:first-child {
+      margin-top: 0;
+    }
+
+    .drawer-candidate-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    /* 回单两步式步骤条 */
+    .receipt-step-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+
+    /* 顶部回单后台打包常驻胶囊 (跨弹窗/切页状态保持) */
+    .wb-receipt-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), border-color 0.2s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+
+    .wb-receipt-pill.preparing {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #b45309;
+    }
+
+    .wb-receipt-pill.ready {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #15803d;
+    }
+
+    /* Ant Motion: 克制的状态流转高亮反馈 (维持对象连续性) */
+    @keyframes rowStatusFlash {
+      0% { background-color: #dbeafe; }
+      100% { background-color: transparent; }
+    }
+
+    .wb-table .ant-table-tbody > tr.row-just-updated > td {
+      animation: rowStatusFlash 1.2s cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+
+    /* OFD 电子回单仿真预览画布 */
+    .ofd-sheet {
+      border: 2px solid #991b1b;
+      background: #fffdf9;
+      padding: 18px 22px;
+      border-radius: 4px;
+      position: relative;
+      font-size: 12px;
+      color: #1f2937;
+    }
+
+    .ofd-seal {
+      position: absolute;
+      right: 28px;
+      bottom: 22px;
+      width: 108px;
+      height: 108px;
+      border: 3px double rgba(220, 38, 38, 0.78);
+      border-radius: 50%;
+      color: rgba(220, 38, 38, 0.82);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 700;
+      font-size: 11px;
+      transform: rotate(-14deg);
+      pointer-events: none;
+      background: rgba(254, 242, 242, 0.25);
+    }
+
+    /* 尊重系统减少动态效果偏好 (prefers-reduced-motion) */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <a-config-provider :theme="{ token: { colorPrimary: '#2563eb', borderRadius: 4 } }">
+      <div class="wb-layout" tabindex="0" @keydown="onGlobalKeydown">
+
+        <!-- 1. 顶部作用域与通道栏 -->
+        <div class="wb-scope-bar">
+          <div class="wb-scope-left">
+            <div class="wb-page-title">
+              <iconify-icon icon="ant-design:bank-outlined" style="color: #2563eb; font-size: 18px;"></iconify-icon>
+              <span>银企直连工作台</span>
+            </div>
+
+            <div class="wb-channel-badge">
+              <iconify-icon icon="ant-design:check-circle-filled" style="color: #16a34a;"></iconify-icon>
+              <span>中国银行专线直连</span>
+              <span style="opacity: 0.6;">|</span>
+              <span>交易核对台（非发起转账页）</span>
+            </div>
+
+            <a-segmented
+              v-model:value="activeMainTab"
+              :options="[
+                { label: '银行交易明细 (' + transactionTotalCount + ')', value: 'transactions' },
+                { label: '每日任务 (' + dailyJobTotalCount + ')', value: 'daily-jobs' }
+              ]"
+              size="small"
+              @change="onMainTabChange"
+            ></a-segmented>
+
+            <!-- 跨弹窗/跨页签常驻的回单两步式进度胶囊 -->
+            <div
+              v-if="receiptWaitingSeconds > 0"
+              class="wb-receipt-pill preparing"
+              @click="openReceiptModal"
+            >
+              <iconify-icon icon="ant-design:clock-circle-outlined"></iconify-icon>
+              <span>中行回单准备中 {{ formatCountdown(receiptWaitingSeconds) }}（点击查看）</span>
+            </div>
+            <div
+              v-else-if="receiptStep === 2"
+              class="wb-receipt-pill ready"
+              @click="openReceiptModal"
+            >
+              <iconify-icon icon="ant-design:bell-filled"></iconify-icon>
+              <span>中行回单已打包就绪，点击手动取回</span>
+            </div>
+          </div>
+
+          <div class="wb-scope-right">
+            <!-- 权限视角仿真切换 -->
+            <span style="font-size: 12px; color: #64748b;">权限视角：</span>
+            <a-select
+              v-model:value="permissionRole"
+              size="small"
+              style="width: 195px;"
+              :options="[
+                { label: '🔑 全权限 (.Get+.Claim+.Pull+流水)', value: 'full' },
+                { label: '👁️ 仅查看权限 (仅 .Get)', value: 'view-only' },
+                { label: '🔒 无银行流水页面权限', value: 'no-statement' }
+              ]"
+            ></a-select>
+
+            <!-- 演示用场景切换器 (供产品与设计师体验各种空态与异常) -->
+            <span style="font-size: 12px; color: #64748b;">场景：</span>
+            <a-select
+              v-model:value="demoScenario"
+              size="small"
+              style="width: 210px;"
+              :options="[
+                { label: '🟢 正常业务态 (全状态核对样本)', value: 'normal' },
+                { label: '🟡 空态：尚未配置直连账户', value: 'empty-no-account' },
+                { label: '⚪ 空态：筛选条件无结果', value: 'empty-filter' },
+                { label: '🔵 空态：今日暂无交易产生', value: 'empty-today' },
+                { label: '🔴 异常态：列表查询请求失败', value: 'error-load' }
+              ]"
+              @change="onScenarioChange"
+            ></a-select>
+
+            <a-button size="small" @click="showDesignManualModal = true">
+              <template #icon><iconify-icon icon="ant-design:read-outlined"></iconify-icon></template>
+              交接改版要点
+            </a-button>
+          </div>
+        </div>
+
+        <!-- =========================================================================
+             TAB 1: 银行交易明细 (主业务页面)
+             ========================================================================= -->
+        <template v-if="activeMainTab === 'transactions'">
+
+          <!-- 2. 状态决策大盘 (6维胶囊，点击直接按状态筛选) -->
+          <div class="wb-stat-bar">
+            <div
+              class="wb-stat-pill"
+              :class="{ active: isStatPillActive('unclaimed') }"
+              @click="toggleStatFilter('unclaimed')"
+            >
+              <div class="wb-stat-pill__label">
+                <span>待认领来账</span>
+                <a-tag color="processing" style="margin: 0; font-size: 10px;">需匹配客户</a-tag>
+              </div>
+              <div class="wb-stat-pill__value" style="color: #2563eb;">{{ stats.unclaimedCount }}</div>
+              <div class="wb-stat-pill__sub">总额 ¥ {{ formatAmount(stats.unclaimedAmount) }}</div>
+            </div>
+
+            <div
+              class="wb-stat-pill"
+              :class="{ active: isStatPillActive('suspectedDuplicate') }"
+              @click="toggleStatFilter('suspectedDuplicate')"
+            >
+              <div class="wb-stat-pill__label">
+                <span>疑似重复来账</span>
+                <a-tag color="warning" style="margin: 0; font-size: 10px;">疑似已有手录</a-tag>
+              </div>
+              <div class="wb-stat-pill__value" style="color: #d97706;">{{ stats.suspectedCount }}</div>
+              <div class="wb-stat-pill__sub">总额 ¥ {{ formatAmount(stats.suspectedAmount) }}</div>
+            </div>
+
+            <div
+              class="wb-stat-pill"
+              :class="{ active: isStatPillActive('pending') }"
+              @click="toggleStatFilter('pending')"
+            >
+              <div class="wb-stat-pill__label">
+                <span>待处理 (冲正/退汇)</span>
+                <a-tag color="purple" style="margin: 0; font-size: 10px;">异常/币种未映</a-tag>
+              </div>
+              <div class="wb-stat-pill__value" style="color: #7c3aed;">{{ stats.pendingCount }}</div>
+              <div class="wb-stat-pill__sub">总额 ¥ {{ formatAmount(stats.pendingAmount) }}</div>
+            </div>
+
+            <div
+              class="wb-stat-pill"
+              :class="{ active: isStatPillActive('statementGenerated') }"
+              @click="toggleStatFilter('statementGenerated')"
+            >
+              <div class="wb-stat-pill__label">
+                <span>已生成银行流水</span>
+                <a-tag color="success" style="margin: 0; font-size: 10px;">已入账可核销</a-tag>
+              </div>
+              <div class="wb-stat-pill__value" style="color: #16a34a;">{{ stats.generatedCount }}</div>
+              <div class="wb-stat-pill__sub">总额 ¥ {{ formatAmount(stats.generatedAmount) }}</div>
+            </div>
+
+            <div
+              class="wb-stat-pill"
+              :class="{ active: isStatPillActive('ignored') }"
+              @click="toggleStatFilter('ignored')"
+            >
+              <div class="wb-stat-pill__label">
+                <span>已忽略交易</span>
+                <a-tag color="default" style="margin: 0; font-size: 10px;">无需入账</a-tag>
+              </div>
+              <div class="wb-stat-pill__value" style="color: #64748b;">{{ stats.ignoredCount }}</div>
+              <div class="wb-stat-pill__sub">已剔除无需对账</div>
+            </div>
+
+            <div
+              class="wb-stat-pill"
+              :class="{ active: isStatPillActive('all') }"
+              @click="toggleStatFilter('all')"
+            >
+              <div class="wb-stat-pill__label">
+                <span>全部银行交易</span>
+                <iconify-icon icon="ant-design:swap-outlined" style="color: #94a3b8;"></iconify-icon>
+              </div>
+              <div class="wb-stat-pill__value">{{ stats.totalCount }}</div>
+              <div class="wb-stat-pill__sub">累计拉取笔数</div>
+            </div>
+          </div>
+
+          <!-- 3. 高级筛选卡片 (4列网格排布，消除大块空白，默认展开核心字段) -->
+          <div class="wb-filter-box">
+            <div class="wb-filter-grid">
+              <!-- Row 1: 常用 4 项 -->
+              <a-form-item label="关键字">
+                <a-input
+                  v-model:value="searchForm.keyword"
+                  placeholder="对方户名 / 账号 / 流水号 / 用途"
+                  allow-clear
+                  size="small"
+                  @press-enter="handleSearch"
+                ></a-input>
+              </a-form-item>
+
+              <a-form-item label="我司银行">
+                <a-select
+                  v-model:value="searchForm.orgBankAccountId"
+                  :options="directAccountOptions"
+                  placeholder="全部直连账户"
+                  allow-clear
+                  show-search
+                  option-filter-prop="label"
+                  size="small"
+                  @change="handleSearch"
+                ></a-select>
+              </a-form-item>
+
+              <a-form-item label="处理状态">
+                <a-select
+                  v-model:value="searchForm.statuses"
+                  mode="multiple"
+                  :max-tag-count="2"
+                  :options="transactionStatusOptions"
+                  placeholder="全部状态"
+                  allow-clear
+                  size="small"
+                  @change="handleSearch"
+                ></a-select>
+              </a-form-item>
+
+              <a-form-item label="来往账方向">
+                <a-select
+                  v-model:value="searchForm.direction"
+                  :options="directionOptions"
+                  placeholder="全部"
+                  allow-clear
+                  size="small"
+                  @change="handleSearch"
+                ></a-select>
+              </a-form-item>
+
+              <!-- Row 2 (可折叠展开): 交易时间、组织、性质、金额 -->
+              <template v-if="isFilterExpanded">
+                <a-form-item label="交易时间">
+                  <a-range-picker
+                    v-model:value="searchForm.transTimeRange"
+                    format="YYYY-MM-DD"
+                    style="width: 100%;"
+                    size="small"
+                    @change="handleSearch"
+                  ></a-range-picker>
+                </a-form-item>
+
+                <a-form-item label="所属组织">
+                  <a-select
+                    v-model:value="searchForm.orgId"
+                    :options="orgOptions"
+                    placeholder="全部下级组织"
+                    allow-clear
+                    size="small"
+                    @change="handleSearch"
+                  ></a-select>
+                </a-form-item>
+
+                <a-form-item label="交易性质">
+                  <a-select
+                    v-model:value="searchForm.kind"
+                    :options="kindOptions"
+                    placeholder="普通 / 冲正 / 退汇 / 银行收费"
+                    allow-clear
+                    size="small"
+                    @change="handleSearch"
+                  ></a-select>
+                </a-form-item>
+
+                <a-form-item label="币种与金额">
+                  <div class="amount-range-flex">
+                    <a-select
+                      v-model:value="searchForm.currencyId"
+                      :options="currencyOptions"
+                      placeholder="币别"
+                      style="width: 90px;"
+                      allow-clear
+                      size="small"
+                      @change="handleSearch"
+                    ></a-select>
+                    <a-input-number
+                      v-model:value="searchForm.amountStart"
+                      placeholder="最小金额"
+                      :controls="false"
+                      :precision="2"
+                      size="small"
+                    ></a-input-number>
+                    <span style="color: #9ca3af;">~</span>
+                    <a-input-number
+                      v-model:value="searchForm.amountEnd"
+                      placeholder="最大金额"
+                      :controls="false"
+                      :precision="2"
+                      size="small"
+                    ></a-input-number>
+                  </div>
+                </a-form-item>
+              </template>
+            </div>
+
+            <!-- 筛选操作栏 -->
+            <div class="filter-actions">
+              <a-button type="link" size="small" style="padding: 0 4px;" @click="isFilterExpanded = !isFilterExpanded">
+                <span>{{ isFilterExpanded ? '收起高级筛选' : '展开高级筛选 (时间/组织/性质/金额)' }}</span>
+                <iconify-icon :icon="isFilterExpanded ? 'ant-design:up-outlined' : 'ant-design:down-outlined'"></iconify-icon>
+              </a-button>
+
+              <a-button size="small" @click="handleResetSearch">重 置</a-button>
+              <a-button size="small" type="primary" @click="handleSearch">
+                <template #icon><iconify-icon icon="ant-design:search-outlined"></iconify-icon></template>
+                查 询
+              </a-button>
+            </div>
+          </div>
+
+          <!-- 4. 交易数据表格与集成工具栏 (删除行级操作列，双击行穿透) -->
+          <div class="wb-table-box">
+            <div class="wb-table-toolbar">
+              <div class="wb-toolbar-left">
+                <span class="wb-selected-pill">
+                  <iconify-icon icon="ant-design:check-square-outlined"></iconify-icon>
+                  <span>已选 <b>{{ selectedRows.length }}</b> 项</span>
+                </span>
+
+                <a-segmented
+                  v-model:value="tableColumnMode"
+                  size="small"
+                  :options="[
+                    { label: '紧凑决策视图 (1920免横滚)', value: 'compact' },
+                    { label: '全量原始字段 (21列)', value: 'full' }
+                  ]"
+                ></a-segmented>
+
+                <span class="wb-tip-text">
+                  <iconify-icon icon="ant-design:info-circle-outlined" style="color: #3b82f6;"></iconify-icon>
+                  <span>💡 单击选单笔、勾选框多选；双击或按 <code>Enter</code> 打开详情（查询/翻页自动清空旧勾选）</span>
+                </span>
+              </div>
+
+              <!-- 右侧统一业务操作组 (按权限与业务职能清晰划分：单笔核对、批量处理、银行通讯) -->
+              <div class="wb-toolbar-right">
+                <a-tooltip :title="singleSelectTip">
+                  <a-button size="small" :disabled="selectedRows.length !== 1" @click="openSelectedDetail">
+                    <template #icon><iconify-icon icon="ant-design:file-search-outlined"></iconify-icon></template>
+                    查看详情
+                  </a-button>
+                </a-tooltip>
+
+                <template v-if="hasClaimPerm">
+                  <a-tooltip :title="claimDisabledReason">
+                    <a-button
+                      size="small"
+                      type="primary"
+                      ghost
+                      :disabled="!canClaimSelected"
+                      @click="openClaimModal(selectedRows[0])"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:user-add-outlined"></iconify-icon></template>
+                      认领
+                    </a-button>
+                  </a-tooltip>
+
+                  <a-tooltip :title="linkDisabledReason">
+                    <a-button
+                      size="small"
+                      :disabled="!canLinkSelected"
+                      @click="openLinkModal(selectedRows[0])"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:link-outlined"></iconify-icon></template>
+                      关联手录流水
+                    </a-button>
+                  </a-tooltip>
+
+                  <!-- 批量忽略 / 取消忽略 (服务端整批原子校验) -->
+                  <a-tooltip :title="batchIgnoreTip">
+                    <a-button
+                      size="small"
+                      danger
+                      :disabled="selectedRows.length === 0"
+                      @click="openIgnoreModal"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:eye-invisible-outlined"></iconify-icon></template>
+                      批量忽略
+                    </a-button>
+                  </a-tooltip>
+
+                  <a-tooltip :title="batchUnignoreTip">
+                    <a-button
+                      size="small"
+                      :disabled="selectedRows.length === 0"
+                      @click="handleUnignoreConfirm"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:undo-outlined"></iconify-icon></template>
+                      取消忽略
+                    </a-button>
+                  </a-tooltip>
+                </template>
+                <a-tag v-else color="default" style="margin: 0; font-size: 11px;">
+                  当前账号无 .Claim 权限，处理按钮已隐藏
+                </a-tag>
+
+                <div style="width: 1px; height: 16px; background: #e5e7eb; margin: 0 4px;"></div>
+
+                <!-- 银行通讯专线操作 (受 Admin.BankDirect.Pull 控制) -->
+                <template v-if="hasPullPerm">
+                  <a-button size="small" type="primary" @click="openPullModal">
+                    <template #icon><iconify-icon icon="ant-design:cloud-download-outlined"></iconify-icon></template>
+                    手动拉取
+                  </a-button>
+
+                  <a-button size="small" @click="openReceiptModal">
+                    <template #icon><iconify-icon icon="ant-design:file-pdf-outlined"></iconify-icon></template>
+                    <span>下载回单</span>
+                    <a-badge
+                      v-if="receiptWaitingSeconds > 0"
+                      :count="formatCountdown(receiptWaitingSeconds)"
+                      :number-style="{ backgroundColor: '#d97706', fontSize: '10px' }"
+                      style="margin-left: 4px;"
+                    ></a-badge>
+                    <a-badge
+                      v-else-if="receiptStep === 2"
+                      count="可取回"
+                      :number-style="{ backgroundColor: '#16a34a', fontSize: '10px' }"
+                      style="margin-left: 4px;"
+                    ></a-badge>
+                  </a-button>
+                </template>
+
+                <a-button size="small" title="刷新列表（清空当前勾选）" @click="refreshTransactions">
+                  <template #icon><iconify-icon icon="ant-design:reload-outlined"></iconify-icon></template>
+                </a-button>
+              </div>
+            </div>
+
+            <!-- 表格区域：支持 1920 高密度决策排布与多种空态/错误态展示 -->
+            <template v-if="displayedTransactions.length > 0">
+              <a-table
+                class="wb-table"
+                size="small"
+                :data-source="displayedTransactions"
+                :columns="activeTransactionColumns"
+                :pagination="pagination"
+                :row-key="record => record.id"
+                :row-selection="tableRowSelection"
+                :row-class-name="getRowClassName"
+                :custom-row="customTableRow"
+                :scroll="{ x: tableColumnMode === 'compact' ? 1680 : 2860, y: 'calc(100vh - 380px)' }"
+                @change="onTableChange"
+              >
+                <template v-slot:[bodycellslot]="{ column, record }"
+{{ (window.console.log('COL:', column.key, column.dataIndex), '') }}>
+                  <!-- 交易时间 -->
+                  <template v-if="column.key === 'transTime'">
+                    <span class="num-tabular" style="font-weight: 500;">{{ record.transTime }}</span>
+                  </template>
+
+                  <!-- 来往账方向 -->
+                  <template v-else-if="column.key === 'direction'">
+                    <a-tag v-if="record.direction === 1" color="green" style="margin: 0; font-size: 11px;">
+                      + 来账
+                    </a-tag>
+                    <a-tag v-else color="orange" style="margin: 0; font-size: 11px;">
+                      - 往账
+                    </a-tag>
+                  </template>
+
+                  <!-- 交易金额 (千分位加粗，仅交易时间与金额可排序) -->
+                  <template v-else-if="column.key === 'amount'">
+                    <div :class="[record.direction === 1 ? 'amount-in' : 'amount-out', 'num-tabular']">
+                      {{ record.direction === 1 ? '+' : '-' }} {{ formatAmount(record.amount) }}
+                    </div>
+                  </template>
+
+                  <!-- 币种 (已映射 vs 未映射警示) -->
+                  <template v-else-if="column.key === 'currency'">
+                    <span style="font-weight: 600;">{{ record.currencyCode }}</span>
+                    <a-tooltip v-if="record.currencyUnmapped" :title="record.pendingReason || ('银行币种 ' + record.currencyCode + ' 未映射到系统币别，暂不能认领')">
+                      <a-tag color="error" style="margin-left: 4px; font-size: 10px; cursor: help;">未映射</a-tag>
+                    </a-tooltip>
+                  </template>
+
+                  <!-- 对方信息 (紧凑模式：户名 + 账号/开户行复合排布) -->
+                  <template v-else-if="column.key === 'counterparty'">
+                    <div class="counterparty-cell">
+                      <a-tooltip :title="record.counterpartyName || '对方账户信息尚未补齐，将由次日补查任务更新'">
+                        <span class="counterparty-name" :style="{ color: record.counterpartyName ? '#1e293b' : '#d97706' }">
+                          {{ record.counterpartyName || '（对方信息未补齐 · 待次日补查）' }}
+                        </span>
+                      </a-tooltip>
+                      <span class="counterparty-sub">{{ record.counterpartyAccount || '-' }} · {{ record.counterpartyBankName || '-' }}</span>
+                    </div>
+                  </template>
+
+                  <!-- 决策状态与待处理/忽略原因 (紧密合并呈现，解决来回横向滚动痛点！) -->
+                  <template v-else-if="column.key === 'decisionStatus'">
+                    <div class="decision-cell">
+                      <div>
+                        <a-tag :color="getStatusTagColor(record.status)" style="margin: 0; font-size: 11px;">
+                          {{ getStatusLabel(record.status) }}
+                        </a-tag>
+                        <a-tag v-if="record.kind && record.kind !== 0" :color="getKindTagColor(record.kind)" style="margin-left: 4px; font-size: 10px;">
+                          {{ getKindLabel(record.kind) }}
+                        </a-tag>
+                      </div>
+                      <a-tooltip v-if="record.pendingReason || record.ignoreReason" :title="record.pendingReason || record.ignoreReason">
+                        <span class="decision-reason-text">
+                          <iconify-icon icon="ant-design:warning-outlined" style="color: #f59e0b;"></iconify-icon>
+                          {{ record.pendingReason || record.ignoreReason }}
+                        </span>
+                      </a-tooltip>
+                    </div>
+                  </template>
+
+                  <!-- 全量列模式下的独立交易性质 -->
+                  <template v-else-if="column.key === 'kind'">
+                    <a-tag v-if="record.kind && record.kind !== 0" :color="getKindTagColor(record.kind)" style="margin: 0; font-size: 11px;">
+                      {{ getKindLabel(record.kind) }}
+                    </a-tag>
+                    <span v-else style="color: #64748b;">普通</span>
+                  </template>
+
+                  <!-- 全量列模式下的独立状态 -->
+                  <template v-else-if="column.key === 'status'">
+                    <a-tag :color="getStatusTagColor(record.status)" style="margin: 0; font-size: 11px;">
+                      {{ getStatusLabel(record.status) }}
+                    </a-tag>
+                  </template>
+
+                  <!-- 银行流水 (有流水权限可点开，不改勾选也不打开抽屉；无权限仅显示纯文本编号) -->
+                  <template v-else-if="column.key === 'bankStatement'">
+                    <template v-if="record.bankStatementNo">
+                      <a-tooltip v-if="canOpenStatement" title="点击打开银行流水详情/去核销（不改变当前行勾选）">
+                        <span class="bank-serial-link" @click.stop="openStatementDetail(record.bankStatementId)">
+                          {{ record.bankStatementNo }}
+                        </span>
+                      </a-tooltip>
+                      <a-tooltip v-else title="当前账号无银行流水页面权限，仅显示编号">
+                        <span style="color: #475569; font-family: monospace;">{{ record.bankStatementNo }}</span>
+                      </a-tooltip>
+                    </template>
+                    <span v-else style="color: #9ca3af;">-</span>
+                  </template>
+
+                  <!-- 回单状态 (OFD 回单数与页内预览) -->
+                  <template v-else-if="column.key === 'receipt'">
+                    <span v-if="record.receiptCount > 0" style="color: #2563eb; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" @click.stop="previewReceipt(record)">
+                      <iconify-icon icon="ant-design:file-pdf-outlined"></iconify-icon>
+                      <b>{{ record.receiptCount }}</b> 份
+                    </span>
+                    <span v-else style="color: #9ca3af;">0</span>
+                  </template>
+
+                  <!-- 我司银行账户 -->
+                  <template v-else-if="column.key === 'orgBankAccount'">
+                    <a-tooltip :title="record.orgBankFullLabel">
+                      <span style="color: #475569; font-size: 11px;">{{ record.orgBankShortLabel }}</span>
+                    </a-tooltip>
+                  </template>
+                </template>
+              </a-table>
+            </template>
+
+            <!-- 异常态展示：查询请求失败 (保留筛选上下文 + 重试) -->
+            <div v-else-if="demoScenario === 'error-load'" class="wb-empty-box">
+              <iconify-icon icon="ant-design:disconnect-outlined" class="wb-empty-icon" style="color: #ef4444;"></iconify-icon>
+              <div class="wb-empty-title">银行交易明细列表加载失败</div>
+              <div class="wb-empty-desc">
+                请求 <code>GET BankDirectAdmin/GetTransactionPagedListAsync</code> 响应超时或网络异常。您当前的筛选条件已完整保留，请点击下方按钮重试。
+              </div>
+              <a-space>
+                <a-button type="primary" @click="demoScenario = 'normal'; onScenarioChange('normal')">
+                  <template #icon><iconify-icon icon="ant-design:reload-outlined"></iconify-icon></template>
+                  保留筛选并重新加载
+                </a-button>
+              </a-space>
+            </div>
+
+            <!-- 空态展示 1：尚未配置直连账户 (解决痛点：区分前置缺失并感知权限) -->
+            <div v-else-if="demoScenario === 'empty-no-account'" class="wb-empty-box">
+              <iconify-icon icon="ant-design:bank-outlined" class="wb-empty-icon" style="color: #f59e0b;"></iconify-icon>
+              <div class="wb-empty-title">当前组织尚未启用中国银行直连账户</div>
+              <div class="wb-empty-desc">
+                <code>GetDirectAccountListAsync</code> 返回 0 个可用直连账户。需先在【系统管理 → 公司配置】维护中行客户号/操作员凭证，并在【组织银行账户】开启银企直连（无配置权限时请联系系统管理员，避免误导）。
+              </div>
+              <a-space>
+                <a-button type="primary" @click="simulateAccountConfigured">
+                  <template #icon><iconify-icon icon="ant-design:setting-outlined"></iconify-icon></template>
+                  一键模拟已完成中行配置与直连账户启用
+                </a-button>
+                <a-button @click="demoScenario = 'normal'; onScenarioChange('normal')">返回完整演示样本</a-button>
+              </a-space>
+            </div>
+
+            <!-- 空态展示 2：筛选结果为空 (提供快捷一键重置回待处理范围) -->
+            <div v-else-if="demoScenario === 'empty-filter'" class="wb-empty-box">
+              <iconify-icon icon="ant-design:filter-outlined" class="wb-empty-icon"></iconify-icon>
+              <div class="wb-empty-title">当前筛选条件下未找到匹配的银行交易</div>
+              <div class="wb-empty-desc">
+                直连银行账户配置正常，但当前组合筛选条件下无匹配数据。可放宽筛选条件，或一键重置回默认「待认领 / 疑似重复 / 待处理」范围。
+              </div>
+              <a-button type="primary" ghost @click="handleResetSearch">
+                <template #icon><iconify-icon icon="ant-design:undo-outlined"></iconify-icon></template>
+                重置为默认待处理范围 (0/1/2)
+              </a-button>
+            </div>
+
+            <!-- 空态展示 3：今日暂无交易产生 (提供手动拉取快捷按钮) -->
+            <div v-else class="wb-empty-box">
+              <iconify-icon icon="ant-design:inbox-outlined" class="wb-empty-icon"></iconify-icon>
+              <div class="wb-empty-title">直连银行账户暂未拉取到待处理交易</div>
+              <div class="wb-empty-desc">
+                中国银行直连账户配置正常，当前范围内暂无待处理交易。可切换状态筛选查看「已生成流水 / 已忽略」，或使用「手动拉取」立即向中行前置机补取最新交易。
+              </div>
+              <a-space>
+                <a-button v-if="hasPullPerm" type="primary" @click="openPullModal">
+                  <template #icon><iconify-icon icon="ant-design:cloud-download-outlined"></iconify-icon></template>
+                  手动拉取今日交易
+                </a-button>
+                <a-button @click="demoScenario = 'normal'; toggleStatFilter('all')">查看全部历史状态交易</a-button>
+              </a-space>
+            </div>
+
+          </div>
+        </template>
+
+        <!-- =========================================================================
+             TAB 2: 每日任务 (首次切入才加载；筛公司、任务日期、任务类型、状态)
+             ========================================================================= -->
+        <template v-else>
+          <!-- 每日任务 4 列筛选卡片 (100% 对齐 useDailyJobFormSchema) -->
+          <div class="wb-filter-box">
+            <div class="wb-filter-grid">
+              <a-form-item label="公司">
+                <a-select
+                  v-model:value="dailyJobSearchForm.orgId"
+                  :options="companyOptions"
+                  placeholder="全部直连公司"
+                  allow-clear
+                  show-search
+                  option-filter-prop="label"
+                  size="small"
+                ></a-select>
+              </a-form-item>
+
+              <a-form-item label="任务日期">
+                <a-range-picker
+                  v-model:value="dailyJobSearchForm.jobDateRange"
+                  format="YYYY-MM-DD"
+                  style="width: 100%;"
+                  size="small"
+                ></a-range-picker>
+              </a-form-item>
+
+              <a-form-item label="任务类型">
+                <a-select
+                  v-model:value="dailyJobSearchForm.jobType"
+                  :options="[
+                    { label: '次日补查 (1)', value: 1 },
+                    { label: '下载回单 (2)', value: 2 }
+                  ]"
+                  placeholder="全部类型"
+                  allow-clear
+                  size="small"
+                ></a-select>
+              </a-form-item>
+
+              <a-form-item label="状态">
+                <a-select
+                  v-model:value="dailyJobSearchForm.status"
+                  :options="[
+                    { label: '待执行 (0)', value: 0 },
+                    { label: '已提交 (1)', value: 1 },
+                    { label: '已完成 (2)', value: 2 },
+                    { label: '失败 (3)', value: 3 }
+                  ]"
+                  placeholder="全部状态"
+                  allow-clear
+                  size="small"
+                ></a-select>
+              </a-form-item>
+            </div>
+            <div class="filter-actions">
+              <span style="font-size: 12px; color: #64748b; margin-right: auto;">
+                💡 首次切入本页签时按需触发 <code>GetDailyJobPagedListAsync</code>，默认按任务日期倒序（仅任务日期可排序）
+              </span>
+              <a-button size="small" @click="resetDailyJobSearch">重 置</a-button>
+              <a-button size="small" type="primary" @click="refreshDailyJobs">
+                <template #icon><iconify-icon icon="ant-design:search-outlined"></iconify-icon></template>
+                查 询
+              </a-button>
+            </div>
+          </div>
+
+          <div class="wb-table-box">
+            <div class="wb-table-toolbar">
+              <div class="wb-toolbar-left">
+                <span class="wb-selected-pill">
+                  <iconify-icon icon="ant-design:check-square-outlined"></iconify-icon>
+                  <span>已选 <b>{{ selectedDailyJobKeys.length }}</b> 项</span>
+                </span>
+
+                <a-radio-group v-model:value="dailyJobStatusFilter" size="small" button-style="solid" @change="selectedDailyJobKeys = []">
+                  <a-radio-button value="all">全部任务 ({{ dailyJobs.length }})</a-radio-button>
+                  <a-radio-button value="failed">
+                    <span style="color: #ef4444; font-weight: 600;">失败 ({{ dailyJobsFailedCount }})</span>
+                  </a-radio-button>
+                  <a-radio-button value="completed">已完成 ({{ dailyJobsCompletedCount }})</a-radio-button>
+                  <a-radio-button value="submitted">待执行/已提交 ({{ dailyJobsSubmittedCount }})</a-radio-button>
+                </a-radio-group>
+              </div>
+
+              <div class="wb-toolbar-right">
+                <a-tooltip :title="selectedDailyJobKeys.length === 1 ? '' : '请先选择一条任务'">
+                  <a-button
+                    size="small"
+                    :disabled="selectedDailyJobKeys.length !== 1"
+                    @click="openSelectedDailyJobDetail"
+                  >
+                    <template #icon><iconify-icon icon="ant-design:file-text-outlined"></iconify-icon></template>
+                    查看详情
+                  </a-button>
+                </a-tooltip>
+
+                <a-tooltip v-if="hasPullPerm" :title="canTriggerJobReceipt ? '将预填该公司与任务日期打开回单下载弹窗' : '请选择一条「下载回单」类型的任务'">
+                  <a-button
+                    size="small"
+                    type="primary"
+                    :disabled="!canTriggerJobReceipt"
+                    @click="triggerJobReceiptModal"
+                  >
+                    <template #icon><iconify-icon icon="ant-design:cloud-download-outlined"></iconify-icon></template>
+                    下载回单（预填公司与日期）
+                  </a-button>
+                </a-tooltip>
+
+                <a-button size="small" @click="refreshDailyJobs">
+                  <template #icon><iconify-icon icon="ant-design:reload-outlined"></iconify-icon></template>
+                </a-button>
+              </div>
+            </div>
+
+            <!-- 每日任务数据表格 -->
+            <template v-if="displayedDailyJobs.length > 0">
+              <a-table
+                class="wb-table"
+                size="small"
+                :data-source="displayedDailyJobs"
+                :columns="dailyJobColumns"
+                :row-key="record => record.id"
+                :row-selection="dailyJobRowSelection"
+                :custom-row="customDailyJobRow"
+                :pagination="{ pageSize: 10, showTotal: total => `共 ${total} 条每日任务` }"
+                :scroll="{ x: 1680, y: 'calc(100vh - 360px)' }"
+              >
+                <template v-slot:[bodycellslot]="{ column, record }">
+                  <!-- 任务类型 -->
+                  <template v-if="column.key === 'jobType'">
+                    <a-tag v-if="record.jobType === 1" color="blue">次日补查</a-tag>
+                    <a-tag v-else color="purple">下载回单</a-tag>
+                  </template>
+
+                  <!-- 任务状态 -->
+                  <template v-else-if="column.key === 'status'">
+                    <a-tag :color="getJobStatusColor(record.status)">
+                      {{ getJobStatusLabel(record.status) }}
+                    </a-tag>
+                  </template>
+
+                  <!-- 失败原因高亮 -->
+                  <template v-else-if="column.key === 'lastError'">
+                    <a-tooltip v-if="record.lastError" :title="record.lastError">
+                      <span style="color: #ef4444; font-weight: 500; cursor: pointer;">
+                        <iconify-icon icon="ant-design:close-circle-filled" style="margin-right: 4px;"></iconify-icon>
+                        {{ record.lastError }}
+                      </span>
+                    </a-tooltip>
+                    <span v-else style="color: #9ca3af;">-</span>
+                  </template>
+                </template>
+              </a-table>
+            </template>
+            <div v-else class="wb-empty-box">
+              <iconify-icon icon="ant-design:schedule-outlined" class="wb-empty-icon"></iconify-icon>
+              <div class="wb-empty-title">当前筛选范围下暂无每日任务记录</div>
+              <div class="wb-empty-desc">
+                后台定时任务（次日补查、电子回单打包下载）执行后将在此记录尝试次数、银行指令号与文件包名。
+              </div>
+              <a-button size="small" @click="resetDailyJobSearch">重置任务筛选</a-button>
+            </div>
+          </div>
+        </template>
+
+        <!-- =========================================================================
+             业务抽屉 1: 交易全息详情抽屉 (960px 宽度，全量 5 大板块)
+             ========================================================================= -->
+        <a-drawer
+          v-model:open="drawerVisible"
+          width="960px"
+          :body-style="{ padding: '14px 20px 28px' }"
+        >
+          <template #title>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>银行交易详情</span>
+              <a-tag v-if="activeTransaction" :color="getStatusTagColor(activeTransaction.status)" style="margin: 0;">
+                {{ getStatusLabel(activeTransaction.status) }}
+              </a-tag>
+              <a-tag v-if="activeTransaction && activeTransaction.kind !== 0" :color="getKindTagColor(activeTransaction.kind)" style="margin: 0;">
+                {{ getKindLabel(activeTransaction.kind) }}
+              </a-tag>
+              <span v-if="activeTransaction" style="font-size: 12px; color: #64748b; font-weight: 400; font-family: monospace;">
+                {{ activeTransaction.bankSerialNo }}
+              </span>
+            </div>
+          </template>
+
+          <template #extra>
+            <a-space v-if="activeTransaction && hasClaimPerm">
+              <a-tooltip :title="getDrawerClaimReason(activeTransaction)">
+                <a-button
+                  type="primary"
+                  size="small"
+                  :disabled="!canClaimItem(activeTransaction)"
+                  @click="openClaimModal(activeTransaction)"
+                >
+                  认领
+                </a-button>
+              </a-tooltip>
+
+              <a-tooltip :title="getDrawerLinkReason(activeTransaction)">
+                <a-button
+                  size="small"
+                  :disabled="!canLinkItem(activeTransaction)"
+                  @click="openLinkModal(activeTransaction)"
+                >
+                  关联手录流水
+                </a-button>
+              </a-tooltip>
+
+              <a-tooltip :title="getDrawerIgnoreReason(activeTransaction)">
+                <a-button
+                  size="small"
+                  danger
+                  :disabled="!canIgnoreItem(activeTransaction)"
+                  @click="openIgnoreModalSingle(activeTransaction)"
+                >
+                  忽略
+                </a-button>
+              </a-tooltip>
+
+              <a-tooltip :title="activeTransaction.status === 4 ? '' : '仅已忽略交易可取消忽略'">
+                <a-button
+                  size="small"
+                  :disabled="activeTransaction.status !== 4"
+                  @click="handleUnignoreSingle(activeTransaction)"
+                >
+                  取消忽略
+                </a-button>
+              </a-tooltip>
+            </a-space>
+          </template>
+
+          <template v-if="activeTransaction">
+            <!-- 异常状态特殊告警条 (单一信息源，精准对应当前交易状态) -->
+            <a-alert
+              v-if="activeTransaction.status === 1"
+              type="warning"
+              show-icon
+              :message="'检测到 ' + (activeTransaction.duplicateCandidates?.length || 1) + ' 条疑似重复的手录银行流水：确认是同一笔请点击右上角「关联手录流水」，不是同一笔请点击「认领」。'"
+              style="margin-bottom: 12px;"
+            ></a-alert>
+
+            <a-alert
+              v-if="activeTransaction.counterpartyCompleted === false && !activeTransaction.counterpartyName"
+              type="info"
+              show-icon
+              message="对方账户信息尚未补齐，将由次日补查任务更新。"
+              style="margin-bottom: 12px;"
+            ></a-alert>
+
+            <!-- 板块 1：银行原始交易信息 (100% 对齐 transaction-drawer.vue) -->
+            <div class="drawer-sec-title">
+              <iconify-icon icon="ant-design:file-text-outlined" style="color: #2563eb;"></iconify-icon>
+              <span>银行原始交易信息</span>
+            </div>
+            <a-descriptions bordered size="small" :column="2">
+              <a-descriptions-item label="交易时间">{{ activeTransaction.transTime }}</a-descriptions-item>
+              <a-descriptions-item label="我司银行">{{ activeTransaction.orgBankFullLabel }}</a-descriptions-item>
+              <a-descriptions-item label="来往账">
+                <a-tag :color="activeTransaction.direction === 1 ? 'green' : 'orange'" style="margin: 0;">
+                  {{ activeTransaction.direction === 1 ? '来账' : '往账' }}
+                </a-tag>
+              </a-descriptions-item>
+              <a-descriptions-item label="交易金额">
+                <span class="num-tabular" style="font-weight: 700; font-size: 14px;" :class="activeTransaction.direction === 1 ? 'amount-in' : 'amount-out'">
+                  {{ formatAmount(activeTransaction.amount) }} {{ activeTransaction.currencyCode }}
+                </span>
+                <a-tag v-if="activeTransaction.currencyUnmapped" color="error" style="margin-left: 6px;">未映射</a-tag>
+              </a-descriptions-item>
+              <a-descriptions-item label="交易性质">
+                <a-tag v-if="activeTransaction.kind !== 0" :color="getKindTagColor(activeTransaction.kind)" style="margin: 0;">
+                  {{ getKindLabel(activeTransaction.kind) }}
+                </a-tag>
+                <span v-else>普通</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="处理状态">
+                <a-tag :color="getStatusTagColor(activeTransaction.status)" style="margin: 0;">
+                  {{ getStatusLabel(activeTransaction.status) }}
+                </a-tag>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="activeTransaction.pendingReason" label="待处理原因" :span="2">
+                <span style="color: #d97706; font-weight: 500;">{{ activeTransaction.pendingReason }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item v-if="activeTransaction.ignoreReason" label="忽略原因" :span="2">
+                <span style="color: #64748b;">{{ activeTransaction.ignoreReason }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="银行流水号">{{ activeTransaction.bankSerialNo || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="余额">
+                <span class="num-tabular">{{ formatAmount(activeTransaction.balance) }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="起息日">{{ activeTransaction.valueDate || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="银行借贷标志">{{ activeTransaction.bankDirection || (activeTransaction.direction === 1 ? 'CR (贷方来账)' : 'DR (借方往账)') }}</a-descriptions-item>
+              <a-descriptions-item label="交易类型">{{ activeTransaction.transType || '對公轉賬 / 匯款' }}</a-descriptions-item>
+              <a-descriptions-item label="业务类型">{{ activeTransaction.busType || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="交易标识" :span="2">
+                <span style="font-family: monospace; word-break: break-all;">{{ activeTransaction.transId || '-' }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="用途" :span="2">{{ activeTransaction.useInfo || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="附言" :span="2">{{ activeTransaction.postScript || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="整合信息" :span="2">
+                <span style="font-family: monospace; color: #475569; word-break: break-all;">{{ activeTransaction.integratedInfo || '-' }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="所属组织">{{ activeTransaction.companyName || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="创建人">{{ activeTransaction.creatorUserName || '系统定时拉取' }}</a-descriptions-item>
+              <a-descriptions-item label="首次拉取时间">{{ activeTransaction.creationTime || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="最后拉取时间">{{ activeTransaction.lastPulledTime || '-' }}</a-descriptions-item>
+            </a-descriptions>
+
+            <!-- 板块 2：对方账户信息 -->
+            <div class="drawer-sec-title">
+              <iconify-icon icon="ant-design:user-outlined" style="color: #2563eb;"></iconify-icon>
+              <span>对方信息</span>
+            </div>
+            <a-descriptions bordered size="small" :column="2">
+              <a-descriptions-item label="对方户名">
+                <span style="font-weight: 600; color: #1e293b;">{{ activeTransaction.counterpartyName || '-' }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="对方账号">{{ activeTransaction.counterpartyAccount || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="对方开户行">{{ activeTransaction.counterpartyBankName || '-' }}</a-descriptions-item>
+              <a-descriptions-item label="对方行号">{{ activeTransaction.counterpartyBankNo || '-' }}</a-descriptions-item>
+            </a-descriptions>
+
+            <!-- 板块 3：关联银行流水信息 -->
+            <div class="drawer-sec-title">
+              <iconify-icon icon="ant-design:account-book-outlined" style="color: #2563eb;"></iconify-icon>
+              <span>关联银行流水</span>
+            </div>
+            <template v-if="activeTransaction.bankStatement">
+              <a-descriptions bordered size="small" :column="2">
+                <a-descriptions-item label="银行流水号">
+                  <a v-if="canOpenStatement" class="bank-serial-link" @click="openStatementDetail(activeTransaction.bankStatement.id)">
+                    {{ activeTransaction.bankStatement.bankStatementNo }}
+                  </a>
+                  <span v-else style="font-family: monospace;">{{ activeTransaction.bankStatement.bankStatementNo }}（无流水页面权限）</span>
+                </a-descriptions-item>
+                <a-descriptions-item label="付款单位">{{ activeTransaction.bankStatement.settlement?.name || '-' }}</a-descriptions-item>
+                <a-descriptions-item label="金额">
+                  <span class="num-tabular">{{ formatAmount(activeTransaction.bankStatement.amount) }} {{ activeTransaction.currencyUnmapped ? '' : activeTransaction.currencyCode }}</span>
+                </a-descriptions-item>
+                <a-descriptions-item label="交易时间">{{ activeTransaction.bankStatement.statementTime }}</a-descriptions-item>
+                <a-descriptions-item label="核销状态">
+                  <a-tag :color="activeTransaction.bankStatement.writeOffStatus === 2 ? 'success' : 'default'" style="margin: 0;">
+                    {{ activeTransaction.bankStatement.writeOffStatus === 2 ? '已核销' : '未核销' }}
+                  </a-tag>
+                </a-descriptions-item>
+                <a-descriptions-item label="录入方式">
+                  {{ activeTransaction.bankStatement.inputType === 1 ? '银企直连' : '手工录入' }}
+                </a-descriptions-item>
+                <a-descriptions-item label="创建人" :span="2">
+                  {{ activeTransaction.bankStatement.creatorUserName || '-' }}
+                </a-descriptions-item>
+              </a-descriptions>
+            </template>
+            <div v-else style="padding: 10px 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; color: #64748b; font-size: 12px;">
+              未生成或关联银行流水
+            </div>
+
+            <!-- 板块 4：电子回单清单 -->
+            <div class="drawer-sec-title">
+              <iconify-icon icon="ant-design:file-protect-outlined" style="color: #2563eb;"></iconify-icon>
+              <span>电子回单 (OFD)</span>
+            </div>
+            <template v-if="activeTransaction.receipts && activeTransaction.receipts.length > 0">
+              <div v-for="rec in activeTransaction.receipts" :key="rec.id" class="drawer-candidate-card">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <iconify-icon icon="ant-design:file-pdf-outlined" style="color: #ef4444; font-size: 20px;"></iconify-icon>
+                  <div>
+                    <div style="font-weight: 600; font-size: 12px;">{{ rec.fileName || '中国银行电子回单_' + activeTransaction.bankSerialNo + '.ofd' }}</div>
+                    <div style="font-size: 11px; color: #64748b;">文件大小：{{ rec.fileSize || '142 KB' }} · 回单日期：{{ rec.receiptDate || activeTransaction.valueDate }}</div>
+                  </div>
+                </div>
+                <a-space>
+                  <a-button size="small" type="link" @click="previewReceipt(activeTransaction)">
+                    <template #icon><iconify-icon icon="ant-design:eye-outlined"></iconify-icon></template>
+                    预览 OFD
+                  </a-button>
+                  <a-button v-if="hasPullPerm" size="small" type="link" @click="downloadReceiptFile(rec)">
+                    <template #icon><iconify-icon icon="ant-design:download-outlined"></iconify-icon></template>
+                    下载
+                  </a-button>
+                </a-space>
+              </div>
+            </template>
+            <div v-else style="padding: 10px 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; color: #64748b; font-size: 12px;">
+              尚无回单
+            </div>
+
+            <!-- 板块 5：冲正原交易候选 (仅 kind === 1 冲正交易显示) -->
+            <template v-if="activeTransaction.kind === 1">
+              <div class="drawer-sec-title">
+                <iconify-icon icon="ant-design:warning-outlined" style="color: #ef4444;"></iconify-icon>
+                <span>冲正原交易候选（最多显示 5 条）</span>
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">
+                以下为系统匹配的可能被本笔冲正的原交易记录，请核对银行流水号、金额及关联流水状态：
+              </div>
+              <div v-if="activeTransaction.originalCandidates && activeTransaction.originalCandidates.length > 0">
+                <div v-for="cand in activeTransaction.originalCandidates" :key="cand.id" class="drawer-candidate-card">
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <a-tag :color="cand.direction === 1 ? 'green' : 'orange'" style="margin: 0;">
+                      {{ cand.direction === 1 ? '来账' : '往账' }}
+                    </a-tag>
+                    <span style="font-weight: 600; font-size: 12px; font-family: monospace;">
+                      银行流水号：{{ cand.bankSerialNo }}
+                    </span>
+                    <span class="num-tabular" style="font-size: 12px; color: #475569;">
+                      {{ cand.transTime }}
+                    </span>
+                    <span class="num-tabular" style="font-weight: 700;">
+                      {{ formatAmount(cand.amount) }} {{ activeTransaction.currencyCode }}
+                    </span>
+                    <span style="font-size: 12px; color: #334155;">
+                      {{ cand.counterpartyName || '-' }}
+                    </span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <a-tag :color="getStatusTagColor(cand.status)" style="margin: 0;">{{ getStatusLabel(cand.status) }}</a-tag>
+                    <a-button v-if="cand.bankStatementId && canOpenStatement" size="small" type="link" style="padding: 0;" @click="openStatementDetail(cand.bankStatementId)">
+                      打开银行流水
+                    </a-button>
+                  </div>
+                </div>
+              </div>
+              <div v-else style="padding: 10px 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; color: #64748b; font-size: 12px;">
+                未匹配到原交易候选
+              </div>
+            </template>
+
+          </template>
+        </a-drawer>
+
+        <!-- =========================================================================
+             业务弹窗 2: 认领客户来账弹窗 (760px)
+             ========================================================================= -->
+        <a-modal
+          v-model:open="claimModalVisible"
+          title="认领银行来账并生成流水"
+          width="760px"
+          :confirm-loading="claimSubmitting"
+          ok-text="确认认领"
+          cancel-text="取 消"
+          @ok="submitClaim"
+        >
+          <template v-if="claimTarget">
+            <!-- 银行交易摘要 -->
+            <a-descriptions bordered size="small" :column="2" style="margin-bottom: 14px;">
+              <a-descriptions-item label="银行交易时间">{{ claimTarget.transTime }}</a-descriptions-item>
+              <a-descriptions-item label="我司收款银行">{{ claimTarget.orgBankShortLabel }}</a-descriptions-item>
+              <a-descriptions-item label="认领入账金额">
+                <span class="amount-in num-tabular" style="font-size: 14px;">+ ¥ {{ formatAmount(claimTarget.amount) }}</span>
+                <span style="margin-left: 4px;">{{ claimTarget.currencyCode }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="对方户名">{{ claimTarget.counterpartyName }}</a-descriptions-item>
+              <a-descriptions-item label="对方银行账号">{{ claimTarget.counterpartyAccount }}</a-descriptions-item>
+              <a-descriptions-item label="交易用途与附言">{{ claimTarget.useInfo }} {{ claimTarget.postScript }}</a-descriptions-item>
+            </a-descriptions>
+
+            <!-- 候选客户选择区域 -->
+            <div style="margin-bottom: 12px;">
+              <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">候选客户匹配结果：</div>
+              <a-alert
+                v-if="claimCandidates.length === 1"
+                type="success"
+                show-icon
+                message="已根据对方户名唯一匹配到客户，已自动为您预选，可直接认领"
+                style="margin-bottom: 10px;"
+              ></a-alert>
+              <a-alert
+                v-else-if="claimCandidates.length > 1"
+                type="warning"
+                show-icon
+                message="匹配到多个重名或相似客户，请选择一个候选，或在下方手动指定付款客户"
+                style="margin-bottom: 10px;"
+              ></a-alert>
+              <a-alert
+                v-else
+                type="info"
+                show-icon
+                message="未能自动匹配到系统客户档案，请在下方手动选择付款客户并指定对方银行账号"
+                style="margin-bottom: 10px;"
+              ></a-alert>
+
+              <a-radio-group v-if="claimCandidates.length > 0" v-model:value="selectedClaimCandidateKey" style="width: 100%;" @change="onCandidateSelect">
+                <div v-for="cand in claimCandidates" :key="cand.key" class="drawer-candidate-card" style="margin-bottom: 6px; cursor: pointer;">
+                  <a-radio :value="cand.key">
+                    <span style="font-weight: 600;">{{ cand.clientName }}</span>
+                    <span v-if="cand.bankLabel" style="font-size: 12px; color: #64748b; margin-left: 6px;">（{{ cand.bankLabel }}）</span>
+                  </a-radio>
+                </div>
+              </a-radio-group>
+            </div>
+
+            <!-- 认领表单 -->
+            <a-form layout="vertical">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <a-form-item label="付款客户 (必填)" required>
+                  <a-select
+                    v-model:value="claimForm.settlementId"
+                    :options="clientOptions"
+                    placeholder="请选择付款客户"
+                    show-search
+                    option-filter-prop="label"
+                    @change="onClaimClientChange"
+                  ></a-select>
+                </a-form-item>
+
+                <a-form-item label="对方付款银行账户">
+                  <a-select
+                    v-model:value="claimForm.clientInvoiceBankId"
+                    :options="clientBankAccountOptions"
+                    :disabled="!claimForm.settlementId"
+                    placeholder="请先选择付款客户"
+                    allow-clear
+                  ></a-select>
+                  <div v-if="claimBankClearedNotice" style="font-size: 11px; color: #d97706; margin-top: 2px;">
+                    付款客户已变更，原对方银行已清空，请重新核对选择
+                  </div>
+                </a-form-item>
+              </div>
+
+              <a-form-item label="可核销操作人 (权限范围控制)" extra="选择付款客户后默认按客户「操作」干系人带出，可自行增删；若不设置则所属组织具有核销权限的所有财务均可见。">
+                <a-select
+                  v-model:value="claimForm.operatorIds"
+                  mode="multiple"
+                  :options="operatorOptions"
+                  placeholder="默认对全员可见，可选定指定操作人"
+                  style="width: 100%;"
+                ></a-select>
+              </a-form-item>
+            </a-form>
+          </template>
+        </a-modal>
+
+        <!-- =========================================================================
+             业务弹窗 3: 关联已有手录流水弹窗 (840px)
+             ========================================================================= -->
+        <a-modal
+          v-model:open="linkModalVisible"
+          title="关联已有手录银行流水"
+          width="840px"
+          :confirm-loading="linkSubmitting"
+          ok-text="确认关联"
+          cancel-text="取 消"
+          @ok="submitLink"
+        >
+          <a-alert
+            type="info"
+            show-icon
+            message="关联业务语义说明"
+            description="关联操作将此银行交易直接绑定至系统已存在的手工录入银行流水，不新建流水、不修改原流水金额及核销状态。如果不是同一笔，请改用「认领客户」。"
+            style="margin-bottom: 14px;"
+          ></a-alert>
+
+          <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">
+            请从疑似同笔的候选流水中选择一条（单选）：
+          </div>
+
+          <a-table
+            class="wb-table"
+            size="small"
+            :data-source="duplicateCandidates"
+            :columns="duplicateColumns"
+            :pagination="false"
+            :row-key="record => record.id"
+            :row-selection="{
+              type: 'radio',
+              selectedRowKeys: selectedLinkId ? [selectedLinkId] : [],
+              onChange: (keys) => selectedLinkId = keys[0]
+            }"
+            :custom-row="record => ({
+              onClick: () => selectedLinkId = record.id
+            })"
+          >
+            <template v-slot:[bodycellslot]="{ column, record }">
+              <template v-if="column.key === 'amount'">
+                <span class="num-tabular" style="font-weight: 700; color: #16a34a;">¥ {{ formatAmount(record.amount) }}</span>
+              </template>
+              <template v-else-if="column.key === 'writeOffStatus'">
+                <a-tag :color="record.writeOffStatus === 2 ? 'success' : 'default'">
+                  {{ record.writeOffStatus === 2 ? '已核销' : '未核销' }}
+                </a-tag>
+              </template>
+            </template>
+          </a-table>
+
+          <div v-if="selectedLinkId" style="margin-top: 14px; padding: 8px 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; font-size: 12px; color: #1e40af;">
+            <iconify-icon icon="ant-design:check-circle-outlined"></iconify-icon>
+            <span>已选定关联流水：<b>{{ getSelectedLinkNo() }}</b>。点击确认后系统将立即完成关联并流转状态。</span>
+          </div>
+        </a-modal>
+
+        <!-- =========================================================================
+             业务弹窗 4: 批量/单笔忽略交易弹窗 (560px)
+             ========================================================================= -->
+        <a-modal
+          v-model:open="ignoreModalVisible"
+          title="忽略银行交易"
+          width="560px"
+          :confirm-loading="ignoreSubmitting"
+          ok-text="确认忽略"
+          cancel-text="取 消"
+          @ok="submitIgnore"
+        >
+          <a-alert
+            type="warning"
+            show-icon
+            :message="'将忽略 ' + ignoreTargetIds.length + ' 笔交易'"
+            description="整批校验规则：任一笔交易若状态不符合忽略条件（如已生成流水），整批均不予处理。已忽略交易可在后续通过「取消忽略」按需撤销。"
+            style="margin-bottom: 14px;"
+          ></a-alert>
+
+          <div style="margin-bottom: 8px;">
+            <span style="font-size: 12px; color: #475569; font-weight: 500;">快捷填入常用忽略原因：</span>
+            <div style="display: flex; gap: 6px; margin-top: 4px;">
+              <a-tag color="blue" style="cursor: pointer;" @click="ignoreReason = '我司账户之间互转'">我司账户之间互转</a-tag>
+              <a-tag color="blue" style="cursor: pointer;" @click="ignoreReason = '非客户业务款项 (利息/补贴等)'">非客户业务款项</a-tag>
+              <a-tag color="blue" style="cursor: pointer;" @click="ignoreReason = '线下已手工结算处理'">已线下处理</a-tag>
+            </div>
+          </div>
+
+          <a-form layout="vertical">
+            <a-form-item label="忽略原因说明 (必填，最多 256 字)" required>
+              <a-textarea
+                v-model:value="ignoreReason"
+                rows="3"
+                maxlength="256"
+                show-count
+                placeholder="请详细说明忽略原因，方便后续财务对账审计"
+              ></a-textarea>
+            </a-form-item>
+          </a-form>
+        </a-modal>
+
+        <!-- =========================================================================
+             业务弹窗 5: 手动拉取交易弹窗 (600px)
+             ========================================================================= -->
+        <a-modal
+          v-model:open="pullModalVisible"
+          title="手动拉取中国银行交易明细"
+          width="600px"
+          :closable="!pullSubmitting"
+          :mask-closable="false"
+        >
+          <a-alert
+            type="info"
+            show-icon
+            message="银行前置机拉取规则"
+            description="拉取当日数据走银行实时明细接口，拉取历史数据走前置机历史流水接口。请求需要等待银行前置机排队返回，通常耗时 5~15 秒，期间请勿关闭弹窗。"
+            style="margin-bottom: 14px;"
+          ></a-alert>
+
+          <a-form layout="vertical">
+            <a-form-item label="直连银行账户" required>
+              <a-select
+                v-model:value="pullForm.accountId"
+                :options="directAccountOptions"
+                placeholder="请选择直连银行账户"
+                style="width: 100%;"
+              ></a-select>
+              <div v-if="directAccountOptions.length === 0" style="color: #ef4444; font-size: 12px; margin-top: 4px;">
+                ⚠️ 未检测到有效直连账户，请先在系统配置中开通中行直连
+              </div>
+            </a-form-item>
+
+            <a-form-item label="交易查询日期" required extra="可选今天及过去两年内任意单日">
+              <a-date-picker
+                v-model:value="pullForm.date"
+                format="YYYY-MM-DD"
+                style="width: 100%;"
+              ></a-date-picker>
+            </a-form-item>
+          </a-form>
+
+          <!-- 模拟拉取等待动画 -->
+          <div v-if="pullSubmitting" style="text-align: center; padding: 16px 0;">
+            <a-spin tip="正在与中国银行前置机通讯排队中，请稍候..."></a-spin>
+          </div>
+
+          <!-- 拉取结果 4 维指标反馈 -->
+          <div v-if="pullResult" style="margin-top: 14px;">
+            <a-alert type="success" show-icon message="银行明细拉取完成，列表已实时刷新！" style="margin-bottom: 10px;"></a-alert>
+            <a-descriptions bordered size="small" :column="4">
+              <a-descriptions-item label="银行共返回">{{ pullResult.total }} 笔</a-descriptions-item>
+              <a-descriptions-item label="系统新增">{{ pullResult.added }} 笔</a-descriptions-item>
+              <a-descriptions-item label="更新明细">{{ pullResult.updated }} 笔</a-descriptions-item>
+              <a-descriptions-item label="自动生成流水">{{ pullResult.generated }} 笔</a-descriptions-item>
+            </a-descriptions>
+          </div>
+
+          <template #footer>
+            <a-button :disabled="pullSubmitting" @click="pullModalVisible = false">关 闭</a-button>
+            <a-button type="primary" :loading="pullSubmitting" @click="submitPull">
+              {{ pullResult ? '再次拉取' : '立即拉取' }}
+            </a-button>
+          </template>
+        </a-modal>
+
+        <!-- =========================================================================
+             业务弹窗 6: 下载回单弹窗 (两步式 3 分钟倒计时防错可视化, 680px)
+             ========================================================================= -->
+        <a-modal
+          v-model:open="receiptModalVisible"
+          title="下载中国银行电子回单包"
+          width="680px"
+          :closable="!receiptSubmitting"
+          :mask-closable="false"
+        >
+          <!-- 两步式进度说明卡片 (解决体验痛点：彻底消除对“准备中”的误解) -->
+          <div class="receipt-step-box">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #1e293b;">
+              中国银行电子回单获取机制（两步操作）：
+            </div>
+            <a-steps :current="receiptStep" size="small">
+              <a-step title="步骤 1: 提交准备" description="向银行发起回单打包请求"></a-step>
+              <a-step title="步骤 2: 等待排队" :description="receiptWaitingSeconds > 0 ? '约 3 分钟后就绪' : '银行打包就绪'"></a-step>
+              <a-step title="步骤 3: 取回挂载" description="下载 OFD 并挂接至交易"></a-step>
+            </a-steps>
+          </div>
+
+          <!-- 安全防错警示：避免密码错误 3 次锁定银行端 -->
+          <a-alert
+            type="warning"
+            show-icon
+            message="凭据安全提示"
+            description="如遇 SFG 或前置机凭据错误，请勿连续重试（连续 3 次失败将导致中行锁定 4 小时）。请先核对【公司配置】中的直连操作员凭证。"
+            style="margin-bottom: 14px;"
+          ></a-alert>
+
+          <a-form layout="vertical">
+            <a-form-item label="所属公司" required>
+              <a-select
+                v-model:value="receiptForm.orgId"
+                :options="companyOptions"
+                placeholder="请选择公司"
+                style="width: 100%;"
+              ></a-select>
+            </a-form-item>
+
+            <a-form-item label="回单发生日期" required extra="默认昨日，可选今天及过去五年内任意单日">
+              <a-date-picker
+                v-model:value="receiptForm.date"
+                format="YYYY-MM-DD"
+                style="width: 100%;"
+              ></a-date-picker>
+            </a-form-item>
+          </a-form>
+
+          <!-- 倒计时与取回状态 -->
+          <div v-if="receiptWaitingSeconds > 0" style="padding: 12px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; margin-top: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <iconify-icon icon="ant-design:clock-circle-outlined" style="color: #d46b08; font-size: 18px;"></iconify-icon>
+              <div>
+                <div style="font-weight: 600; color: #d46b08;">银行后台打包中...</div>
+                <div style="font-size: 11px; color: #873800;">可关闭弹窗稍后回来，倒计时结束后点击「再次获取回单」即可取回。</div>
+              </div>
+            </div>
+            <a-tag color="warning" style="font-size: 14px; font-weight: 700; padding: 4px 10px;">
+              {{ formatCountdown(receiptWaitingSeconds) }}
+            </a-tag>
+          </div>
+
+          <!-- 模拟就绪快捷按钮 (供演示测试快速跳过 3 分钟) -->
+          <div v-if="receiptWaitingSeconds > 0" style="text-align: right; margin-top: 6px;">
+            <a-button type="link" size="small" style="font-size: 11px; color: #2563eb;" @click="simulateReceiptReady">
+              [仿真快捷] 模拟银行已打包完毕 (跳过等待)
+            </a-button>
+          </div>
+
+          <!-- 取回成功 4 维结果展示 -->
+          <div v-if="receiptResult" style="margin-top: 14px;">
+            <a-alert type="success" show-icon message="电子回单包已成功取回并完成自动挂接！" style="margin-bottom: 10px;"></a-alert>
+            <a-descriptions bordered size="small" :column="3">
+              <a-descriptions-item label="总回单文件数">{{ receiptResult.fileCount }} 份</a-descriptions-item>
+              <a-descriptions-item label="新挂接交易">{{ receiptResult.attachedCount }} 笔</a-descriptions-item>
+              <a-descriptions-item label="已存在跳过">{{ receiptResult.existedCount }} 笔</a-descriptions-item>
+            </a-descriptions>
+
+            <div v-if="receiptResult.unmatchedFiles && receiptResult.unmatchedFiles.length > 0" style="margin-top: 8px;">
+              <a-alert
+                type="info"
+                show-icon
+                :message="receiptResult.unmatchedFiles.length + ' 个回单文件未匹配到交易 (可能属于非直连网银流水)'"
+              ></a-alert>
+            </div>
+          </div>
+
+          <template #footer>
+            <a-button :disabled="receiptSubmitting" @click="receiptModalVisible = false">关 闭</a-button>
+            <a-button
+              type="primary"
+              :disabled="receiptWaitingSeconds > 0"
+              :loading="receiptSubmitting"
+              @click="submitReceiptDownload"
+            >
+              <span v-if="receiptWaitingSeconds > 0">约 {{ formatCountdown(receiptWaitingSeconds) }} 后再取</span>
+              <span v-else-if="receiptStep === 2">再次获取回单 (取回文件)</span>
+              <span v-else>第一步：提交银行准备</span>
+            </a-button>
+          </template>
+        </a-modal>
+
+        <!-- =========================================================================
+             业务抽屉 2: 每日任务详情抽屉 (680px)
+             ========================================================================= -->
+        <a-drawer
+          v-model:open="dailyJobDrawerVisible"
+          title="每日自动化任务详情"
+          width="680px"
+          :body-style="{ padding: '16px 24px 32px' }"
+        >
+          <template v-if="activeDailyJob">
+            <a-descriptions bordered size="small" :column="2">
+              <a-descriptions-item label="所属公司" :span="2">{{ activeDailyJob.companyName }}</a-descriptions-item>
+              <a-descriptions-item label="任务日期">{{ activeDailyJob.jobDate }}</a-descriptions-item>
+              <a-descriptions-item label="任务类型">
+                <a-tag v-if="activeDailyJob.jobType === 1" color="blue">次日补查</a-tag>
+                <a-tag v-else color="purple">下载回单</a-tag>
+              </a-descriptions-item>
+              <a-descriptions-item label="执行状态">
+                <a-tag :color="getJobStatusColor(activeDailyJob.status)">{{ getJobStatusLabel(activeDailyJob.status) }}</a-tag>
+              </a-descriptions-item>
+              <a-descriptions-item label="尝试重试次数">{{ activeDailyJob.attempts }} 次</a-descriptions-item>
+              <a-descriptions-item label="任务提交时间">{{ activeDailyJob.submitTime }}</a-descriptions-item>
+              <a-descriptions-item label="任务结束时间">{{ activeDailyJob.finishedTime || '执行中' }}</a-descriptions-item>
+              <a-descriptions-item label="银行指令号" :span="2">
+                <span style="font-family: monospace;">{{ activeDailyJob.insId || '-' }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="回单文件包名" :span="2">
+                <span style="font-family: monospace;">{{ activeDailyJob.packageName || '-' }}</span>
+              </a-descriptions-item>
+            </a-descriptions>
+
+            <!-- 失败原因红框高亮 -->
+            <div v-if="activeDailyJob.lastError" style="margin-top: 14px;">
+              <div style="font-size: 13px; font-weight: 600; color: #ef4444; margin-bottom: 6px;">
+                任务失败诊断与重试线索：
+              </div>
+              <div style="padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; color: #b91c1c; font-size: 12px; line-height: 1.5;">
+                {{ activeDailyJob.lastError }}
+              </div>
+            </div>
+
+            <!-- 联动操作：若为下载回单任务，提供直接打开回单弹窗并预填 -->
+            <div v-if="activeDailyJob.jobType === 2" style="margin-top: 20px; text-align: right;">
+              <a-button type="primary" @click="triggerJobReceiptModalFromDrawer">
+                <template #icon><iconify-icon icon="ant-design:cloud-download-outlined"></iconify-icon></template>
+                根据该任务预填并重新下载回单
+              </a-button>
+            </div>
+          </template>
+        </a-drawer>
+
+        <!-- =========================================================================
+             交接改版要点说明弹窗 (供设计师与业务团队审阅设计依据)
+             ========================================================================= -->
+        <a-modal
+          v-model:open="showDesignManualModal"
+          title="📋 银企直连 UI/交互设计优化交接全景核对"
+          width="820px"
+          :footer="null"
+        >
+          <a-alert
+            type="success"
+            show-icon
+            message="100% 业务字段与规则保真 · 1920×1080 高密度体验升级"
+            description="本原型完全基于实际开发代码 (tapd-1000417) 与后端总逻辑文档 (4d75633c) 搭建，精准解决交接文档中指出的 5 大体验机会。"
+            style="margin-bottom: 14px;"
+          ></a-alert>
+
+          <a-tabs default-active-key="1">
+            <a-tab-pane key="1" tab="1. 决策字段横向布局优化">
+              <p><b>痛点</b>：原页面 1920 宽屏下依然严重横向滚动，财务核对一笔需要左右拖拽。</p>
+              <p><b>方案</b>：</p>
+              <ul>
+                <li><b>对方信息紧凑合并</b>：将对方户名、银行、账号收纳在同一复合单元格，鼠标悬浮看全称。</li>
+                <li><b>状态与待处理原因合并</b>：将处理状态 Tag 与待处理原因/忽略原因合并在同一列，一眼看清“为何待处理”。</li>
+                <li><b>金额加粗带符号</b>：来账绿色 <code>+ ¥</code>，往账橙色 <code>- ¥</code>，金融视觉一眼可辨。</li>
+              </ul>
+            </a-tab-pane>
+
+            <a-tab-pane key="2" tab="2. 智能多场景空态体系">
+              <p><b>痛点</b>：原系统零条时均仅展示冷冰冰的“暂无数据”，无法区分原因。</p>
+              <p><b>方案</b>：区分 3 大空态场景：</p>
+              <ul>
+                <li><b>未配置直连账户</b>：明确提示需配置中行客户号并提供操作指引。</li>
+                <li><b>筛选无结果</b>：提供一键“重置筛选”快捷动作。</li>
+                <li><b>今日暂无交易</b>：通讯正常提示，并引导“手动拉取交易”。</li>
+              </ul>
+            </a-tab-pane>
+
+            <a-tab-pane key="3" tab="3. 回单两步式防错机制">
+              <p><b>痛点</b>：回单需经历银行约 3 分钟打包排队，容易误以为“准备中”就是“已取回”。</p>
+              <p><b>方案</b>：设计可视化三步步骤条，清晰拆分【银行打包】与【取回文件】，内置防连点 3 分钟倒计时环，并在倒计时结束后高亮提示取回。</p>
+            </a-tab-pane>
+
+            <a-tab-pane key="4" tab="4. 认领与关联双向闭环">
+              <p><b>认领来账</b>：唯一候选自动预填、多候选单选卡片、自动带出干系人操作人，提交后直通核销。</p>
+              <p><b>关联手录</b>：严格区分“关联已有流水”与“新建流水”，单选疑似候选，不新建、不修改流水原数据。</p>
+            </a-tab-pane>
+          </a-tabs>
+        </a-modal>
+
+      </div>
+    </a-config-provider>
+  </div>
+
+  <script>
+    const { createApp, ref, reactive, computed, onMounted, onBeforeUnmount } = Vue;
+
+    const app = createApp({
+      setup() {
+        const bodycellslot = 'bodyCell';
+        // ==================== 状态控制 ====================
+        const activeMainTab = ref('transactions');
+        const demoScenario = ref('normal');
+        const showDesignManualModal = ref(false);
+        const isFilterExpanded = ref(false);
+
+        // 权限视角仿真控制 ('full': 全权限; 'view-only': 仅.Get查看; 'no-statement': 无银行流水权限)
+        const permissionRole = ref('full');
+        const hasClaimPerm = computed(() => permissionRole.value === 'full' || permissionRole.value === 'no-statement');
+        const hasPullPerm = computed(() => permissionRole.value === 'full' || permissionRole.value === 'no-statement');
+        const canOpenStatement = computed(() => permissionRole.value === 'full' || permissionRole.value === 'view-only');
+
+        // 表格列模式 ('compact': 紧凑决策视图 1920免横滚; 'full': 全量原始字段 21列)
+        const tableColumnMode = ref('compact');
+
+        // ==================== 选项字典 ====================
+        const directAccountOptions = ref([
+          { label: '青岛佳越科技 / 中行市南支行 / 231668120451 / RMB', value: '3a19f0d2-6b4c-4e21-8a90-2c3d4e5f6a7b' },
+          { label: '青岛佳越科技 / 中行青岛分行 / 218900451299 / USD', value: 'acc-usd-002' },
+          { label: '佳越供应链 / 中行黄岛支行 / 240988112233 / RMB', value: 'acc-rmb-003' }
+        ]);
+
+        const companyOptions = ref([
+          { label: '青岛佳越软件科技有限公司', value: 12 },
+          { label: '佳越供应链管理（青岛）有限公司', value: 15 }
+        ]);
+
+        const orgOptions = ref([
+          { label: '佳越集团（全量下级）', value: 1 },
+          { label: '青岛佳越软件科技有限公司', value: 12 },
+          { label: '佳越供应链管理（青岛）有限公司', value: 15 }
+        ]);
+
+        const currencyOptions = ref([
+          { label: '人民币 (RMB)', value: 1 },
+          { label: '美元 (USD)', value: 2 },
+          { label: '欧元 (EUR)', value: 3 }
+        ]);
+
+        const transactionStatusOptions = [
+          { label: '待认领 (0)', value: 0 },
+          { label: '疑似重复 (1)', value: 1 },
+          { label: '待处理 (2)', value: 2 },
+          { label: '已生成流水 (3)', value: 3 },
+          { label: '已忽略 (4)', value: 4 }
+        ];
+
+        const directionOptions = [
+          { label: '全部方向', value: undefined },
+          { label: '来账 (贷入)', value: 1 },
+          { label: '往账 (借出)', value: 2 }
+        ];
+
+        const kindOptions = [
+          { label: '全部性质', value: undefined },
+          { label: '普通交易', value: 0 },
+          { label: '冲正交易', value: 1 },
+          { label: '退汇交易', value: 2 },
+          { label: '银行收费', value: 3 }
+        ];
+
+        const clientOptions = ref([
+          { label: '青岛远洋国际物流有限公司 (CL-2026-001)', value: 'client-001' },
+          { label: '青岛海联货运代理有限公司 (CL-2026-002)', value: 'client-002' },
+          { label: '上海美设物流股份有限公司青岛分公司 (CL-2026-003)', value: 'client-003' },
+          { label: '连云港东方港务仓储实业有限公司 (CL-2026-004)', value: 'client-004' }
+        ]);
+
+        const operatorOptions = ref([
+          { label: '张会计 (财务审核)', value: 'u-101' },
+          { label: '王出纳 (资金调度)', value: 'u-102' },
+          { label: '李操作 (海运单证)', value: 'u-103' },
+          { label: '赵经理 (结算主管)', value: 'u-104' }
+        ]);
+
+        // ==================== 搜索过滤表单 ====================
+        const searchForm = reactive({
+          keyword: '',
+          orgBankAccountId: undefined,
+          statuses: [0, 1, 2], // 默认待认领、疑似重复、待处理
+          direction: undefined,
+          transTimeRange: null,
+          orgId: undefined,
+          kind: undefined,
+          currencyId: undefined,
+          amountStart: null,
+          amountEnd: null
+        });
+
+        // ==================== 真实 MOCK 交易数据 ====================
+        const rawTransactions = ref([
+          {
+            id: 'trx-001',
+            transTime: '2026-10-22 10:05:12',
+            direction: 1, // 来账
+            amount: 5000.00,
+            balance: 508200.75,
+            currencyCode: 'CNY',
+            currencyId: 1,
+            currencyUnmapped: false,
+            counterpartyName: '青岛海联货运代理有限公司',
+            counterpartyAccount: '532902118810601',
+            counterpartyBankName: '招商银行青岛分行营业部',
+            counterpartyBankNo: '308452000014',
+            useInfo: '运费',
+            postScript: 'INV-2610-0091 订舱费',
+            integratedInfo: '运费 INV-2610-0091 订舱费 对方行:招行青岛分行',
+            kind: 0, // 普通
+            status: 1, // 疑似重复
+            pendingReason: '与已有手录流水金额(¥5000)、日期相同',
+            ignoreReason: null,
+            bankStatementId: null,
+            bankStatementNo: null,
+            bankSerialNo: 'BOC20261022100512000021',
+            receiptCount: 0,
+            receipts: [],
+            orgBankShortLabel: '中行市南支行 / 231668120451',
+            orgBankFullLabel: '青岛佳越软件科技 / 中国银行市南支行 / 231668120451',
+            companyName: '青岛佳越软件科技有限公司',
+            creationTime: '2026-10-22 10:10:31',
+            lastPulledTime: '2026-10-22 10:10:31',
+            valueDate: '2026-10-22',
+            transId: 'TRX20261022100512021',
+            busType: '跨行汇入',
+            counterpartyCompleted: true,
+            duplicateCandidates: [
+              {
+                id: 'stmt-dup-01',
+                bankStatementNo: 'BS2610220002',
+                amount: 5000.00,
+                statementTime: '2026-10-22',
+                settlement: { name: '青岛海联货运代理有限公司' },
+                remark: '财务手录订舱运费',
+                writeOffStatus: 0,
+                creatorUserName: '王出纳'
+              }
+            ]
+          },
+          {
+            id: 'trx-002',
+            transTime: '2026-10-22 09:32:15',
+            direction: 1, // 来账
+            amount: 12800.50,
+            balance: 503200.75,
+            currencyCode: 'CNY',
+            currencyId: 1,
+            currencyUnmapped: false,
+            counterpartyName: '青岛远洋国际物流有限公司',
+            counterpartyAccount: '3803020109001234567',
+            counterpartyBankName: '中国工商银行青岛香港中路支行',
+            counterpartyBankNo: '102452000123',
+            useInfo: '货款',
+            postScript: 'SE26100018 海运费',
+            integratedInfo: '货款 SE26100018 海运费 付款方:青岛远洋',
+            kind: 0, // 普通
+            status: 3, // 已生成流水
+            pendingReason: null,
+            ignoreReason: null,
+            bankStatementId: 'stmt-claim-007',
+            bankStatementNo: 'BS2610220007',
+            bankSerialNo: 'BOC20261021093215000183',
+            receiptCount: 1,
+            receipts: [
+              { id: 'rec-01', fileName: '电子回单_BOC20261021093215000183.ofd', fileSize: '156 KB', receiptDate: '2026-10-21' }
+            ],
+            orgBankShortLabel: '中行市南支行 / 231668120451',
+            orgBankFullLabel: '青岛佳越软件科技 / 中国银行市南支行 / 231668120451',
+            companyName: '青岛佳越软件科技有限公司',
+            creationTime: '2026-10-21 09:40:02',
+            lastPulledTime: '2026-10-22 15:10:44',
+            valueDate: '2026-10-21',
+            transId: 'TRX20261021093215183',
+            busType: '跨行汇入',
+            counterpartyCompleted: true,
+            bankStatement: {
+              id: 'stmt-claim-007',
+              bankStatementNo: 'BS2610220007',
+              amount: 12800.50,
+              statementTime: '2026-10-22 09:32:15',
+              settlement: { name: '青岛远洋国际物流有限公司' },
+              writeOffStatus: 2, // 已核销
+              inputType: 1, // 直连自动生成
+              creatorUserName: '系统自动生成'
+            }
+          },
+          {
+            id: 'trx-003',
+            transTime: '2026-10-22 08:45:00',
+            direction: 1, // 来账
+            amount: 8640.00,
+            balance: 490400.25,
+            currencyCode: 'CNY',
+            currencyId: 1,
+            currencyUnmapped: false,
+            counterpartyName: '上海美设物流股份有限公司青岛分公司',
+            counterpartyAccount: '310066120018150098',
+            counterpartyBankName: '交通银行上海自贸试验区分行',
+            counterpartyBankNo: '301290000155',
+            useInfo: '订舱代理费',
+            postScript: 'B/L NO: MS2610-8801',
+            integratedInfo: '订舱代理费 B/L NO: MS2610-8801',
+            kind: 0,
+            status: 0, // 待认领
+            pendingReason: '匹配到 1 家客户档案，需确认认领并指定操作人',
+            ignoreReason: null,
+            bankStatementId: null,
+            bankStatementNo: null,
+            bankSerialNo: 'BOC20261022084500000088',
+            receiptCount: 1,
+            receipts: [
+              { id: 'rec-02', fileName: '电子回单_BOC20261022084500000088.ofd', fileSize: '148 KB', receiptDate: '2026-10-22' }
+            ],
+            orgBankShortLabel: '中行市南支行 / 231668120451',
+            orgBankFullLabel: '青岛佳越软件科技 / 中国银行市南支行 / 231668120451',
+            companyName: '青岛佳越软件科技有限公司',
+            creationTime: '2026-10-22 08:50:11',
+            lastPulledTime: '2026-10-22 10:10:31',
+            valueDate: '2026-10-22',
+            transId: 'TRX20261022084500088',
+            busType: '行内汇入',
+            counterpartyCompleted: true,
+            clientCandidates: [
+              { key: 'cand-01', clientName: '上海美设物流股份有限公司青岛分公司', bankLabel: '交行上海自贸区 310066120018150098' }
+            ]
+          },
+          {
+            id: 'trx-004',
+            transTime: '2026-10-21 14:30:02',
+            direction: 2, // 往账
+            amount: 12800.50,
+            balance: 481760.25,
+            currencyCode: 'CNY',
+            currencyId: 1,
+            currencyUnmapped: false,
+            counterpartyName: '青岛远洋国际物流有限公司',
+            counterpartyAccount: '3803020109001234567',
+            counterpartyBankName: '中国工商银行青岛香港中路支行',
+            counterpartyBankNo: '102452000123',
+            useInfo: '冲正',
+            postScript: '冲正 SE26100018',
+            integratedInfo: '冲正 BOC20261021093215000183 错误扣款撤回',
+            kind: 1, // 冲正
+            status: 2, // 待处理
+            pendingReason: '冲正交易，请核对原交易后处理',
+            ignoreReason: null,
+            bankStatementId: null,
+            bankStatementNo: null,
+            bankSerialNo: 'BOC20261021143002000417',
+            receiptCount: 0,
+            receipts: [],
+            orgBankShortLabel: '中行市南支行 / 231668120451',
+            orgBankFullLabel: '青岛佳越软件科技 / 中国银行市南支行 / 231668120451',
+            companyName: '青岛佳越软件科技有限公司',
+            creationTime: '2026-10-21 14:35:11',
+            lastPulledTime: '2026-10-22 10:10:31',
+            valueDate: '2026-10-21',
+            transId: 'TRX20261021143002417',
+            busType: '冲正扣款',
+            counterpartyCompleted: true,
+            originalCandidates: [
+              {
+                id: 'trx-002',
+                bankSerialNo: 'BOC20261021093215000183',
+                transTime: '2026-10-21 09:32:15',
+                amount: 12800.50,
+                direction: 1,
+                status: 3,
+                counterpartyName: '青岛远洋国际物流有限公司',
+                bankStatementId: 'stmt-claim-007'
+              }
+            ]
+          },
+          {
+            id: 'trx-005',
+            transTime: '2026-10-21 11:20:00',
+            direction: 1, // 来账
+            amount: 3200.00,
+            balance: 494560.75,
+            currencyCode: 'HKD',
+            currencyId: null, // 未映射币种
+            currencyUnmapped: true,
+            counterpartyName: '香港恒荣航运发展有限公司',
+            counterpartyAccount: '012-875-1002345',
+            counterpartyBankName: '中国银行(香港)有限公司',
+            counterpartyBankNo: '012',
+            useInfo: '提单改单费',
+            postScript: 'HKD REMITTANCE AMEND FEE',
+            integratedInfo: '提单改单费 HKD REMITTANCE AMEND FEE',
+            kind: 0,
+            status: 2, // 待处理
+            pendingReason: '银行币种 HKD 未映射到系统币别，暂不能认领',
+            ignoreReason: null,
+            bankStatementId: null,
+            bankStatementNo: null,
+            bankSerialNo: 'BOC20261021112000000305',
+            receiptCount: 0,
+            receipts: [],
+            orgBankShortLabel: '中行青岛分行 / 218900451299',
+            orgBankFullLabel: '青岛佳越软件科技 / 中国银行青岛分行 / 218900451299',
+            companyName: '青岛佳越软件科技有限公司',
+            creationTime: '2026-10-21 11:30:00',
+            lastPulledTime: '2026-10-22 10:10:31',
+            valueDate: '2026-10-21',
+            transId: 'TRX20261021112000305',
+            busType: '境外汇入',
+            counterpartyCompleted: true
+          },
+          {
+            id: 'trx-006',
+            transTime: '2026-10-20 16:40:18',
+            direction: 2, // 往账
+            amount: 15.00,
+            balance: 491360.75,
+            currencyCode: 'CNY',
+            currencyId: 1,
+            currencyUnmapped: false,
+            counterpartyName: '中国银行青岛市南支行',
+            counterpartyAccount: '231668120451-FEE',
+            counterpartyBankName: '中国银行青岛市南支行',
+            counterpartyBankNo: '104452000010',
+            useInfo: '网银跨行转账手续费',
+            postScript: '手续费扣收',
+            integratedInfo: '手续费扣收 15元',
+            kind: 3, // 银行收费
+            status: 4, // 已忽略
+            pendingReason: null,
+            ignoreReason: '非客户业务款项 (银行端代扣账户管理费与转账手续费)',
+            bankStatementId: null,
+            bankStatementNo: null,
+            bankSerialNo: 'BOC20261020164018000912',
+            receiptCount: 1,
+            receipts: [
+              { id: 'rec-03', fileName: '电子回单_手续费扣收_20261020.ofd', fileSize: '110 KB', receiptDate: '2026-10-20' }
+            ],
+            orgBankShortLabel: '中行市南支行 / 231668120451',
+            orgBankFullLabel: '青岛佳越软件科技 / 中国银行市南支行 / 231668120451',
+            companyName: '青岛佳越软件科技有限公司',
+            creationTime: '2026-10-20 16:45:00',
+            lastPulledTime: '2026-10-22 10:10:31',
+            valueDate: '2026-10-20',
+            transId: 'TRX20261020164018912',
+            busType: '费用代扣',
+            counterpartyCompleted: true
+          }
+        ]);
+
+        // ==================== 每日任务数据 ====================
+        const dailyJobs = ref([
+          {
+            id: 'job-01',
+            companyName: '青岛佳越软件科技有限公司',
+            jobDate: '2026-10-22',
+            jobType: 1, // 次日补查
+            status: 2, // 已完成
+            attempts: 1,
+            submitTime: '2026-10-22 02:00:15',
+            finishedTime: '2026-10-22 02:01:40',
+            lastError: null,
+            insId: 'INS-BOC-261022-0001',
+            packageName: 'PKG-261022-LOOKUP.DAT'
+          },
+          {
+            id: 'job-02',
+            companyName: '青岛佳越软件科技有限公司',
+            jobDate: '2026-10-22',
+            jobType: 2, // 下载回单
+            status: 3, // 失败
+            attempts: 3,
+            submitTime: '2026-10-22 08:30:00',
+            finishedTime: '2026-10-22 08:33:12',
+            lastError: '中国银行前置机 SFG 握手失败：网络超时或凭据需重新握手（已安全防重试，未锁定）',
+            insId: 'INS-BOC-261022-0042',
+            packageName: 'PKG-261021-RECEIPT.ZIP'
+          },
+          {
+            id: 'job-03',
+            companyName: '佳越供应链管理（青岛）有限公司',
+            jobDate: '2026-10-21',
+            jobType: 2, // 下载回单
+            status: 2, // 已完成
+            attempts: 1,
+            submitTime: '2026-10-21 08:30:10',
+            finishedTime: '2026-10-21 08:34:25',
+            lastError: null,
+            insId: 'INS-BOC-261021-0038',
+            packageName: 'PKG-261020-RECEIPT.ZIP'
+          }
+        ]);
+
+        const dailyJobStatusFilter = ref('all');
+        const selectedDailyJobKeys = ref([]);
+        const dailyJobDrawerVisible = ref(false);
+        const activeDailyJob = ref(null);
+
+        // ==================== 交易选中与抽屉 ====================
+        const selectedRowKeys = ref([]);
+        const drawerVisible = ref(false);
+        const activeTransaction = ref(null);
+
+        // ==================== 弹窗控制 ====================
+        // 认领弹窗
+        const claimModalVisible = ref(false);
+        const claimSubmitting = ref(false);
+        const claimTarget = ref(null);
+        const selectedClaimCandidateKey = ref('');
+        const claimBankClearedNotice = ref(false);
+        const claimForm = reactive({
+          settlementId: undefined,
+          clientInvoiceBankId: undefined,
+          operatorIds: []
+        });
+
+        // 关联弹窗
+        const linkModalVisible = ref(false);
+        const linkSubmitting = ref(false);
+        const linkTarget = ref(null);
+        const selectedLinkId = ref(null);
+
+        // 忽略弹窗
+        const ignoreModalVisible = ref(false);
+        const ignoreSubmitting = ref(false);
+        const ignoreTargetIds = ref([]);
+        const ignoreReason = ref('');
+
+        // 拉取弹窗
+        const pullModalVisible = ref(false);
+        const pullSubmitting = ref(false);
+        const pullResult = ref(null);
+        const pullForm = reactive({
+          accountId: '3a19f0d2-6b4c-4e21-8a90-2c3d4e5f6a7b',
+          date: window.dayjs()
+        });
+
+        // 回单弹窗 (两步式 3 分钟倒计时)
+        const receiptModalVisible = ref(false);
+        const receiptSubmitting = ref(false);
+        const receiptStep = ref(0); // 0: 未开始, 1: 准备中排队, 2: 可取回挂接
+        const receiptWaitingSeconds = ref(0);
+        let receiptTimer = null;
+        const receiptResult = ref(null);
+        const receiptForm = reactive({
+          orgId: 12,
+          date: window.dayjs().subtract(1, 'day')
+        });
+
+        // ==================== 统计与计算属性 ====================
+        const stats = computed(() => {
+          const list = rawTransactions.value;
+          return {
+          bodycellslot,
+            unclaimedCount: list.filter(t => t.status === 0).length,
+            unclaimedAmount: list.filter(t => t.status === 0).reduce((acc, c) => acc + c.amount, 0),
+            suspectedCount: list.filter(t => t.status === 1).length,
+            suspectedAmount: list.filter(t => t.status === 1).reduce((acc, c) => acc + c.amount, 0),
+            pendingCount: list.filter(t => t.status === 2).length,
+            pendingAmount: list.filter(t => t.status === 2).reduce((acc, c) => acc + c.amount, 0),
+            generatedCount: list.filter(t => t.status === 3).length,
+            generatedAmount: list.filter(t => t.status === 3).reduce((acc, c) => acc + c.amount, 0),
+            ignoredCount: list.filter(t => t.status === 4).length,
+            totalCount: list.length
+          };
+        });
+
+        const transactionTotalCount = computed(() => rawTransactions.value.length);
+        const dailyJobTotalCount = computed(() => dailyJobs.value.length);
+
+        const displayedTransactions = computed(() => {
+          if (demoScenario.value === 'empty-no-account' || demoScenario.value === 'empty-today') {
+            return [];
+          }
+          let list = [...rawTransactions.value];
+
+          if (demoScenario.value === 'empty-filter') {
+            return [];
+          }
+
+          // 关键字过滤
+          if (searchForm.keyword) {
+            const kw = searchForm.keyword.trim().toLowerCase();
+            list = list.filter(t =>
+              (t.counterpartyName && t.counterpartyName.toLowerCase().includes(kw)) ||
+              (t.counterpartyAccount && t.counterpartyAccount.includes(kw)) ||
+              (t.bankSerialNo && t.bankSerialNo.toLowerCase().includes(kw)) ||
+              (t.useInfo && t.useInfo.toLowerCase().includes(kw))
+            );
+          }
+
+          // 状态过滤
+          if (searchForm.statuses && searchForm.statuses.length > 0) {
+            list = list.filter(t => searchForm.statuses.includes(t.status));
+          }
+
+          // 账户过滤
+          if (searchForm.orgBankAccountId) {
+            list = list.filter(t => t.orgBankAccountId === searchForm.orgBankAccountId);
+          }
+
+          // 方向过滤
+          if (searchForm.direction !== undefined) {
+            list = list.filter(t => t.direction === searchForm.direction);
+          }
+
+          return list;
+        });
+
+        const selectedRows = computed(() => {
+          return displayedTransactions.value.filter(t => selectedRowKeys.value.includes(t.id));
+        });
+
+        // 按钮可用性控制
+        const singleSelectTip = computed(() => {
+          if (selectedRows.value.length === 0) return '请先勾选一条交易';
+          if (selectedRows.value.length > 1) return '仅支持查看单条交易详情';
+          return '';
+        });
+
+        const canClaimSelected = computed(() => {
+          if (selectedRows.value.length !== 1) return false;
+          const r = selectedRows.value[0];
+          return r.direction === 1 && (r.status === 0 || r.status === 1 || r.status === 2) && !r.bankStatementId && !r.currencyUnmapped;
+        });
+
+        const claimDisabledReason = computed(() => {
+          if (selectedRows.value.length !== 1) return '认领只针对单条交易';
+          const r = selectedRows.value[0];
+          if (r.direction !== 1) return '只有来账可以认领';
+          if (r.currencyUnmapped) return '币种未映射到系统币别，暂不能认领';
+          if (r.bankStatementId) return '已生成银行流水，无需认领';
+          if (r.status === 4) return '已忽略交易不能认领';
+          return '';
+        });
+
+        const canLinkSelected = computed(() => {
+          if (selectedRows.value.length !== 1) return false;
+          const r = selectedRows.value[0];
+          return r.status === 1 && r.duplicateCandidates && r.duplicateCandidates.length > 0;
+        });
+
+        const linkDisabledReason = computed(() => {
+          if (selectedRows.value.length !== 1) return '关联手录流水只针对单条交易';
+          const r = selectedRows.value[0];
+          if (r.status !== 1) return '只有疑似重复状态且有手录候选的交易可关联';
+          return '';
+        });
+
+        const canBatchIgnore = computed(() => {
+          return selectedRows.value.every(r => r.status !== 3); // 已生成流水的不能忽略
+        });
+
+        const canBatchUnignore = computed(() => {
+          return selectedRows.value.every(r => r.status === 4);
+        });
+
+        const batchDisabledTip = computed(() => {
+          if (selectedRows.value.length === 0) return '请先勾选需要处理的交易';
+          return '';
+        });
+
+        const batchIgnoreTip = computed(() => {
+          if (selectedRows.value.length === 0) return '请先勾选需要忽略的交易（支持批量）';
+          if (!canBatchIgnore.value) return '选中的交易中包含已生成银行流水的记录，不可忽略';
+          return '批量忽略无需对账或手续费交易（服务端整批校验，任一条不合法整批失败）';
+        });
+
+        const batchUnignoreTip = computed(() => {
+          if (selectedRows.value.length === 0) return '请先勾选需要取消忽略的交易';
+          if (!canBatchUnignore.value) return '仅已忽略状态的交易可取消忽略';
+          return '取消忽略后回归待处理/待认领，但不再自动生成流水';
+        });
+
+        const recentlyUpdatedId = ref(null);
+        function getRowClassName(record) {
+          const classes = [];
+          if (selectedRowKeys.value.includes(record.id)) {
+            classes.push('row-selected');
+          }
+          if (recentlyUpdatedId.value === record.id) {
+            classes.push('row-just-updated');
+          }
+          return classes.join(' ');
+        }
+
+        function getDrawerClaimReason(item) {
+          if (!item) return '';
+          if (item.direction !== 1) return '只有来账可以认领';
+          if (item.currencyUnmapped) return '币种未映射到系统币别，暂不能认领';
+          if (item.bankStatementId) return '已生成银行流水，无需认领';
+          if (item.status === 4) return '已忽略交易不能认领';
+          return '认领客户并生成新银行流水';
+        }
+
+        function getDrawerLinkReason(item) {
+          if (!item) return '';
+          if (item.status !== 1) return '只有疑似重复状态且有手录候选的交易可关联';
+          return '关联至已存在的手录流水，不新建不修改原流水';
+        }
+
+        function getDrawerIgnoreReason(item) {
+          if (!item) return '';
+          if (item.status === 3) return '已生成银行流水的交易不可忽略';
+          return '将此交易标记为无需对账忽略入账';
+        }
+
+        // ==================== 表格列定义 (1920 高密度决策排布) ====================
+        const transactionColumns = [
+          {
+            title: '交易时间',
+            dataIndex: 'transTime',
+            key: 'transTime',
+            width: 140,
+            fixed: 'left',
+            sorter: (a, b) => a.transTime.localeCompare(b.transTime)
+          },
+          {
+            title: '来往账',
+            dataIndex: 'direction',
+            key: 'direction',
+            width: 80,
+            align: 'center'
+          },
+          {
+            title: '交易金额',
+            dataIndex: 'amount',
+            key: 'amount',
+            width: 130,
+            align: 'right',
+            sorter: (a, b) => a.amount - b.amount
+          },
+          {
+            title: '币别',
+            dataIndex: 'currencyCode',
+            key: 'currency',
+            width: 90,
+            align: 'center'
+          },
+          {
+            title: '对方收付款信息 (户名 · 账号 · 开户行)',
+            key: 'counterparty',
+            width: 250
+          },
+          {
+            title: '决策状态与待处理/忽略原因',
+            key: 'decisionStatus',
+            width: 210
+          },
+          {
+            title: '关联银行流水',
+            dataIndex: 'bankStatementNo',
+            key: 'bankStatement',
+            width: 140
+          },
+          {
+            title: '回单',
+            key: 'receipt',
+            width: 75,
+            align: 'center'
+          },
+          {
+            title: '我司直连账户',
+            key: 'orgBankAccount',
+            width: 180
+          },
+          {
+            title: '用途 / 附言',
+            dataIndex: 'useInfo',
+            key: 'useInfo',
+            width: 180,
+            customRender: ({ record }) => [record.useInfo, record.postScript].filter(Boolean).join(' · ') || '-'
+          },
+          {
+            title: '银行流水号',
+            dataIndex: 'bankSerialNo',
+            key: 'bankSerialNo',
+            width: 180,
+            ellipsis: true
+          },
+          {
+            title: '账户余额',
+            dataIndex: 'balance',
+            key: 'balance',
+            width: 120,
+            align: 'right',
+            customRender: ({ text }) => '¥ ' + formatAmount(text)
+          }
+        ];
+
+        const fullTransactionColumns = [
+          { title: '交易时间', dataIndex: 'transTime', key: 'transTime', width: 140, fixed: 'left', sorter: (a, b) => a.transTime.localeCompare(b.transTime) },
+          { title: '起息日', dataIndex: 'valueDate', key: 'valueDate', width: 100 },
+          { title: '来往账', dataIndex: 'direction', key: 'direction', width: 80, align: 'center' },
+          { title: '交易金额', dataIndex: 'amount', key: 'amount', width: 130, align: 'right', sorter: (a, b) => a.amount - b.amount },
+          { title: '币别', dataIndex: 'currencyCode', key: 'currency', width: 90, align: 'center' },
+          { title: '对方收付款信息 (户名 · 账号 · 开户行)', key: 'counterparty', width: 250 },
+          { title: '决策状态与待处理/忽略原因', key: 'decisionStatus', width: 210 },
+          { title: '关联银行流水', dataIndex: 'bankStatementNo', key: 'bankStatement', width: 140 },
+          { title: '回单', key: 'receipt', width: 75, align: 'center' },
+          { title: '我司直连账户', key: 'orgBankAccount', width: 180 },
+          { title: '所属公司/组织', dataIndex: 'orgName', key: 'orgName', width: 150 },
+          { title: '交易性质', dataIndex: 'kind', key: 'kind', width: 95 },
+          { title: '用途 / 附言', dataIndex: 'useInfo', key: 'useInfo', width: 180, customRender: ({ record }) => [record.useInfo, record.postScript].filter(Boolean).join(' · ') || '-' },
+          { title: '对方联行号', dataIndex: 'counterpartyBankCode', key: 'counterpartyBankCode', width: 120 },
+          { title: '银行流水号', dataIndex: 'bankSerialNo', key: 'bankSerialNo', width: 180, ellipsis: true },
+          { title: '账户余额', dataIndex: 'balance', key: 'balance', width: 120, align: 'right', customRender: ({ text }) => '¥ ' + formatAmount(text) }
+        ];
+
+        const activeTransactionColumns = computed(() => {
+          return tableColumnMode.value === 'compact' ? transactionColumns : fullTransactionColumns;
+        });
+
+        const pagination = reactive({
+          current: 1,
+          pageSize: 20,
+          showSizeChanger: true,
+          showTotal: total => `共 ${total} 笔交易明细`
+        });
+
+        const tableRowSelection = {
+          selectedRowKeys: selectedRowKeys,
+          onChange: keys => {
+            selectedRowKeys.value = keys;
+          }
+        };
+
+        const customTableRow = record => {
+          return {
+            onClick: () => {
+              // 单击行单选该行
+              selectedRowKeys.value = [record.id];
+            },
+            onDblclick: () => {
+              // 双击行穿透打开详情抽屉
+              openDetail(record);
+            }
+          };
+        };
+
+        // ==================== 每日任务列与状态 ====================
+        const dailyJobColumns = [
+          { title: '公司简称', dataIndex: 'companyName', key: 'companyName', width: 220 },
+          { title: '任务日期', dataIndex: 'jobDate', key: 'jobDate', width: 110, sorter: (a, b) => a.jobDate.localeCompare(b.jobDate) },
+          { title: '任务类型', dataIndex: 'jobType', key: 'jobType', width: 110 },
+          { title: '执行状态', dataIndex: 'status', key: 'status', width: 110 },
+          { title: '尝试次数', dataIndex: 'attempts', key: 'attempts', width: 90, align: 'right' },
+          { title: '提交时间', dataIndex: 'submitTime', key: 'submitTime', width: 150 },
+          { title: '完成时间', dataIndex: 'finishedTime', key: 'finishedTime', width: 150 },
+          { title: '失败原因诊断', dataIndex: 'lastError', key: 'lastError', ellipsis: true },
+          { title: '银行指令号', dataIndex: 'insId', key: 'insId', width: 180 }
+        ];
+
+        const displayedDailyJobs = computed(() => {
+          if (dailyJobStatusFilter.value === 'all') return dailyJobs.value;
+          if (dailyJobStatusFilter.value === 'failed') return dailyJobs.value.filter(j => j.status === 3);
+          if (dailyJobStatusFilter.value === 'completed') return dailyJobs.value.filter(j => j.status === 2);
+          if (dailyJobStatusFilter.value === 'submitted') return dailyJobs.value.filter(j => j.status === 1 || j.status === 0);
+          return dailyJobs.value;
+        });
+
+        const dailyJobsFailedCount = computed(() => dailyJobs.value.filter(j => j.status === 3).length);
+        const dailyJobsCompletedCount = computed(() => dailyJobs.value.filter(j => j.status === 2).length);
+        const dailyJobsSubmittedCount = computed(() => dailyJobs.value.filter(j => j.status === 1 || j.status === 0).length);
+
+        const dailyJobRowSelection = {
+          selectedRowKeys: selectedDailyJobKeys,
+          onChange: keys => selectedDailyJobKeys.value = keys
+        };
+
+        const customDailyJobRow = record => {
+          return {
+            onClick: () => selectedDailyJobKeys.value = [record.id],
+            onDblclick: () => openDailyJobDetail(record)
+          };
+        };
+
+        const canTriggerJobReceipt = computed(() => {
+          if (selectedDailyJobKeys.value.length !== 1) return false;
+          const job = dailyJobs.value.find(j => j.id === selectedDailyJobKeys.value[0]);
+          return job && job.jobType === 2;
+        });
+
+        const dailyJobSearchForm = reactive({
+          orgId: undefined,
+          jobDateRange: null,
+          jobType: undefined,
+          status: undefined
+        });
+
+        const dailyJobsLoaded = ref(false);
+        function onMainTabChange(tab) {
+          activeMainTab.value = tab;
+          if (tab === 'daily-jobs' && !dailyJobsLoaded.value) {
+            dailyJobsLoaded.value = true;
+          }
+        }
+
+        function onGlobalKeydown(e) {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+          const list = displayedTransactions.value;
+          if (!list || list.length === 0) return;
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const currId = selectedRowKeys.value[0];
+            const currIdx = list.findIndex(r => r.id === currId);
+            const nextIdx = (currIdx + 1) < list.length ? currIdx + 1 : 0;
+            selectedRowKeys.value = [list[nextIdx].id];
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const currId = selectedRowKeys.value[0];
+            const currIdx = list.findIndex(r => r.id === currId);
+            const prevIdx = (currIdx - 1) >= 0 ? currIdx - 1 : list.length - 1;
+            selectedRowKeys.value = [list[prevIdx].id];
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedRows.value.length === 1) {
+              openDetail(selectedRows.value[0]);
+            }
+          } else if (e.key === 'Escape') {
+            if (drawerVisible.value) {
+              drawerVisible.value = false;
+            }
+          }
+        }
+
+        // ==================== 业务方法与交互 ====================
+        function formatAmount(val) {
+          if (val === undefined || val === null || val === '') return '0.00';
+          const n = Number(val);
+          return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatCountdown(sec) {
+          const m = Math.floor(sec / 60);
+          const s = sec % 60;
+          return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function isStatPillActive(type) {
+          if (type === 'all') return searchForm.statuses.length === 5;
+          if (type === 'unclaimed') return searchForm.statuses.length === 1 && searchForm.statuses[0] === 0;
+          if (type === 'suspectedDuplicate') return searchForm.statuses.length === 1 && searchForm.statuses[0] === 1;
+          if (type === 'pending') return searchForm.statuses.length === 1 && searchForm.statuses[0] === 2;
+          if (type === 'statementGenerated') return searchForm.statuses.length === 1 && searchForm.statuses[0] === 3;
+          if (type === 'ignored') return searchForm.statuses.length === 1 && searchForm.statuses[0] === 4;
+          return false;
+        }
+
+        function toggleStatFilter(type) {
+          if (type === 'all') {
+            searchForm.statuses = [0, 1, 2, 3, 4];
+          } else if (type === 'unclaimed') {
+            searchForm.statuses = [0];
+          } else if (type === 'suspectedDuplicate') {
+            searchForm.statuses = [1];
+          } else if (type === 'pending') {
+            searchForm.statuses = [2];
+          } else if (type === 'statementGenerated') {
+            searchForm.statuses = [3];
+          } else if (type === 'ignored') {
+            searchForm.statuses = [4];
+          }
+        }
+
+        function handleSearch() {
+          pagination.current = 1;
+        }
+
+        function handleResetSearch() {
+          searchForm.keyword = '';
+          searchForm.orgBankAccountId = undefined;
+          searchForm.statuses = [0, 1, 2]; // 默认待认领、疑似重复、待处理
+          searchForm.direction = undefined;
+          searchForm.transTimeRange = null;
+          searchForm.orgId = undefined;
+          searchForm.kind = undefined;
+          searchForm.currencyId = undefined;
+          searchForm.amountStart = null;
+          searchForm.amountEnd = null;
+          selectedRowKeys.value = [];
+          if (demoScenario.value === 'empty-filter') {
+            demoScenario.value = 'normal';
+          }
+        }
+
+        function onScenarioChange(val) {
+          selectedRowKeys.value = [];
+        }
+
+        function simulateAccountConfigured() {
+          antd.message.success('已模拟在中国银行开通银企直连通道并挂接账户！');
+          demoScenario.value = 'normal';
+        }
+
+        function openDetail(record) {
+          activeTransaction.value = record;
+          drawerVisible.value = true;
+        }
+
+        function openSelectedDetail() {
+          if (selectedRows.value.length === 1) {
+            openDetail(selectedRows.value[0]);
+          }
+        }
+
+        function openStatementDetail(stmtId) {
+          antd.message.info(`穿透跳转至银行流水详情页面 [ID: ${stmtId}] 进行收费核销`);
+        }
+
+        function previewReceipt(record) {
+          antd.message.success(`打开中国银行 OFD 电子回单预览窗 [${record.bankSerialNo}]`);
+        }
+
+        function downloadReceiptFile(rec) {
+          antd.message.success(`开始下载电子回单文件: ${rec.fileName}`);
+        }
+
+        // ==================== 认领客户流程 ====================
+        const claimCandidates = ref([]);
+        const clientBankAccountOptions = ref([
+          { label: '中国工商银行青岛分行 3803020109001234567', value: 'c-bank-01' },
+          { label: '交通银行上海自贸试验区分行 310066120018150098', value: 'c-bank-02' }
+        ]);
+
+        function canClaimItem(r) {
+          return r.direction === 1 && (r.status === 0 || r.status === 1 || r.status === 2) && !r.bankStatementId && !r.currencyUnmapped;
+        }
+
+        function openClaimModal(record) {
+          claimTarget.value = record;
+          claimBankClearedNotice.value = false;
+          claimForm.settlementId = undefined;
+          claimForm.clientInvoiceBankId = undefined;
+          claimForm.operatorIds = ['u-101'];
+
+          // 候选客户匹配
+          if (record.clientCandidates && record.clientCandidates.length > 0) {
+            claimCandidates.value = record.clientCandidates;
+            selectedClaimCandidateKey.value = record.clientCandidates[0].key;
+            claimForm.settlementId = 'client-003';
+            claimForm.clientInvoiceBankId = 'c-bank-02';
+          } else {
+            claimCandidates.value = [];
+            selectedClaimCandidateKey.value = '';
+          }
+
+          claimModalVisible.value = true;
+        }
+
+        function onCandidateSelect(e) {
+          const key = e.target.value;
+          if (key === 'cand-01') {
+            claimForm.settlementId = 'client-003';
+            claimForm.clientInvoiceBankId = 'c-bank-02';
+          }
+        }
+
+        function onClaimClientChange(val) {
+          claimBankClearedNotice.value = true;
+          claimForm.clientInvoiceBankId = undefined;
+        }
+
+        function submitClaim() {
+          if (!claimForm.settlementId) {
+            antd.message.warning('请选择付款客户！');
+            return;
+          }
+          claimSubmitting.value = true;
+          setTimeout(() => {
+            claimSubmitting.value = false;
+            claimModalVisible.value = false;
+
+            // 流转状态为已生成流水
+            if (claimTarget.value) {
+              claimTarget.value.status = 3;
+              claimTarget.value.bankStatementNo = 'BS2610220088';
+              claimTarget.value.bankStatementId = 'stmt-new-88';
+              claimTarget.value.pendingReason = null;
+              claimTarget.value.bankStatement = {
+                id: 'stmt-new-88',
+                bankStatementNo: 'BS2610220088',
+                amount: claimTarget.value.amount,
+                statementTime: claimTarget.value.transTime,
+                settlement: { name: '已认领客户' },
+                writeOffStatus: 0,
+                inputType: 1,
+                creatorUserName: '张会计'
+              };
+            }
+
+            antd.Modal.confirm({
+              title: '认领成功，已生成银行流水 BS2610220088',
+              content: '该笔来账已成功完成客户匹配入账，是否现在前往结算核销工作台进行账单冲销？',
+              okText: '去核销',
+              cancelText: '留在本页',
+              onOk: () => {
+                antd.message.info('跳转至结算核销中心...');
+              }
+            });
+          }, 600);
+        }
+
+        // ==================== 关联手录流水流程 ====================
+        const duplicateCandidates = ref([]);
+        const duplicateColumns = [
+          { title: '手录流水号', dataIndex: 'bankStatementNo', key: 'bankStatementNo', width: 140 },
+          { title: '发生金额', dataIndex: 'amount', key: 'amount', width: 110, align: 'right' },
+          { title: '流水日期', dataIndex: 'statementTime', key: 'statementTime', width: 100 },
+          { title: '付款客户', key: 'settlement', customRender: ({ record }) => record.settlement?.name || '-' },
+          { title: '核销状态', dataIndex: 'writeOffStatus', key: 'writeOffStatus', width: 90 },
+          { title: '手录人', dataIndex: 'creatorUserName', key: 'creatorUserName', width: 90 },
+          { title: '备注', dataIndex: 'remark', key: 'remark' }
+        ];
+
+        function canLinkItem(r) {
+          return r.status === 1 && r.duplicateCandidates && r.duplicateCandidates.length > 0;
+        }
+
+        function openLinkModal(record) {
+          linkTarget.value = record;
+          duplicateCandidates.value = record.duplicateCandidates || [];
+          selectedLinkId.value = record.duplicateCandidates?.[0]?.id;
+          linkModalVisible.value = true;
+        }
+
+        function getSelectedLinkNo() {
+          const item = duplicateCandidates.value.find(c => c.id === selectedLinkId.value);
+          return item ? item.bankStatementNo : '';
+        }
+
+        function submitLink() {
+          if (!selectedLinkId.value) {
+            antd.message.warning('请选择一条手录流水！');
+            return;
+          }
+          linkSubmitting.value = true;
+          setTimeout(() => {
+            linkSubmitting.value = false;
+            linkModalVisible.value = false;
+            if (linkTarget.value) {
+              const matched = duplicateCandidates.value.find(c => c.id === selectedLinkId.value);
+              linkTarget.value.status = 3;
+              linkTarget.value.bankStatementNo = matched.bankStatementNo;
+              linkTarget.value.bankStatementId = matched.id;
+              linkTarget.value.pendingReason = null;
+              linkTarget.value.bankStatement = {
+                ...matched,
+                inputType: 0
+              };
+            }
+            antd.message.success('已成功关联至手录流水 ' + getSelectedLinkNo() + '！');
+          }, 600);
+        }
+
+        // ==================== 忽略与取消忽略 ====================
+        function canIgnoreItem(r) {
+          return r.status !== 3 && r.status !== 4;
+        }
+
+        function openIgnoreModal() {
+          ignoreTargetIds.value = selectedRows.value.map(r => r.id);
+          ignoreReason.value = '';
+          ignoreModalVisible.value = true;
+        }
+
+        function openIgnoreModalSingle(record) {
+          ignoreTargetIds.value = [record.id];
+          ignoreReason.value = '';
+          ignoreModalVisible.value = true;
+        }
+
+        function submitIgnore() {
+          if (!ignoreReason.value.trim()) {
+            antd.message.warning('请输入忽略原因！');
+            return;
+          }
+          ignoreSubmitting.value = true;
+          setTimeout(() => {
+            ignoreSubmitting.value = false;
+            ignoreModalVisible.value = false;
+            rawTransactions.value.forEach(t => {
+              if (ignoreTargetIds.value.includes(t.id)) {
+                t.status = 4;
+                t.ignoreReason = ignoreReason.value.trim();
+              }
+            });
+            antd.message.success(`已成功忽略 ${ignoreTargetIds.value.length} 笔交易！`);
+            selectedRowKeys.value = [];
+          }, 500);
+        }
+
+        function handleUnignoreConfirm() {
+          antd.Modal.confirm({
+            title: '取消忽略二次确认',
+            content: `将取消忽略已选定的 ${selectedRows.value.length} 笔交易：普通交易将回归「待认领」，冲正/退汇交易将回归「待处理」，后续不会自动生成流水，需财务手动处理。确认继续？`,
+            okText: '确认取消忽略',
+            cancelText: '取 消',
+            onOk: () => {
+              selectedRows.value.forEach(t => {
+                t.status = (t.kind === 1 || t.kind === 2) ? 2 : 0;
+                t.ignoreReason = null;
+              });
+              antd.message.success('已取消忽略，交易状态已更新！');
+              selectedRowKeys.value = [];
+            }
+          });
+        }
+
+        function handleUnignoreSingle(record) {
+          antd.Modal.confirm({
+            title: '取消忽略确认',
+            content: '将该笔交易撤销忽略并回归待处理队列？',
+            onOk: () => {
+              record.status = (record.kind === 1 || record.kind === 2) ? 2 : 0;
+              record.ignoreReason = null;
+              antd.message.success('已撤销忽略！');
+            }
+          });
+        }
+
+        // ==================== 手动拉取流程 ====================
+        function openPullModal() {
+          pullResult.value = null;
+          pullModalVisible.value = true;
+        }
+
+        function submitPull() {
+          pullSubmitting.value = true;
+          pullResult.value = null;
+          setTimeout(() => {
+            pullSubmitting.value = false;
+            pullResult.value = {
+              total: 8,
+              added: 2,
+              updated: 3,
+              generated: 1
+            };
+            antd.message.success('中国银行明细拉取完成！共发现 2 笔新入账。');
+          }, 1200);
+        }
+
+        // ==================== 下载回单流程 (两步式 3 分钟倒计时) ====================
+        function openReceiptModal() {
+          receiptResult.value = null;
+          receiptModalVisible.value = true;
+        }
+
+        function startReceiptCountdown() {
+          receiptStep.value = 1;
+          receiptWaitingSeconds.value = 180; // 3 分钟
+          if (receiptTimer) clearInterval(receiptTimer);
+          receiptTimer = setInterval(() => {
+            if (receiptWaitingSeconds.value > 0) {
+              receiptWaitingSeconds.value--;
+            } else {
+              clearInterval(receiptTimer);
+              receiptTimer = null;
+              receiptStep.value = 2; // 就绪
+              antd.notification.success({
+                message: '银行回单包打包就绪',
+                description: '中国银行前置机已准备好电子回单文件，请在工作台中点击「再次获取回单」取回文件并自动挂接。'
+              });
+            }
+          }, 1000);
+        }
+
+        function simulateReceiptReady() {
+          receiptWaitingSeconds.value = 0;
+          if (receiptTimer) clearInterval(receiptTimer);
+          receiptTimer = null;
+          receiptStep.value = 2;
+          antd.message.success('已模拟银行打包完成，现在可点击取回文件！');
+        }
+
+        function submitReceiptDownload() {
+          receiptSubmitting.value = true;
+          setTimeout(() => {
+            receiptSubmitting.value = false;
+            if (receiptStep.value === 0) {
+              // 第一步：提交银行准备
+              startReceiptCountdown();
+              antd.message.info('第一步完成：银行前置机开始打包，请约 3 分钟后再次取回文件！');
+            } else {
+              // 第二步：取回文件
+              receiptResult.value = {
+                fileCount: 4,
+                attachedCount: 3,
+                existedCount: 1,
+                unmatchedFiles: ['BOC_20261021_OTHER_UNKNOWN.OFD']
+              };
+              receiptStep.value = 0;
+              antd.message.success('已成功获取中国银行电子回单包！');
+            }
+          }, 800);
+        }
+
+        onBeforeUnmount(() => {
+          if (receiptTimer) clearInterval(receiptTimer);
+        });
+
+        // ==================== 每日任务详情与联动 ====================
+        function openDailyJobDetail(job) {
+          activeDailyJob.value = job;
+          dailyJobDrawerVisible.value = true;
+        }
+
+        function openSelectedDailyJobDetail() {
+          const job = dailyJobs.value.find(j => j.id === selectedDailyJobKeys.value[0]);
+          if (job) openDailyJobDetail(job);
+        }
+
+        function triggerJobReceiptModal() {
+          const job = dailyJobs.value.find(j => j.id === selectedDailyJobKeys.value[0]);
+          if (job) {
+            receiptForm.orgId = 12;
+            receiptForm.date = window.dayjs(job.jobDate);
+            openReceiptModal();
+          }
+        }
+
+        function triggerJobReceiptModalFromDrawer() {
+          if (activeDailyJob.value) {
+            receiptForm.orgId = 12;
+            receiptForm.date = window.dayjs(activeDailyJob.value.jobDate);
+            dailyJobDrawerVisible.value = false;
+            openReceiptModal();
+          }
+        }
+
+        function refreshTransactions() {
+          antd.message.success('交易明细已刷新');
+        }
+
+        function refreshDailyJobs() {
+          antd.message.success('每日任务列表已刷新');
+        }
+
+        // ==================== 状态辅助 ====================
+        function getStatusLabel(s) {
+          const map = { 0: '待认领', 1: '疑似重复', 2: '待处理', 3: '已生成流水', 4: '已忽略' };
+          return map[s] || '-';
+        }
+
+        function getStatusTagColor(s) {
+          const map = { 0: 'processing', 1: 'warning', 2: 'purple', 3: 'success', 4: 'default' };
+          return map[s] || 'default';
+        }
+
+        function getKindLabel(k) {
+          const map = { 0: '普通', 1: '冲正', 2: '退汇', 3: '银行收费' };
+          return map[k] || '';
+        }
+
+        function getKindTagColor(k) {
+          const map = { 0: 'default', 1: 'magenta', 2: 'volcano', 3: 'geekblue' };
+          return map[k] || 'default';
+        }
+
+        function getJobStatusLabel(s) {
+          const map = { 0: '待执行', 1: '已提交', 2: '已完成', 3: '失败' };
+          return map[s] || '-';
+        }
+
+        function getJobStatusColor(s) {
+          const map = { 0: 'default', 1: 'processing', 2: 'success', 3: 'error' };
+          return map[s] || 'default';
+        }
+
+        return {
+          // 状态与模式
+          activeMainTab,
+          demoScenario,
+          showDesignManualModal,
+          isFilterExpanded,
+          permissionRole,
+          hasClaimPerm,
+          hasPullPerm,
+          canOpenStatement,
+          tableColumnMode,
+          activeTransactionColumns,
+          getRowClassName,
+          recentlyUpdatedId,
+          // 字典
+          directAccountOptions,
+          companyOptions,
+          orgOptions,
+          currencyOptions,
+          transactionStatusOptions,
+          directionOptions,
+          kindOptions,
+          clientOptions,
+          operatorOptions,
+          // 筛选
+          searchForm,
+          handleSearch,
+          handleResetSearch,
+          onScenarioChange,
+          simulateAccountConfigured,
+          // 统计看板
+          stats,
+          isStatPillActive,
+          toggleStatFilter,
+          transactionTotalCount,
+          dailyJobTotalCount,
+          // 表格
+          displayedTransactions,
+          transactionColumns,
+          pagination,
+          tableRowSelection,
+          customTableRow,
+          selectedRowKeys,
+          selectedRows,
+          // 操作按钮状态
+          singleSelectTip,
+          canClaimSelected,
+          claimDisabledReason,
+          canLinkSelected,
+          linkDisabledReason,
+          canBatchIgnore,
+          canBatchUnignore,
+          batchDisabledTip,
+          batchIgnoreTip,
+          batchUnignoreTip,
+          getDrawerClaimReason,
+          getDrawerLinkReason,
+          getDrawerIgnoreReason,
+          dailyJobSearchForm,
+          onMainTabChange,
+          onGlobalKeydown,
+          // 业务操作
+          openDetail,
+          openSelectedDetail,
+          openStatementDetail,
+          previewReceipt,
+          downloadReceiptFile,
+          formatAmount,
+          formatCountdown,
+          // 抽屉
+          drawerVisible,
+          activeTransaction,
+          canClaimItem,
+          canLinkItem,
+          canIgnoreItem,
+          // 认领
+          claimModalVisible,
+          claimSubmitting,
+          claimTarget,
+          claimCandidates,
+          selectedClaimCandidateKey,
+          claimBankClearedNotice,
+          claimForm,
+          clientBankAccountOptions,
+          openClaimModal,
+          onCandidateSelect,
+          onClaimClientChange,
+          submitClaim,
+          // 关联
+          linkModalVisible,
+          linkSubmitting,
+          linkTarget,
+          duplicateCandidates,
+          duplicateColumns,
+          selectedLinkId,
+          openLinkModal,
+          getSelectedLinkNo,
+          submitLink,
+          // 忽略
+          ignoreModalVisible,
+          ignoreSubmitting,
+          ignoreTargetIds,
+          ignoreReason,
+          openIgnoreModal,
+          openIgnoreModalSingle,
+          submitIgnore,
+          handleUnignoreConfirm,
+          handleUnignoreSingle,
+          // 拉取
+          pullModalVisible,
+          pullSubmitting,
+          pullResult,
+          pullForm,
+          openPullModal,
+          submitPull,
+          // 回单
+          receiptModalVisible,
+          receiptSubmitting,
+          receiptStep,
+          receiptWaitingSeconds,
+          receiptResult,
+          receiptForm,
+          openReceiptModal,
+          simulateReceiptReady,
+          submitReceiptDownload,
+          // 每日任务
+          dailyJobs,
+          dailyJobColumns,
+          displayedDailyJobs,
+          dailyJobStatusFilter,
+          selectedDailyJobKeys,
+          dailyJobRowSelection,
+          customDailyJobRow,
+          dailyJobsFailedCount,
+          dailyJobsCompletedCount,
+          dailyJobsSubmittedCount,
+          dailyJobDrawerVisible,
+          activeDailyJob,
+          canTriggerJobReceipt,
+          openDailyJobDetail,
+          openSelectedDailyJobDetail,
+          triggerJobReceiptModal,
+          triggerJobReceiptModalFromDrawer,
+          refreshTransactions,
+          refreshDailyJobs,
+          // 辅助标签
+          getStatusLabel,
+          getStatusTagColor,
+          getKindLabel,
+          getKindTagColor,
+          getJobStatusLabel,
+          getJobStatusColor
+        };
+      }
+    });
+
+    app.use(antd);
+    app.mount('#app');
+  </script>
+</body>
+</html>

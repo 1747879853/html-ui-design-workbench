@@ -1,0 +1,2857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>青岛海鼎 · 经营分析月报 (汇总 / 销售 / 操作)</title>
+
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/vendor/dashboard-icons.js"></script>
+
+  <style>
+    :root {
+      --navy-header: #0d1b2a;
+      --navy-hero-top: #112239;
+      --navy-hero-btm: #172d4a;
+      --canvas-bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+      --card-shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      --text-main: #0f172a;
+      --text-sub: #475569;
+      --text-muted: #94a3b8;
+      --blue-primary: #2563eb;
+      --blue-light: #eff6ff;
+      --green-up: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.12);
+      --red-down: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.12);
+      --amber-tag: #f59e0b;
+      --indigo-peer: #6366f1;
+    }
+
+    [v-cloak] { display: none; }
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--canvas-bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+      letter-spacing: -0.02em;
+    }
+
+    /* ================= 1. 顶部极简深海蓝导航条 ================= */
+    .top-bar {
+      height: 52px;
+      background: var(--navy-header);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .brand-logo-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 15px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    .brand-title-cn {
+      color: #f8fafc;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .brand-title-en {
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* 顶部 3 维度切换胶囊 */
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .nav-tab-item {
+      padding: 5px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-tab-item:hover {
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav-tab-item.active {
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+    }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .top-pill-badge {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+
+    /* ================= 2. 顶部深海蓝 Hero 区 ================= */
+    .hero-banner {
+      background: linear-gradient(180deg, var(--navy-hero-top) 0%, var(--navy-hero-btm) 100%);
+      padding: 24px 36px 26px;
+      color: #ffffff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .hero-container {
+      max-width: 1520px;
+      margin: 0 auto;
+    }
+
+    .hero-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #60a5fa;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .hero-main-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 6px 0;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+
+    .hero-sub-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      margin: 0;
+    }
+
+    .hero-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dark-ctl-wrap {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 8px;
+      height: 36px;
+      padding: 0 12px;
+      color: #e2e8f0;
+      font-size: 13px;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .dark-ctl-wrap:hover {
+      border-color: rgba(148, 163, 184, 0.45);
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .dark-select-native {
+      background: transparent;
+      border: none;
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      padding-right: 2px;
+    }
+
+    .dark-select-native option {
+      background: #1e293b;
+      color: #f8fafc;
+    }
+
+    .dark-month-picker.ant-picker {
+      background: rgba(15, 23, 42, 0.55) !important;
+      border: 1px solid rgba(148, 163, 184, 0.22) !important;
+      border-radius: 8px !important;
+      height: 36px !important;
+      padding: 0 12px !important;
+      transition: all 0.2s ease;
+    }
+    .dark-month-picker.ant-picker:hover {
+      border-color: rgba(148, 163, 184, 0.45) !important;
+      background: rgba(15, 23, 42, 0.75) !important;
+    }
+    .dark-month-picker.ant-picker .ant-picker-input > input {
+      color: #f8fafc !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+    }
+    .dark-month-picker.ant-picker .ant-picker-suffix,
+    .dark-month-picker.ant-picker .ant-picker-clear {
+      color: #94a3b8 !important;
+    }
+
+    .btn-white-export {
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-white-export:hover {
+      background: #f8fafc;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+    }
+
+    /* 4 宫格关键指标速览条 */
+    .hero-kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .hero-kpi-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .hero-kpi-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .hero-kpi-card.is-warn {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.24);
+    }
+    .hero-kpi-card.is-warn:hover {
+      background: rgba(239, 68, 68, 0.13);
+      border-color: rgba(239, 68, 68, 0.38);
+    }
+
+    .hero-kpi-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .hero-kpi-icon.blue { background: rgba(59, 130, 246, 0.22); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
+    .hero-kpi-icon.green { background: rgba(16, 185, 129, 0.22); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
+    .hero-kpi-icon.red { background: rgba(239, 68, 68, 0.24); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+
+    .hero-kpi-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .hero-kpi-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hero-kpi-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+
+    /* ================= 3. 通用涨跌胶囊 ================= */
+    .badge-rate {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 1px 7px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+
+    .badge-up {
+      background: var(--green-soft);
+      color: #059669;
+    }
+
+    .badge-down {
+      background: var(--red-soft);
+      color: #dc2626;
+    }
+
+    .badge-flat {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .hero-banner .badge-up {
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+    }
+
+    .hero-banner .badge-down {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+
+    /* ================= 4. 主体画布与白卡规范 ================= */
+    .main-stage {
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 22px 36px 36px;
+    }
+
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .master-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 390px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .white-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .white-card:hover {
+      box-shadow: var(--card-shadow-hover);
+      border-color: #cbd5e1;
+    }
+
+    .card-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .card-title-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* 语义化业务功能图标取代机械数字 1 2 3 4 */
+    .card-biz-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .white-card:hover .card-biz-icon {
+      transform: scale(1.08);
+    }
+
+    .card-biz-icon.emerald { background: #ecfdf5; color: #059669; }
+    .card-biz-icon.blue { background: #eff6ff; color: #2563eb; }
+    .card-biz-icon.indigo { background: #eef2ff; color: #4f46e5; }
+    .card-biz-icon.amber { background: #fffbeb; color: #d97706; }
+
+    .card-h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+      line-height: 1.25;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 3px;
+    }
+
+    .legend-inline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    /* 超大号核心数字行 */
+    .giant-metric-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .giant-num {
+      font-size: 36px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .giant-unit {
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .giant-diff-text {
+      font-size: 12px;
+      color: #64748b;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ================= 5. 子卡片与迷你柱图 ================= */
+    .cargo-sub-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .sub-stat-box {
+      background: #f8fafc;
+      border: 1px solid #eef2f6;
+      border-radius: 10px;
+      padding: 12px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .sub-stat-box:hover {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .sub-stat-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #475569;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .sub-stat-val-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .sub-stat-num {
+      font-size: 21px;
+      font-weight: 800;
+      color: #0f172a;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sub-stat-foot {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+
+    .mini-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 24px;
+      padding-top: 4px;
+    }
+
+    .mini-bar-col {
+      flex: 1;
+      background: #cbd5e1;
+      border-radius: 2px 2px 0 0;
+      transition: all 0.25s ease;
+    }
+
+    .sub-stat-box:hover .mini-bar-col.is-last {
+      filter: brightness(1.1);
+    }
+
+    /* 分段结构条 */
+    .structure-block {
+      border-top: 1px solid #f1f5f9;
+      padding-top: 14px;
+      margin-top: 12px;
+    }
+
+    .structure-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .bar-compare-row {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    .seg-track {
+      height: 9px;
+      border-radius: 5px;
+      background: #f1f5f9;
+      overflow: hidden;
+      display: flex;
+      gap: 2px;
+    }
+
+    .seg-item {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .structure-legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 11px;
+      color: #475569;
+      margin-top: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ================= 6. 近 12 个月垂直柱状图 (带气泡与高亮) ================= */
+    .v-chart-area {
+      height: 235px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-top: 24px;
+      position: relative;
+    }
+
+    .v-chart-bars {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      align-items: end;
+      height: 180px;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0 4px;
+    }
+
+    .v-bar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .v-bar-group:hover .v-bar-top-val {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .v-bar-top-val {
+      font-size: 10px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 5px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .v-bar-group:not(.always-show) .v-bar-top-val {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    .v-bar-pillar {
+      width: 100%;
+      max-width: 22px;
+      border-radius: 4px 4px 0 0;
+      background: #cbd5e1;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .v-bar-group:hover .v-bar-pillar {
+      background: #93c5fd;
+      transform: scaleY(1.03);
+      transform-origin: bottom;
+    }
+
+    .v-bar-pillar.is-compare {
+      background: #93c5fd;
+    }
+
+    .v-bar-pillar.is-current {
+      background: #2563eb;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+    }
+
+    .v-chart-labels {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      padding: 8px 4px 0;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* ================= 7. 横向双条对比列表 (可交互穿透) ================= */
+    .h-compare-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .h-compare-item {
+      padding: 6px 8px 10px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .h-compare-item.interactive {
+      cursor: pointer;
+    }
+
+    .h-compare-item.interactive:hover {
+      background: #f8fafc;
+      transform: translateX(4px);
+    }
+
+    .h-compare-item.interactive:hover .jump-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .jump-arrow {
+      font-size: 13px;
+      color: #2563eb;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: all 0.2s ease;
+      margin-left: 4px;
+    }
+
+    .h-compare-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+      font-size: 13px;
+    }
+
+    .h-compare-name {
+      font-weight: 600;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .h-compare-nums {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dual-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .bar-line-curr {
+      height: 6px;
+      border-radius: 3px;
+      background: #2563eb;
+      transition: width 0.3s ease;
+    }
+
+    .bar-line-prev {
+      height: 4px;
+      border-radius: 2px;
+      background: #cbd5e1;
+      transition: width 0.3s ease;
+    }
+
+    /* ================= 8. 极简无竖线排行榜表格 ================= */
+    .clean-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clean-table th {
+      text-align: left;
+      padding: 10px 10px;
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 12px;
+      border-bottom: 1px solid #eef2f6;
+      white-space: nowrap;
+    }
+
+    .clean-table td {
+      padding: 11px 10px;
+      border-bottom: 1px solid #f8fafc;
+      vertical-align: middle;
+      transition: background-color 0.15s ease;
+    }
+
+    .clean-table tbody tr {
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+
+    .clean-table tbody tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    .clean-table tbody tr.is-active td {
+      background-color: #eff6ff;
+    }
+
+    .clean-table tbody tr.is-active td:first-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+      box-shadow: inset 3px 0 0 #2563eb;
+    }
+    .clean-table tbody tr.is-active td:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+
+    .clean-table tfoot td {
+      padding: 14px 10px 4px;
+      font-weight: 700;
+      color: #0f172a;
+      border-top: 1px solid #cbd5e1;
+      background: transparent;
+    }
+
+    /* 专员与排名专属徽章：取代单纯的 1 2 3 4 */
+    .rank-cell {
+      text-align: center;
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+    }
+
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      min-width: 34px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .rank-badge.rank-1 {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      color: #b45309;
+      border: 1px solid #fde68a;
+      box-shadow: 0 1px 3px rgba(245, 158, 11, 0.2);
+    }
+    .rank-badge.rank-1 iconify-icon {
+      color: #d97706;
+      font-size: 12px;
+    }
+
+    .rank-badge.rank-2 {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      color: #334155;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(100, 116, 139, 0.1);
+    }
+    .rank-badge.rank-2 iconify-icon {
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .rank-badge.rank-3 {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+      color: #c2410c;
+      border: 1px solid #fed7aa;
+      box-shadow: 0 1px 2px rgba(194, 65, 12, 0.12);
+    }
+    .rank-badge.rank-3 iconify-icon {
+      color: #ea580c;
+      font-size: 12px;
+    }
+
+    .rank-badge.rank-plain {
+      background: transparent;
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .avatar-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* 切换小胶囊组 */
+    .pill-switch-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 8px;
+      gap: 2px;
+    }
+
+    .pill-switch-btn {
+      padding: 4px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-switch-btn:hover {
+      color: #0f172a;
+    }
+
+    .pill-switch-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    .pill-switch-btn.is-warn-btn.active {
+      background: #fee2e2;
+      color: #b91c1c;
+      font-weight: 700;
+    }
+
+    /* 搜索过滤框包装 */
+    .filter-input-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .filter-input-wrap iconify-icon.search-icon {
+      position: absolute;
+      left: 9px;
+      color: #94a3b8;
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    .filter-input-wrap .clear-icon {
+      position: absolute;
+      right: 8px;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 12px;
+      transition: color 0.15s;
+    }
+    .filter-input-wrap .clear-icon:hover {
+      color: #475569;
+    }
+
+    .filter-input {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 4px 24px 4px 26px;
+      font-size: 12px;
+      outline: none;
+      width: 144px;
+      transition: all 0.2s;
+      background: #ffffff;
+      color: #0f172a;
+    }
+    .filter-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      width: 168px;
+    }
+
+    /* 专员翻页导航 */
+    .person-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-person-nav {
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      color: #64748b;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.15s;
+      padding: 0;
+    }
+
+    .btn-person-nav:hover:not(:disabled) {
+      color: #2563eb;
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    .btn-person-nav:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* 右侧个人穿透卡 sticky */
+    .sticky-side {
+      position: sticky;
+      top: 70px;
+    }
+
+    .person-hero {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      margin-bottom: 16px;
+    }
+
+    .avatar-lg {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    /* 底部极简说明行 */
+    .footer-caption {
+      margin-top: 18px;
+      padding: 6px 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <a-config-provider :theme="{ token: { colorPrimary: '#2563eb', borderRadius: 8 } }">
+
+      <!-- ==================== 1. 顶部极简深色导航栏 ==================== -->
+      <header class="top-bar">
+        <div class="brand-left">
+          <div class="brand-logo-group">
+            <div class="brand-icon">
+              <iconify-icon icon="ant-design:bar-chart-outlined"></iconify-icon>
+            </div>
+            <span class="brand-title-cn">经营分析中心</span>
+            <span class="brand-title-en">SHIPPING BI</span>
+          </div>
+
+          <!-- 三大维度切换胶囊 -->
+          <nav class="nav-tabs">
+            <div
+              class="nav-tab-item"
+              :class="{ active: activeTab === 'summary' }"
+              @click="activeTab = 'summary'"
+            >
+              <iconify-icon icon="ant-design:appstore-outlined"></iconify-icon>
+              <span>汇总</span>
+            </div>
+            <div
+              class="nav-tab-item"
+              :class="{ active: activeTab === 'sales' }"
+              @click="activeTab = 'sales'"
+            >
+              <iconify-icon icon="ant-design:dollar-outlined"></iconify-icon>
+              <span>销售人员 (TEU · 利润)</span>
+            </div>
+            <div
+              class="nav-tab-item"
+              :class="{ active: activeTab === 'ops' }"
+              @click="activeTab = 'ops'"
+            >
+              <iconify-icon icon="ant-design:container-outlined"></iconify-icon>
+              <span>操作人员 (票数 · 货类 · 直客/同行)</span>
+            </div>
+          </nav>
+        </div>
+
+        <div class="top-bar-right">
+          <span>青岛海鼎 · 数据截至 {{ periodEndText }}</span>
+          <span class="top-pill-badge">老板决策视图</span>
+        </div>
+      </header>
+
+      <!-- ==================== 2. 深海蓝 Hero 概览与时间对比栏 ==================== -->
+      <section class="hero-banner">
+        <div class="hero-container">
+          <div class="hero-header-row">
+            <div>
+              <div class="hero-eyebrow">{{ heroMeta.eyebrow }}</div>
+              <h1 class="hero-main-title">{{ selectedMonthLabel }} {{ heroMeta.title }}</h1>
+              <p class="hero-sub-desc">
+                统计周期 {{ periodRangeText }} · 全部指标对比 <b>{{ compareTargetLabel }}</b>
+              </p>
+            </div>
+
+            <!-- 时间选择器 + 对比基准选择器 + 导出按钮 (默认本月 vs 上月，支持自定义月份) -->
+            <div class="hero-controls">
+              <!-- 当前统计月份选择 -->
+              <a-date-picker
+                v-model:value="currentMonthObj"
+                picker="month"
+                :allow-clear="false"
+                format="YYYY年M月"
+                style="width: 138px;"
+                class="dark-month-picker"
+                @change="onMonthChange"
+              ></a-date-picker>
+
+              <!-- 对比口径选择：默认对比上月，可切换同比或自定义任意月份 -->
+              <div class="dark-ctl-wrap">
+                <iconify-icon icon="ant-design:swap-outlined" style="color:#94a3b8;"></iconify-icon>
+                <select v-model="compareType" class="dark-select-native">
+                  <option value="mom">对比 上月 ({{ prevMonthLabel }})</option>
+                  <option value="yoy">对比 去年同期 ({{ yoyMonthLabel }})</option>
+                  <option value="target">对比 本月任务目标</option>
+                  <option value="custom">对比 自定义月份...</option>
+                </select>
+                <iconify-icon icon="ant-design:down-outlined" style="font-size:11px; color:#94a3b8;"></iconify-icon>
+              </div>
+
+              <!-- 当选择“自定义月份”时展示第二个日期选择器 -->
+              <a-date-picker
+                v-if="compareType === 'custom'"
+                v-model:value="customCompareMonthObj"
+                picker="month"
+                :allow-clear="false"
+                format="对比 YYYY年M月"
+                style="width: 156px;"
+                class="dark-month-picker"
+              ></a-date-picker>
+
+              <button class="btn-white-export" @click="handleExport">
+                <iconify-icon icon="ant-design:download-outlined"></iconify-icon>
+                <span>{{ activeTab === 'summary' ? '导出报告' : '导出明细' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 个关键亮点胶囊卡 (支持点击一键跳转联动) -->
+          <div class="hero-kpi-strip">
+            <div
+              v-for="(item, idx) in heroHighlights"
+              :key="idx"
+              class="hero-kpi-card"
+              :class="{ 'is-warn': item.warn }"
+              @click="handleHeroCardClick(item)"
+              :title="item.jumpTip || '点击查看明细'"
+            >
+              <div class="hero-kpi-icon" :class="item.color">
+                <iconify-icon :icon="item.icon"></iconify-icon>
+              </div>
+              <div class="hero-kpi-info">
+                <div class="hero-kpi-title">{{ item.title }}</div>
+                <div class="hero-kpi-meta num">
+                  <span>{{ item.val }}</span>
+                  <span class="badge-rate" :class="item.up ? 'badge-up' : 'badge-down'">
+                    {{ item.up ? '▲' : '▼' }} {{ item.rate }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 3. 主画布区域 ==================== -->
+      <main class="main-stage">
+
+        <!-- =============================================================== -->
+        <!-- 维度一：【汇总】 (语义业务图标 + 2x2 对称卡片 + 丰富交互穿透) -->
+        <!-- =============================================================== -->
+        <div v-if="activeTab === 'summary'" class="grid-2x2">
+
+          <!-- 卡片一：销售毛利 & 12个月走势 (金钱/毛利业务图标) -->
+          <div class="white-card">
+            <div class="card-top-bar">
+              <div class="card-title-left">
+                <div class="card-biz-icon emerald">
+                  <iconify-icon icon="ant-design:dollar-circle-outlined"></iconify-icon>
+                </div>
+                <div>
+                  <h3 class="card-h3">销售总利润 (毛利)</h3>
+                  <div class="card-sub">近 12 个月经营毛利走势 · 单位：元 (RMB)</div>
+                </div>
+              </div>
+              <div class="legend-inline">
+                <span><span class="legend-dot" style="background:#2563eb; border-radius:50%;"></span>本期</span>
+                <span><span class="legend-dot" style="background:#cbd5e1; border-radius:50%;"></span>{{ compareShortLabel }}</span>
+              </div>
+            </div>
+
+            <div class="giant-metric-row">
+              <span class="giant-num">¥{{ currentData.profit.toLocaleString() }}</span>
+              <span class="badge-rate" :class="profitDiffRate >= 0 ? 'badge-up' : 'badge-down'">
+                {{ profitDiffRate >= 0 ? '▲' : '▼' }} {{ Math.abs(profitDiffRate).toFixed(1) }}%
+              </span>
+              <span class="giant-diff-text">
+                较{{ compareShortLabel }} {{ profitDiffVal >= 0 ? '+' : '' }}¥{{ Math.round(profitDiffVal).toLocaleString() }} · {{ compareShortLabel }} ¥{{ compareData.profit.toLocaleString() }}
+              </span>
+            </div>
+
+            <!-- 近 12 个月垂直柱状图 (悬停高亮柱条与数据，支持点击穿透切换月份) -->
+            <div class="v-chart-area">
+              <div class="v-chart-bars">
+                <div
+                  v-for="(m, i) in trend12Months"
+                  :key="m.label"
+                  class="v-bar-group"
+                  :class="{ 'always-show': i >= 10 }"
+                  :title="m.fullLabel + ' 毛利: ¥' + m.profit.toLocaleString() + ' · 点击穿透查看该月看板'"
+                  @click="switchMonthFromTrend(m)"
+                >
+                  <div class="v-bar-top-val">{{ (m.profit / 10000).toFixed(1) }}万</div>
+                  <div
+                    class="v-bar-pillar"
+                    :class="{ 'is-current': i === 11, 'is-compare': i === 10 }"
+                    :style="{ height: Math.round((m.profit / 900000) * 150) + 'px' }"
+                  ></div>
+                </div>
+              </div>
+              <div class="v-chart-labels">
+                <span
+                  v-for="m in trend12Months"
+                  :key="m.label"
+                  style="cursor:pointer;"
+                  :title="'点击切换至 ' + m.fullLabel"
+                  @click="switchMonthFromTrend(m)"
+                >{{ m.label }}</span>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#94a3b8; margin-top:8px; padding-top:6px; border-top:1px dashed #f1f5f9;">
+              <span>12个月毛利走势对比</span>
+              <span style="color:#2563eb; cursor:pointer;" @click="activeTab = 'sales'">
+                点击切换到销售看人员明细 →
+              </span>
+            </div>
+          </div>
+
+          <!-- 卡片二：操作票数 · 货类结构 & 直客/同行来源 (货箱/作业业务图标) -->
+          <div class="white-card">
+            <div class="card-top-bar">
+              <div class="card-title-left">
+                <div class="card-biz-icon blue">
+                  <iconify-icon icon="ant-design:container-outlined"></iconify-icon>
+                </div>
+                <div>
+                  <h3 class="card-h3">操作票数 · 货类与客源结构</h3>
+                  <div class="card-sub">按普货/特种柜及直客/同行统计 · 点击货类筛选操作明细</div>
+                </div>
+              </div>
+              <div class="legend-inline">
+                <span><span class="legend-dot" style="background:#cbd5e1;"></span>{{ compareShortLabel }}</span>
+                <span><span class="legend-dot" style="background:#2563eb;"></span>本期 · 柱图：近 6 个月</span>
+              </div>
+            </div>
+
+            <div class="giant-metric-row">
+              <span class="giant-num">{{ currentData.tickets.toLocaleString() }}</span>
+              <span class="giant-unit">票</span>
+              <span class="badge-rate" :class="ticketsDiffRate >= 0 ? 'badge-up' : 'badge-down'">
+                {{ ticketsDiffRate >= 0 ? '▲' : '▼' }} {{ Math.abs(ticketsDiffRate).toFixed(1) }}%
+              </span>
+              <span class="giant-diff-text">
+                较{{ compareShortLabel }} {{ ticketsDiffVal >= 0 ? '+' : '' }}{{ ticketsDiffVal }} 票 · {{ compareShortLabel }} {{ compareData.tickets.toLocaleString() }} 票
+              </span>
+            </div>
+
+            <!-- 普货 / 危险品 / 冻柜 / 超限箱 4 小卡 (可点击快速穿透) -->
+            <div class="cargo-sub-grid">
+              <div
+                v-for="c in cargoSummaryCards"
+                :key="c.name"
+                class="sub-stat-box"
+                @click="jumpToOpsCargo(c.type)"
+                :title="'点击查看操作人员【' + c.name + '】明细'"
+              >
+                <div class="sub-stat-head">
+                  <span class="legend-dot" :style="{ background: c.color }"></span>
+                  <span>{{ c.name }}</span>
+                </div>
+                <div class="sub-stat-val-row">
+                  <span class="sub-stat-num">{{ c.curr }}</span>
+                  <span class="badge-rate" :class="c.rate >= 0 ? 'badge-up' : 'badge-down'">
+                    {{ c.rate >= 0 ? '▲' : '▼' }} {{ Math.abs(c.rate).toFixed(1) }}%
+                  </span>
+                </div>
+                <div class="sub-stat-foot">{{ compareShortLabel }} {{ c.prev }} 票</div>
+                <div class="mini-bars">
+                  <div
+                    v-for="(h, idx) in c.spark"
+                    :key="idx"
+                    class="mini-bar-col"
+                    :class="{ 'is-last': idx === 5 }"
+                    :style="{ height: h + '%', background: idx === 5 ? c.color : '#cbd5e1' }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 底部双结构条：货类结构 + 业务来源(直客/同行) -->
+            <div class="structure-block" style="padding-top:10px; margin-top:4px;">
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- 左：货类结构 -->
+                <div>
+                  <div class="structure-header">
+                    <span>货类结构分布</span>
+                    <span style="color:#94a3b8; font-weight:400;">占总票数比例</span>
+                  </div>
+                  <div class="seg-track">
+                    <div class="seg-item" style="width:74.8%; background:#2563eb;" title="普货 74.8%"></div>
+                    <div class="seg-item" style="width:11.5%; background:#f59e0b;" title="危险品 11.5%"></div>
+                    <div class="seg-item" style="width:10.4%; background:#10b981;" title="冻柜 10.4%"></div>
+                    <div class="seg-item" style="width:3.3%; background:#ef4444;" title="超限箱 3.3%"></div>
+                  </div>
+                  <div class="structure-legend-row" style="gap:10px; margin-top:6px;">
+                    <span><i class="legend-dot" style="background:#2563eb;"></i>普货 <b>74.8%</b></span>
+                    <span><i class="legend-dot" style="background:#f59e0b;"></i>危品 <b>11.5%</b></span>
+                    <span><i class="legend-dot" style="background:#10b981;"></i>冻柜 <b>10.4%</b></span>
+                    <span><i class="legend-dot" style="background:#ef4444;"></i>超限 <b>3.3%</b></span>
+                  </div>
+                </div>
+
+                <!-- 右：业务来源（直客 vs 同行） -->
+                <div>
+                  <div class="structure-header">
+                    <span>业务来源 (直客 vs 同行)</span>
+                    <span style="color:#2563eb; cursor:pointer;" @click="jumpToOpsCargo('direct')" title="点击查看直客操作明细">
+                      直客占 {{ ((currentData.direct / currentData.tickets) * 100).toFixed(1) }}% →
+                    </span>
+                  </div>
+                  <div class="seg-track">
+                    <div class="seg-item" :style="{ width: ((currentData.direct / currentData.tickets) * 100) + '%', background:'#2563eb' }" title="直客业务"></div>
+                    <div class="seg-item" :style="{ width: ((currentData.peer / currentData.tickets) * 100) + '%', background:'#6366f1' }" title="同行业务"></div>
+                  </div>
+                  <div class="structure-legend-row" style="justify-content:space-between; margin-top:6px;">
+                    <span>
+                      <i class="legend-dot" style="background:#2563eb;"></i>直客 <b>{{ currentData.direct }} 票</b> ({{ ((currentData.direct / currentData.tickets) * 100).toFixed(1) }}%)
+                    </span>
+                    <span>
+                      <i class="legend-dot" style="background:#6366f1;"></i>同行 <b>{{ currentData.peer }} 票</b> ({{ ((currentData.peer / currentData.tickets) * 100).toFixed(1) }}%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片三：销售箱量 (TEU) & 五大战队表现 (战队/分组业务图标) -->
+          <div class="white-card">
+            <div class="card-top-bar">
+              <div class="card-title-left">
+                <div class="card-biz-icon indigo">
+                  <iconify-icon icon="ant-design:team-outlined"></iconify-icon>
+                </div>
+                <div>
+                  <h3 class="card-h3">销售箱量 TEU · 战队业绩对比</h3>
+                  <div class="card-sub">本期 vs {{ compareShortLabel }} · 点击任一战队直接穿透至销售明细</div>
+                </div>
+              </div>
+              <div class="legend-inline">
+                <span><span class="legend-dot" style="background:#2563eb;"></span>本期 TEU</span>
+                <span><span class="legend-dot" style="background:#cbd5e1;"></span>{{ compareShortLabel }}</span>
+              </div>
+            </div>
+
+            <div class="giant-metric-row">
+              <span class="giant-num">{{ currentData.teu.toLocaleString() }}</span>
+              <span class="giant-unit">TEU</span>
+              <span class="badge-rate" :class="teuDiffRate >= 0 ? 'badge-up' : 'badge-down'">
+                {{ teuDiffRate >= 0 ? '▲' : '▼' }} {{ Math.abs(teuDiffRate).toFixed(1) }}%
+              </span>
+              <span class="giant-diff-text">
+                较{{ compareShortLabel }} {{ teuDiffVal >= 0 ? '+' : '' }}{{ teuDiffVal }} TEU · {{ compareShortLabel }} {{ compareData.teu.toLocaleString() }} TEU
+              </span>
+            </div>
+
+            <div class="h-compare-list">
+              <div
+                v-for="t in teamCompareRows"
+                :key="t.name"
+                class="h-compare-item interactive"
+                @click="jumpToTeam(t.name)"
+                :title="'点击查看【' + t.name + '】销售人员列表'"
+              >
+                <div class="h-compare-top">
+                  <span class="h-compare-name">
+                    <span class="legend-dot" :style="{ background: t.color, borderRadius:'50%' }"></span>
+                    <span>{{ t.name }}</span>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:400;">· 贡献毛利 ¥{{ (t.profit / 10000).toFixed(1) }}万</span>
+                    <iconify-icon icon="ant-design:arrow-right-outlined" class="jump-arrow"></iconify-icon>
+                  </span>
+                  <div class="h-compare-nums">
+                    <span style="color:#94a3b8;">{{ compareShortLabel }} {{ t.prevTeu }}</span>
+                    <b style="color:#0f172a; font-size:14px; min-width:44px; text-align:right;">{{ t.currTeu }} TEU</b>
+                    <span class="badge-rate" :class="t.teuRate >= 0 ? 'badge-up' : 'badge-down'">
+                      {{ t.teuRate >= 0 ? '▲' : '▼' }} {{ Math.abs(t.teuRate).toFixed(1) }}%
+                    </span>
+                  </div>
+                </div>
+                <div class="dual-bars">
+                  <div class="bar-line-curr" :style="{ width: Math.min(100, (t.currTeu / 410) * 100) + '%' }"></div>
+                  <div class="bar-line-prev" :style="{ width: Math.min(100, (t.prevTeu / 410) * 100) + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 卡片四：主力航线 TEU 与单箱效益分布 (全球航线/指南针业务图标) -->
+          <div class="white-card">
+            <div class="card-top-bar">
+              <div class="card-title-left">
+                <div class="card-biz-icon amber">
+                  <iconify-icon icon="ant-design:compass-outlined"></iconify-icon>
+                </div>
+                <div>
+                  <h3 class="card-h3">主力航线 TEU · 货物流向分布</h3>
+                  <div class="card-sub">本期 vs {{ compareShortLabel }} · 按本期箱量排序</div>
+                </div>
+              </div>
+              <div class="legend-inline">
+                <span>全司单箱均利：<b style="color:#0f172a;">¥{{ Math.round(currentData.profit / currentData.teu) }} / TEU</b></span>
+              </div>
+            </div>
+
+            <div class="h-compare-list" style="margin-top:6px;">
+              <div v-for="r in routeRows" :key="r.name" class="h-compare-item">
+                <div class="h-compare-top">
+                  <span class="h-compare-name">
+                    {{ r.name }}
+                    <span style="font-size:11px; color:#94a3b8; font-weight:400;">{{ r.port }}</span>
+                  </span>
+                  <div class="h-compare-nums">
+                    <span style="color:#94a3b8;">{{ compareShortLabel }} {{ r.prev }}</span>
+                    <b style="color:#0f172a; font-size:14px; min-width:44px; text-align:right;">{{ r.curr }}</b>
+                    <span class="badge-rate" :class="r.rate >= 0 ? 'badge-up' : 'badge-down'">
+                      {{ r.rate >= 0 ? '▲' : '▼' }} {{ Math.abs(r.rate).toFixed(1) }}%
+                    </span>
+                  </div>
+                </div>
+                <div class="dual-bars">
+                  <div
+                    class="bar-line-curr"
+                    :style="{
+                      width: Math.min(100, (r.curr / 420) * 100) + '%',
+                      background: r.rate >= 0 ? '#2563eb' : '#f59e0b'
+                    }"
+                  ></div>
+                  <div class="bar-line-prev" :style="{ width: Math.min(100, (r.prev / 420) * 100) + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- 维度二：【销售人员 (TEU · 利润)】 (左表右卡，极简无竖线设计) -->
+        <!-- =============================================================== -->
+        <div v-if="activeTab === 'sales'" class="master-detail-grid">
+
+          <!-- 左侧：销售 TEU & 利润排行榜 -->
+          <div class="white-card">
+            <div class="card-top-bar">
+              <div class="card-title-left">
+                <div class="card-biz-icon emerald">
+                  <iconify-icon icon="ant-design:dollar-outlined"></iconify-icon>
+                </div>
+                <div>
+                  <h3 class="card-h3">销售业绩排行 · 箱量 (TEU) 与 毛利润</h3>
+                  <div class="card-sub">本期 vs {{ compareShortLabel }} · 点击任一行在右侧实时透视个人深度经营数据</div>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <!-- 实时快速过滤带搜索图标与清空按钮 -->
+                <div class="filter-input-wrap">
+                  <iconify-icon icon="ant-design:search-outlined" class="search-icon"></iconify-icon>
+                  <input
+                    v-model="salesSearchKeyword"
+                    type="text"
+                    placeholder="搜索销售人员/战队..."
+                    class="filter-input"
+                  />
+                  <iconify-icon
+                    v-if="salesSearchKeyword"
+                    icon="ant-design:close-circle-filled"
+                    class="clear-icon"
+                    @click="salesSearchKeyword = ''"
+                  ></iconify-icon>
+                </div>
+
+                <!-- 老板决策专享：快速关注视图 -->
+                <div class="pill-switch-group">
+                  <div class="pill-switch-btn" :class="{ active: salesFocusMode === 'all' }" @click="salesFocusMode = 'all'">全部人员</div>
+                  <div class="pill-switch-btn" :class="{ active: salesFocusMode === 'top3' }" @click="salesFocusMode = 'top3'">🏆 标杆 Top3</div>
+                  <div class="pill-switch-btn is-warn-btn" :class="{ active: salesFocusMode === 'alert' }" @click="salesFocusMode = 'alert'">⚠️ 下滑预警</div>
+                </div>
+
+                <!-- 战队过滤 -->
+                <div class="pill-switch-group">
+                  <div
+                    v-for="t in ['全部', '太阳队', '志远队', '亮剑队', '极光队', '领航队']"
+                    :key="t"
+                    class="pill-switch-btn"
+                    :class="{ active: teamFilter === t }"
+                    @click="teamFilter = t"
+                  >
+                    {{ t }}
+                  </div>
+                </div>
+
+                <!-- 排序切换 -->
+                <div class="pill-switch-group">
+                  <div class="pill-switch-btn" :class="{ active: salesSort === 'profit' }" @click="salesSort = 'profit'">按毛利润</div>
+                  <div class="pill-switch-btn" :class="{ active: salesSort === 'teu' }" @click="salesSort = 'teu'">按箱量 TEU</div>
+                  <div class="pill-switch-btn" :class="{ active: salesSort === 'rate' }" @click="salesSort = 'rate'">按利润增幅</div>
+                </div>
+              </div>
+            </div>
+
+            <table class="clean-table">
+              <thead>
+                <tr>
+                  <th style="width:52px; text-align:center;">排名</th>
+                  <th style="width:130px;">销售姓名</th>
+                  <th style="width:210px;">销售 TEU · 本期 vs {{ compareShortLabel }}</th>
+                  <th style="text-align:right;">TEU 变化</th>
+                  <th style="width:230px; padding-left:20px;">毛利润 (元) · 本期 vs {{ compareShortLabel }}</th>
+                  <th style="text-align:right;">利润变化</th>
+                  <th style="text-align:right;">成交客户</th>
+                  <th style="text-align:right;">单箱毛利</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(s, idx) in sortedSalesRows"
+                  :key="s.name"
+                  :class="{ 'is-active': activeSales.name === s.name }"
+                  @click="selectedSalesmanName = s.name"
+                >
+                  <td class="rank-cell">
+                    <span v-if="idx === 0" class="rank-badge rank-1" title="冠军">
+                      <iconify-icon icon="ant-design:trophy-filled"></iconify-icon> 1
+                    </span>
+                    <span v-else-if="idx === 1" class="rank-badge rank-2" title="亚军">
+                      <iconify-icon icon="ant-design:star-filled"></iconify-icon> 2
+                    </span>
+                    <span v-else-if="idx === 2" class="rank-badge rank-3" title="季军">
+                      <iconify-icon icon="ant-design:fire-filled"></iconify-icon> 3
+                    </span>
+                    <span v-else class="rank-badge rank-plain">{{ idx + 1 }}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:9px;">
+                      <span class="avatar-circle" :style="{ background: s.color + '15', color: s.color }">{{ s.name[0] }}</span>
+                      <div>
+                        <div style="font-weight:700; color:#0f172a; line-height:1.2;">{{ s.name }}</div>
+                        <div style="font-size:11px; color:#94a3b8;">{{ s.team }}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- 销售 TEU 对比条 -->
+                  <td>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                      <b style="font-size:14px; color:#0f172a;">{{ s.currTeu }}</b>
+                      <span style="font-size:11px; color:#94a3b8;">{{ compareShortLabel }} {{ s.prevTeu ?? '-' }}</span>
+                    </div>
+                    <div class="dual-bars">
+                      <div class="bar-line-curr" :style="{ width: Math.min(100, (s.currTeu / 180) * 100) + '%' }"></div>
+                      <div class="bar-line-prev" :style="{ width: Math.min(100, ((s.prevTeu || 0) / 180) * 100) + '%' }"></div>
+                    </div>
+                  </td>
+
+                  <td style="text-align:right;">
+                    <span v-if="s.teuRate !== null" class="badge-rate" :class="s.teuRate >= 0 ? 'badge-up' : 'badge-down'">
+                      {{ s.teuRate >= 0 ? '▲' : '▼' }} {{ Math.abs(s.teuRate).toFixed(1) }}%
+                    </span>
+                    <span v-else class="badge-rate badge-flat">新增/无基准</span>
+                  </td>
+
+                  <!-- 销售毛利对比条 -->
+                  <td style="padding-left:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                      <b style="font-size:14px; color:#0f172a;">¥{{ Math.round(s.currProfit).toLocaleString() }}</b>
+                      <span style="font-size:11px; color:#94a3b8;">{{ compareShortLabel }} {{ s.prevProfit ? '¥' + (s.prevProfit/10000).toFixed(1) + '万' : '-' }}</span>
+                    </div>
+                    <div class="dual-bars">
+                      <div
+                        class="bar-line-curr"
+                        :style="{
+                          width: Math.min(100, (s.currProfit / 130000) * 100) + '%',
+                          background: (s.profitRate ?? 0) >= 0 ? '#10b981' : '#2563eb'
+                        }"
+                      ></div>
+                      <div class="bar-line-prev" :style="{ width: Math.min(100, ((s.prevProfit || 0) / 130000) * 100) + '%' }"></div>
+                    </div>
+                  </td>
+
+                  <td style="text-align:right;">
+                    <span v-if="s.profitRate !== null" class="badge-rate" :class="s.profitRate >= 0 ? 'badge-up' : 'badge-down'">
+                      {{ s.profitRate >= 0 ? '▲' : '▼' }} {{ Math.abs(s.profitRate).toFixed(1) }}%
+                    </span>
+                    <span v-else class="badge-rate badge-flat">新增/无基准</span>
+                  </td>
+
+                  <td style="text-align:right; color:#334155; font-weight:600;">
+                    {{ s.currCust }} <span style="color:#94a3b8; font-weight:400; font-size:11px;">/ {{ s.prevCust ?? '-' }}</span>
+                  </td>
+
+                  <td style="text-align:right; font-weight:600; color:#0f172a;">
+                    {{ s.currTeu ? '¥' + Math.round(s.currProfit / s.currTeu).toLocaleString() : '-' }}
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2">合计 ({{ sortedSalesRows.length }} 人)</td>
+                  <td>{{ salesFooter.currTeu }} TEU <span style="font-weight:400; color:#94a3b8; font-size:12px;">({{ compareShortLabel }} {{ salesFooter.prevTeu }})</span></td>
+                  <td style="text-align:right;">
+                    <span class="badge-rate" :class="salesFooter.teuRate >= 0 ? 'badge-up' : 'badge-down'">
+                      {{ salesFooter.teuRate >= 0 ? '▲' : '▼' }} {{ Math.abs(salesFooter.teuRate).toFixed(1) }}%
+                    </span>
+                  </td>
+                  <td style="padding-left:20px;">¥{{ Math.round(salesFooter.currProfit).toLocaleString() }}</td>
+                  <td style="text-align:right;">
+                    <span class="badge-rate" :class="salesFooter.profitRate >= 0 ? 'badge-up' : 'badge-down'">
+                      {{ salesFooter.profitRate >= 0 ? '▲' : '▼' }} {{ Math.abs(salesFooter.profitRate).toFixed(1) }}%
+                    </span>
+                  </td>
+                  <td style="text-align:right;">{{ salesFooter.currCust }} 家</td>
+                  <td style="text-align:right;">¥{{ salesFooter.currTeu ? Math.round(salesFooter.currProfit / salesFooter.currTeu).toLocaleString() : 0 }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- 右侧：销售个人明细卡 (支持上下快速切换) -->
+          <div class="white-card sticky-side" v-if="activeSales && activeSales.name">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#94a3b8; margin-bottom:14px;">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <span style="font-weight:600; color:#475569;">个人深度经营透视</span>
+                <span class="rank-badge" :class="salesRankClass" style="height:20px; font-size:10px;">
+                  第 {{ currentSalesIndex + 1 }} 名
+                </span>
+              </span>
+              <div class="person-nav-group">
+                <button class="btn-person-nav" :disabled="currentSalesIndex <= 0" @click="prevSalesman" title="切换至上一位销售">
+                  <iconify-icon icon="ant-design:left-outlined"></iconify-icon>
+                </button>
+                <span style="font-size:11px; color:#94a3b8; font-variant-numeric:tabular-nums; min-width:32px; text-align:center;">
+                  {{ currentSalesIndex + 1 }} / {{ sortedSalesRows.length }}
+                </span>
+                <button class="btn-person-nav" :disabled="currentSalesIndex >= sortedSalesRows.length - 1" @click="nextSalesman" title="切换至下一位销售">
+                  <iconify-icon icon="ant-design:right-outlined"></iconify-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="person-hero">
+              <div class="avatar-lg" :style="{ background: activeSales.color }">{{ activeSales.name ? activeSales.name[0] : '-' }}</div>
+              <div>
+                <div style="font-size:18px; font-weight:800; color:#0f172a;">{{ activeSales.name }}</div>
+                <div style="font-size:12px; color:#64748b; margin-top:2px;">
+                  所属战队：<b :style="{ color: activeSales.color }">{{ activeSales.team }}</b> · 占全司利润 {{ currentData.profit ? (((activeSales.currProfit || 0) / currentData.profit) * 100).toFixed(1) : 0 }}%
+                </div>
+              </div>
+            </div>
+
+            <!-- 个人毛利大字 -->
+            <div style="margin-bottom:16px;">
+              <div style="font-size:12px; color:#64748b; margin-bottom:4px;">本期贡献毛利</div>
+              <div class="giant-metric-row" style="margin-bottom:6px;">
+                <span class="giant-num" style="font-size:30px;">¥{{ Math.round(activeSales.currProfit).toLocaleString() }}</span>
+                <span v-if="activeSales.profitRate !== null" class="badge-rate" :class="activeSales.profitRate >= 0 ? 'badge-up' : 'badge-down'">
+                  {{ activeSales.profitRate >= 0 ? '▲' : '▼' }} {{ Math.abs(activeSales.profitRate).toFixed(1) }}%
+                </span>
+              </div>
+              <div style="font-size:12px; color:#94a3b8;">
+                {{ compareShortLabel }}：{{ activeSales.prevProfit ? '¥' + Math.round(activeSales.prevProfit).toLocaleString() : '无基准记录' }}
+              </div>
+            </div>
+
+            <!-- 2x2 指标宫格 -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:16px;">
+              <div class="sub-stat-box">
+                <div class="sub-stat-head">销售箱量 (TEU)</div>
+                <div class="sub-stat-val-row">
+                  <span class="sub-stat-num">{{ activeSales.currTeu }}</span>
+                  <span v-if="activeSales.teuRate !== null" class="badge-rate" :class="activeSales.teuRate >= 0 ? 'badge-up' : 'badge-down'">
+                    {{ activeSales.teuRate >= 0 ? '▲' : '▼' }}{{ Math.abs(activeSales.teuRate).toFixed(1) }}%
+                  </span>
+                </div>
+                <div class="sub-stat-foot" style="margin:0;">{{ compareShortLabel }} {{ activeSales.prevTeu ?? '-' }} TEU</div>
+              </div>
+
+              <div class="sub-stat-box">
+                <div class="sub-stat-head">成交客户数</div>
+                <div class="sub-stat-val-row">
+                  <span class="sub-stat-num">{{ activeSales.currCust }} <small style="font-size:12px; font-weight:500;">家</small></span>
+                </div>
+                <div class="sub-stat-foot" style="margin:0;">{{ compareShortLabel }} {{ activeSales.prevCust ?? '-' }} 家</div>
+              </div>
+            </div>
+
+            <!-- 个人主力航线分布 -->
+            <div class="structure-block">
+              <div class="structure-header">
+                <span>主力航线箱量分布</span>
+                <span style="color:#94a3b8; font-weight:400;">单箱均利 ¥{{ activeSales.currTeu ? Math.round(activeSales.currProfit / activeSales.currTeu).toLocaleString() : 0 }}</span>
+              </div>
+              <div class="h-compare-list" style="gap:10px; margin-top:10px;">
+                <div v-for="rt in getPersonRoutes(activeSales)" :key="rt.name" class="h-compare-item">
+                  <div class="h-compare-top" style="margin-bottom:4px; font-size:12px;">
+                    <span style="font-weight:600; color:#334155;">{{ rt.name }}</span>
+                    <span class="num">
+                      <span style="color:#94a3b8; margin-right:6px;">占 {{ rt.pct }}%</span>
+                      <b>{{ rt.teu }} TEU</b>
+                    </span>
+                  </div>
+                  <div class="seg-track" style="height:6px;">
+                    <div class="seg-item" :style="{ width: rt.pct + '%', background:'#2563eb' }"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- 维度三：【操作人员 (票数 · 货类 · 直客/同行)】 -->
+        <!-- =============================================================== -->
+        <div v-if="activeTab === 'ops'" class="master-detail-grid">
+
+          <!-- 左侧：操作票数 · 货类 · 直客/同行表 -->
+          <div class="white-card">
+            <div class="card-top-bar">
+              <div class="card-title-left">
+                <div class="card-biz-icon blue">
+                  <iconify-icon icon="ant-design:container-outlined"></iconify-icon>
+                </div>
+                <div>
+                  <h3 class="card-h3">操作票数 · 货类结构 · 业务来源 (直客/同行)</h3>
+                  <div class="card-sub">本期 vs {{ compareShortLabel }} · 点击任一行在右侧查看个人货类明细与直客构成</div>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <!-- 实时快速过滤带搜索图标与清空按钮 -->
+                <div class="filter-input-wrap">
+                  <iconify-icon icon="ant-design:search-outlined" class="search-icon"></iconify-icon>
+                  <input
+                    v-model="opsSearchKeyword"
+                    type="text"
+                    placeholder="搜索操作专员..."
+                    class="filter-input"
+                  />
+                  <iconify-icon
+                    v-if="opsSearchKeyword"
+                    icon="ant-design:close-circle-filled"
+                    class="clear-icon"
+                    @click="opsSearchKeyword = ''"
+                  ></iconify-icon>
+                </div>
+
+                <!-- 老板决策专享：快速关注视图 -->
+                <div class="pill-switch-group">
+                  <div class="pill-switch-btn" :class="{ active: opsFocusMode === 'all' }" @click="opsFocusMode = 'all'">全部人员</div>
+                  <div class="pill-switch-btn" :class="{ active: opsFocusMode === 'top3' }" @click="opsFocusMode = 'top3'">🏆 标杆 Top3</div>
+                  <div class="pill-switch-btn is-warn-btn" :class="{ active: opsFocusMode === 'alert' }" @click="opsFocusMode = 'alert'">⚠️ 下滑预警</div>
+                </div>
+
+                <div class="pill-switch-group">
+                  <div class="pill-switch-btn" :class="{ active: opsSort === 'tickets' }" @click="opsSort = 'tickets'">按总票数</div>
+                  <div class="pill-switch-btn" :class="{ active: opsSort === 'rate' }" @click="opsSort = 'rate'">按增幅</div>
+                  <div class="pill-switch-btn" :class="{ active: opsSort === 'direct' }" @click="opsSort = 'direct'">按直客票数</div>
+                  <div class="pill-switch-btn" :class="{ active: opsSort === 'dg' }" @click="opsSort = 'dg'">按危险品</div>
+                </div>
+              </div>
+            </div>
+
+            <table class="clean-table">
+              <thead>
+                <tr>
+                  <th style="width:52px; text-align:center;">排名</th>
+                  <th style="width:96px;">操作人</th>
+                  <th style="width:170px;">总票数 · 本期 vs {{ compareShortLabel }}</th>
+                  <th style="text-align:right;">变化</th>
+                  <th style="text-align:right;"><i class="legend-dot" style="background:#2563eb;"></i>普货</th>
+                  <th style="text-align:right;"><i class="legend-dot" style="background:#f59e0b;"></i>危险品</th>
+                  <th style="text-align:right;"><i class="legend-dot" style="background:#10b981;"></i>冻柜</th>
+                  <th style="text-align:right;"><i class="legend-dot" style="background:#ef4444;"></i>超限箱</th>
+                  <th style="width:88px;">货类结构</th>
+                  <th style="text-align:right; padding-left:14px;"><i class="legend-dot" style="background:#2563eb;"></i>直客</th>
+                  <th style="text-align:right;"><i class="legend-dot" style="background:#6366f1;"></i>同行</th>
+                  <th style="width:96px;">直客 / 同行</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(op, idx) in sortedOpsRows"
+                  :key="op.name"
+                  :class="{ 'is-active': activeOp.name === op.name }"
+                  @click="selectedOperatorName = op.name"
+                >
+                  <td class="rank-cell">
+                    <span v-if="idx === 0" class="rank-badge rank-1" title="冠军">
+                      <iconify-icon icon="ant-design:trophy-filled"></iconify-icon> 1
+                    </span>
+                    <span v-else-if="idx === 1" class="rank-badge rank-2" title="亚军">
+                      <iconify-icon icon="ant-design:star-filled"></iconify-icon> 2
+                    </span>
+                    <span v-else-if="idx === 2" class="rank-badge rank-3" title="季军">
+                      <iconify-icon icon="ant-design:fire-filled"></iconify-icon> 3
+                    </span>
+                    <span v-else class="rank-badge rank-plain">{{ idx + 1 }}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span class="avatar-circle">{{ op.name[0] }}</span>
+                      <span style="font-weight:700; color:#0f172a;">{{ op.name }}</span>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                      <b style="font-size:14px; color:#0f172a;">{{ op.tickets }}</b>
+                      <span style="font-size:11px; color:#94a3b8;">{{ compareShortLabel }} {{ op.prevTickets }}</span>
+                    </div>
+                    <div class="dual-bars">
+                      <div class="bar-line-curr" :style="{ width: ((op.tickets / 215) * 100) + '%' }"></div>
+                      <div class="bar-line-prev" :style="{ width: ((op.prevTickets / 215) * 100) + '%' }"></div>
+                    </div>
+                  </td>
+
+                  <td style="text-align:right;">
+                    <span class="badge-rate" :class="op.rate >= 0 ? 'badge-up' : 'badge-down'">
+                      {{ op.rate >= 0 ? '▲' : '▼' }} {{ Math.abs(op.rate).toFixed(1) }}%
+                    </span>
+                  </td>
+
+                  <!-- 四类货物 -->
+                  <td style="text-align:right;">
+                    <div style="font-weight:700; color:#0f172a;">{{ op.general }}</div>
+                    <div :style="{ fontSize:'11px', color: op.generalRate >= 0 ? '#059669' : '#dc2626' }">
+                      {{ op.generalRate >= 0 ? '▲' : '▼' }} {{ Math.abs(op.generalRate).toFixed(1) }}%
+                    </div>
+                  </td>
+
+                  <td style="text-align:right;">
+                    <div style="font-weight:700; color:#0f172a;">{{ op.dg }}</div>
+                    <div :style="{ fontSize:'11px', color: op.dgRate > 0 ? '#059669' : (op.dgRate < 0 ? '#dc2626' : '#94a3b8') }">
+                      {{ op.dgRate === 0 ? '持平' : (op.dgRate > 0 ? '▲ ' + op.dgRate.toFixed(1) + '%' : '▼ ' + Math.abs(op.dgRate).toFixed(1) + '%') }}
+                    </div>
+                  </td>
+
+                  <td style="text-align:right;">
+                    <div style="font-weight:700; color:#0f172a;">{{ op.reefer }}</div>
+                    <div :style="{ fontSize:'11px', color: op.reeferRate > 0 ? '#059669' : (op.reeferRate < 0 ? '#dc2626' : '#94a3b8') }">
+                      {{ op.reeferRate === 0 ? '持平' : (op.reeferRate > 0 ? '▲ ' + op.reeferRate.toFixed(1) + '%' : '▼ ' + Math.abs(op.reeferRate).toFixed(1) + '%') }}
+                    </div>
+                  </td>
+
+                  <td style="text-align:right;">
+                    <div style="font-weight:700; color:#0f172a;">{{ op.oog }}</div>
+                    <div :style="{ fontSize:'11px', color: op.oogRate > 0 ? '#059669' : (op.oogRate < 0 ? '#dc2626' : '#94a3b8') }">
+                      {{ op.oogRate === 0 ? '持平' : (op.oogRate > 0 ? '▲ ' + op.oogRate.toFixed(1) + '%' : '▼ ' + Math.abs(op.oogRate).toFixed(1) + '%') }}
+                    </div>
+                  </td>
+
+                  <!-- 货类比例条 -->
+                  <td>
+                    <div class="seg-track" style="height:7px;">
+                      <div class="seg-item" :style="{ width: ((op.general/op.tickets)*100)+'%', background:'#2563eb' }"></div>
+                      <div class="seg-item" :style="{ width: ((op.dg/op.tickets)*100)+'%', background:'#f59e0b' }"></div>
+                      <div class="seg-item" :style="{ width: ((op.reefer/op.tickets)*100)+'%', background:'#10b981' }"></div>
+                      <div class="seg-item" :style="{ width: ((op.oog/op.tickets)*100)+'%', background:'#ef4444' }"></div>
+                    </div>
+                  </td>
+
+                  <!-- 直客 vs 同行 -->
+                  <td style="text-align:right; padding-left:14px;">
+                    <div style="font-weight:700; color:#0f172a;">{{ op.direct }}</div>
+                    <div style="font-size:11px; color:#94a3b8;">{{ Math.round((op.direct/op.tickets)*100) }}%</div>
+                  </td>
+
+                  <td style="text-align:right;">
+                    <div style="font-weight:700; color:#0f172a;">{{ op.peer }}</div>
+                    <div style="font-size:11px; color:#94a3b8;">{{ Math.round((op.peer/op.tickets)*100) }}%</div>
+                  </td>
+
+                  <td>
+                    <div class="seg-track" style="height:7px;">
+                      <div class="seg-item" :style="{ width: ((op.direct/op.tickets)*100)+'%', background:'#2563eb' }"></div>
+                      <div class="seg-item" :style="{ width: ((op.peer/op.tickets)*100)+'%', background:'#6366f1' }"></div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2">合计</td>
+                  <td>{{ currentData.tickets.toLocaleString() }} <span style="font-weight:400; color:#94a3b8; font-size:12px;">{{ compareShortLabel }} {{ compareData.tickets.toLocaleString() }}</span></td>
+                  <td style="text-align:right;">
+                    <span class="badge-rate" :class="ticketsDiffRate >= 0 ? 'badge-up' : 'badge-down'">
+                      {{ ticketsDiffRate >= 0 ? '▲' : '▼' }} {{ Math.abs(ticketsDiffRate).toFixed(1) }}%
+                    </span>
+                  </td>
+                  <td style="text-align:right;">{{ currentData.general }}</td>
+                  <td style="text-align:right;">{{ currentData.dg }}</td>
+                  <td style="text-align:right;">{{ currentData.reefer }}</td>
+                  <td style="text-align:right;">{{ currentData.oog }}</td>
+                  <td></td>
+                  <td style="text-align:right;">{{ currentData.direct }}</td>
+                  <td style="text-align:right;">{{ currentData.peer }}</td>
+                  <td style="font-size:11px; color:#64748b; font-weight:500;">直 {{ Math.round((currentData.direct/currentData.tickets)*100) }}% : 同 {{ Math.round((currentData.peer/currentData.tickets)*100) }}%</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- 右侧：操作个人明细卡 (支持上下快速切换) -->
+          <div class="white-card sticky-side" v-if="activeOp && activeOp.name">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#94a3b8; margin-bottom:14px;">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <span style="font-weight:600; color:#475569;">操作专员深度透视</span>
+                <span class="rank-badge" :class="opsRankClass" style="height:20px; font-size:10px;">
+                  第 {{ currentOpsIndex + 1 }} 名
+                </span>
+              </span>
+              <div class="person-nav-group">
+                <button class="btn-person-nav" :disabled="currentOpsIndex <= 0" @click="prevOperator" title="切换至上一位操作员">
+                  <iconify-icon icon="ant-design:left-outlined"></iconify-icon>
+                </button>
+                <span style="font-size:11px; color:#94a3b8; font-variant-numeric:tabular-nums; min-width:32px; text-align:center;">
+                  {{ currentOpsIndex + 1 }} / {{ sortedOpsRows.length }}
+                </span>
+                <button class="btn-person-nav" :disabled="currentOpsIndex >= sortedOpsRows.length - 1" @click="nextOperator" title="切换至下一位操作员">
+                  <iconify-icon icon="ant-design:right-outlined"></iconify-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="person-hero">
+              <div class="avatar-lg">{{ activeOp.name ? activeOp.name[0] : '-' }}</div>
+              <div>
+                <div style="font-size:18px; font-weight:800; color:#0f172a;">{{ activeOp.name }}</div>
+                <div style="font-size:12px; color:#64748b; margin-top:2px;">
+                  操作人 · 占全司总票数 {{ currentData.tickets ? (((activeOp.tickets || 0) / currentData.tickets) * 100).toFixed(1) : 0 }}%
+                </div>
+              </div>
+            </div>
+
+            <div class="giant-metric-row" style="margin-bottom:16px;">
+              <span class="giant-num" style="font-size:32px;">{{ activeOp.tickets }}</span>
+              <span class="giant-unit">票</span>
+              <span class="badge-rate" :class="activeOp.rate >= 0 ? 'badge-up' : 'badge-down'">
+                {{ activeOp.rate >= 0 ? '▲' : '▼' }} {{ Math.abs(activeOp.rate).toFixed(1) }}%
+              </span>
+              <span class="giant-diff-text">
+                较{{ compareShortLabel }} {{ activeOp.tickets - activeOp.prevTickets >= 0 ? '+' : '' }}{{ activeOp.tickets - activeOp.prevTickets }} 票
+              </span>
+            </div>
+
+            <!-- 4 种货类 2x2 卡片 -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:14px;">
+              <div class="sub-stat-box">
+                <div class="sub-stat-head"><span class="legend-dot" style="background:#2563eb;"></span>普货</div>
+                <div class="sub-stat-val-row">
+                  <span class="sub-stat-num">{{ activeOp.general }}</span>
+                  <span class="badge-rate" :class="activeOp.generalRate >= 0 ? 'badge-up' : 'badge-down'">
+                    {{ activeOp.generalRate >= 0 ? '▲' : '▼' }}{{ Math.abs(activeOp.generalRate).toFixed(1) }}%
+                  </span>
+                </div>
+                <div class="sub-stat-foot" style="margin:0;">{{ compareShortLabel }} {{ activeOp.prevGeneral }} 票</div>
+              </div>
+
+              <div class="sub-stat-box">
+                <div class="sub-stat-head"><span class="legend-dot" style="background:#f59e0b;"></span>危险品</div>
+                <div class="sub-stat-val-row">
+                  <span class="sub-stat-num">{{ activeOp.dg }}</span>
+                  <span class="badge-rate" :class="activeOp.dgRate > 0 ? 'badge-up' : (activeOp.dgRate < 0 ? 'badge-down' : 'badge-flat')">
+                    {{ activeOp.dgRate === 0 ? '持平' : (activeOp.dgRate > 0 ? '▲' + activeOp.dgRate.toFixed(1) + '%' : '▼' + Math.abs(activeOp.dgRate).toFixed(1) + '%') }}
+                  </span>
+                </div>
+                <div class="sub-stat-foot" style="margin:0;">{{ compareShortLabel }} {{ activeOp.prevDg }} 票</div>
+              </div>
+
+              <div class="sub-stat-box">
+                <div class="sub-stat-head"><span class="legend-dot" style="background:#10b981;"></span>冻柜</div>
+                <div class="sub-stat-val-row">
+                  <span class="sub-stat-num">{{ activeOp.reefer }}</span>
+                  <span class="badge-rate" :class="activeOp.reeferRate > 0 ? 'badge-up' : (activeOp.reeferRate < 0 ? 'badge-down' : 'badge-flat')">
+                    {{ activeOp.reeferRate === 0 ? '持平' : (activeOp.reeferRate > 0 ? '▲' + activeOp.reeferRate.toFixed(1) + '%' : '▼' + Math.abs(activeOp.reeferRate).toFixed(1) + '%') }}
+                  </span>
+                </div>
+                <div class="sub-stat-foot" style="margin:0;">{{ compareShortLabel }} {{ activeOp.prevReefer }} 票</div>
+              </div>
+
+              <div class="sub-stat-box">
+                <div class="sub-stat-head"><span class="legend-dot" style="background:#ef4444;"></span>超限箱</div>
+                <div class="sub-stat-val-row">
+                  <span class="sub-stat-num">{{ activeOp.oog }}</span>
+                  <span class="badge-rate" :class="activeOp.oogRate > 0 ? 'badge-up' : (activeOp.oogRate < 0 ? 'badge-down' : 'badge-flat')">
+                    {{ activeOp.oogRate === 0 ? '持平' : (activeOp.oogRate > 0 ? '▲' + activeOp.oogRate.toFixed(1) + '%' : '▼' + Math.abs(activeOp.oogRate).toFixed(1) + '%') }}
+                  </span>
+                </div>
+                <div class="sub-stat-foot" style="margin:0;">{{ compareShortLabel }} {{ activeOp.prevOog }} 票</div>
+              </div>
+            </div>
+
+            <!-- 业务来源：直客 vs 同行 -->
+            <div class="structure-block">
+              <div class="structure-header">
+                <span>业务来源 (直客 vs 同行)</span>
+                <span style="color:#94a3b8; font-weight:400;">占本人票数比例</span>
+              </div>
+              <div class="bar-compare-row">
+                <span>本期</span>
+                <div class="seg-track">
+                  <div class="seg-item" :style="{ width: ((activeOp.direct/activeOp.tickets)*100)+'%', background:'#2563eb' }"></div>
+                  <div class="seg-item" :style="{ width: ((activeOp.peer/activeOp.tickets)*100)+'%', background:'#6366f1' }"></div>
+                </div>
+              </div>
+              <div class="bar-compare-row">
+                <span>{{ compareShortLabel }}</span>
+                <div class="seg-track" style="opacity:0.6;">
+                  <div class="seg-item" :style="{ width: ((activeOp.prevDirect/activeOp.prevTickets)*100)+'%', background:'#2563eb' }"></div>
+                  <div class="seg-item" :style="{ width: ((activeOp.prevPeer/activeOp.prevTickets)*100)+'%', background:'#6366f1' }"></div>
+                </div>
+              </div>
+              <div class="structure-legend-row" style="justify-content:space-between;">
+                <span>
+                  <i class="legend-dot" style="background:#2563eb;"></i>直客 <b>{{ activeOp.direct }} 票 ({{ ((activeOp.direct/activeOp.tickets)*100).toFixed(1) }}%)</b>
+                  <span style="color:#94a3b8;"> {{ compareShortLabel }} {{ activeOp.prevDirect }}</span>
+                </span>
+                <span>
+                  <i class="legend-dot" style="background:#6366f1;"></i>同行 <b>{{ activeOp.peer }} 票 ({{ ((activeOp.peer/activeOp.tickets)*100).toFixed(1) }}%)</b>
+                  <span style="color:#94a3b8;"> {{ compareShortLabel }} {{ activeOp.prevPeer }}</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- 货类结构 -->
+            <div class="structure-block">
+              <div class="structure-header">
+                <span>货类结构分布</span>
+                <span style="color:#94a3b8; font-weight:400;">占本人票数比例</span>
+              </div>
+              <div class="bar-compare-row">
+                <span>本期</span>
+                <div class="seg-track">
+                  <div class="seg-item" :style="{ width: ((activeOp.general/activeOp.tickets)*100)+'%', background:'#2563eb' }"></div>
+                  <div class="seg-item" :style="{ width: ((activeOp.dg/activeOp.tickets)*100)+'%', background:'#f59e0b' }"></div>
+                  <div class="seg-item" :style="{ width: ((activeOp.reefer/activeOp.tickets)*100)+'%', background:'#10b981' }"></div>
+                  <div class="seg-item" :style="{ width: ((activeOp.oog/activeOp.tickets)*100)+'%', background:'#ef4444' }"></div>
+                </div>
+              </div>
+              <div class="structure-legend-row" style="gap:10px;">
+                <span><i class="legend-dot" style="background:#2563eb;"></i>普货 {{ ((activeOp.general/activeOp.tickets)*100).toFixed(1) }}%</span>
+                <span><i class="legend-dot" style="background:#f59e0b;"></i>危品 {{ ((activeOp.dg/activeOp.tickets)*100).toFixed(1) }}%</span>
+                <span><i class="legend-dot" style="background:#10b981;"></i>冻柜 {{ ((activeOp.reefer/activeOp.tickets)*100).toFixed(1) }}%</span>
+                <span><i class="legend-dot" style="background:#ef4444;"></i>超限 {{ ((activeOp.oog/activeOp.tickets)*100).toFixed(1) }}%</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 底部极简说明行 -->
+        <footer class="footer-caption">
+          <div>
+            口径说明：变化率 =（本期 − {{ compareShortLabel }}）÷ {{ compareShortLabel }}；操作总票数 = 普货 + 危险品 + 冻柜 + 超限箱 = 直客票数 + 同行票数。
+          </div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <span><i class="legend-dot" style="background:#10b981; border-radius:50%;"></i>绿色 = 增长向好</span>
+            <span><i class="legend-dot" style="background:#ef4444; border-radius:50%;"></i>红色 = 需关注</span>
+          </div>
+        </footer>
+
+        <!-- 老板决策导出一览弹窗 -->
+        <a-modal
+          v-model:open="exportModalVisible"
+          title="青岛海鼎 · 总裁经营月报摘要"
+          :footer="null"
+          width="620px"
+        >
+          <div style="padding: 10px 0 6px;">
+            <div style="font-size:12px; color:#64748b; margin-bottom:12px;">
+              报表周期：{{ selectedMonthLabel }} ({{ periodRangeText }}) · 对比口径：{{ compareTargetLabel }}
+            </div>
+
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:16px; font-size:13px; line-height:1.7; color:#334155;">
+              <div style="font-weight:700; color:#0f172a; margin-bottom:8px; font-size:14px; display:flex; align-items:center; gap:6px;">
+                <iconify-icon icon="ant-design:file-text-outlined" style="color:#2563eb;"></iconify-icon>
+                <span>经营数据核算摘要</span>
+              </div>
+              <div>• <b>销售总利润：</b>¥{{ currentData.profit.toLocaleString() }}（较{{ compareShortLabel }} {{ profitDiffRate >= 0 ? '+' : '' }}{{ profitDiffRate.toFixed(1) }}%）</div>
+              <div>• <b>销售总箱量：</b>{{ currentData.teu.toLocaleString() }} TEU（较{{ compareShortLabel }} {{ teuDiffRate >= 0 ? '+' : '' }}{{ teuDiffRate.toFixed(1) }}%）</div>
+              <div>• <b>操作总票数：</b>{{ currentData.tickets.toLocaleString() }} 票（直客 {{ currentData.direct }} 票，占比 {{ currentData.tickets ? ((currentData.direct/currentData.tickets)*100).toFixed(1) : 0 }}%）</div>
+              <div>• <b>销售标杆：</b>张泽桐（173 TEU / ¥124,381 毛利）· 石亚南（毛利环比 +29.0%）</div>
+              <div>• <b>操作标杆：</b>王磊（206 票）· 危险品主力 李娜（52 票，占全司 35.1%）</div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+              <a-button @click="copyReportText">
+                <template #icon><iconify-icon icon="ant-design:copy-outlined"></iconify-icon></template>
+                复制微信月报简讯
+              </a-button>
+              <a-button @click="exportCsvData">
+                <template #icon><iconify-icon icon="ant-design:file-excel-outlined"></iconify-icon></template>
+                导出 CSV 明细表
+              </a-button>
+              <a-button type="primary" @click="printReport">
+                <template #icon><iconify-icon icon="ant-design:printer-outlined"></iconify-icon></template>
+                打印 / 保存 PDF
+              </a-button>
+            </div>
+          </div>
+        </a-modal>
+
+      </main>
+    </a-config-provider>
+  </div>
+
+  <script>
+    const { createApp, ref, computed } = Vue;
+
+    createApp({
+      setup() {
+        const activeTab = ref('summary');
+
+        // 时间选择器：默认 2026年7月，默认对比“上月 (mom)”
+        const currentMonthObj = ref(window.dayjs('2026-07-01'));
+        const compareType = ref('mom');
+        const customCompareMonthObj = ref(window.dayjs('2026-05-01'));
+
+        const selectedMonthLabel = computed(() => currentMonthObj.value.format('YYYY年M月'));
+        const prevMonthLabel = computed(() => currentMonthObj.value.subtract(1, 'month').format('YYYY年M月'));
+        const yoyMonthLabel = computed(() => currentMonthObj.value.subtract(1, 'year').format('YYYY年M月'));
+
+        const periodRangeText = computed(() => {
+          const m = currentMonthObj.value.month() + 1;
+          const endDay = currentMonthObj.value.endOf('month').date();
+          return `${m}月1日 – ${m}月${endDay}日`;
+        });
+
+        const periodEndText = computed(() => currentMonthObj.value.endOf('month').format('YYYY-MM-DD'));
+
+        const compareTargetLabel = computed(() => {
+          if (compareType.value === 'mom') return prevMonthLabel.value + ' (上月)';
+          if (compareType.value === 'yoy') return yoyMonthLabel.value + ' (去年同期)';
+          if (compareType.value === 'target') return selectedMonthLabel.value + ' 任务目标';
+          return customCompareMonthObj.value.format('YYYY年M月');
+        });
+
+        const compareShortLabel = computed(() => {
+          if (compareType.value === 'mom') return '上月';
+          if (compareType.value === 'yoy') return '去年同期';
+          if (compareType.value === 'target') return '目标';
+          return customCompareMonthObj.value.format('M月');
+        });
+
+        // 确定性月份波动系数
+        const monthFactor = computed(() => {
+          const key = currentMonthObj.value.format('YYYY-MM');
+          if (key === '2026-07') return 1.0;
+          const m = currentMonthObj.value.month() + 1;
+          return 0.88 + (m % 5) * 0.05;
+        });
+
+        // 全司核心本期数据 vs 对比期数据
+        const currentData = computed(() => {
+          const f = monthFactor.value;
+          const general = Math.round(962 * f);
+          const dg = Math.round(148 * f);
+          const reefer = Math.round(134 * f);
+          const oog = Math.round(42 * f);
+          const tickets = general + dg + reefer + oog;
+          const direct = Math.round(812 * f);
+          return {
+            profit: Math.round(836797 * f),
+            teu: Math.round(1053 * f),
+            cust: Math.round(184 * f),
+            tickets,
+            general,
+            dg,
+            reefer,
+            oog,
+            direct,
+            peer: tickets - direct
+          };
+        });
+
+        const compareData = computed(() => {
+          const f = monthFactor.value;
+          if (compareType.value === 'mom') {
+            return {
+              profit: Math.round(768400 * f),
+              teu: Math.round(986 * f),
+              cust: Math.round(172 * f),
+              tickets: Math.round(1203 * f),
+              general: Math.round(905 * f),
+              dg: Math.round(131 * f),
+              reefer: Math.round(121 * f),
+              oog: Math.round(46 * f),
+              direct: Math.round(746 * f),
+              peer: Math.round(457 * f)
+            };
+          } else if (compareType.value === 'yoy') {
+            return {
+              profit: Math.round(626543 * f),
+              teu: Math.round(1180 * f),
+              cust: Math.round(224 * f),
+              tickets: Math.round(1120 * f),
+              general: Math.round(850 * f),
+              dg: Math.round(120 * f),
+              reefer: Math.round(108 * f),
+              oog: Math.round(42 * f),
+              direct: Math.round(680 * f),
+              peer: Math.round(440 * f)
+            };
+          } else if (compareType.value === 'target') {
+            return {
+              profit: Math.round(789455 * f),
+              teu: Math.round(1566 * f),
+              cust: Math.round(310 * f),
+              tickets: Math.round(1200 * f),
+              general: Math.round(900 * f),
+              dg: Math.round(130 * f),
+              reefer: Math.round(125 * f),
+              oog: Math.round(45 * f),
+              direct: Math.round(750 * f),
+              peer: Math.round(450 * f)
+            };
+          } else {
+            const cm = customCompareMonthObj.value.month() + 1;
+            const cf = 0.82 + (cm % 6) * 0.04;
+            return {
+              profit: Math.round(790000 * cf),
+              teu: Math.round(1010 * cf),
+              cust: Math.round(178 * cf),
+              tickets: Math.round(1180 * cf),
+              general: Math.round(890 * cf),
+              dg: Math.round(126 * cf),
+              reefer: Math.round(118 * cf),
+              oog: Math.round(46 * cf),
+              direct: Math.round(730 * cf),
+              peer: Math.round(450 * cf)
+            };
+          }
+        });
+
+        const profitDiffVal = computed(() => currentData.value.profit - compareData.value.profit);
+        const profitDiffRate = computed(() => (profitDiffVal.value / compareData.value.profit) * 100);
+
+        const teuDiffVal = computed(() => currentData.value.teu - compareData.value.teu);
+        const teuDiffRate = computed(() => (teuDiffVal.value / compareData.value.teu) * 100);
+
+        const ticketsDiffVal = computed(() => currentData.value.tickets - compareData.value.tickets);
+        const ticketsDiffRate = computed(() => (ticketsDiffVal.value / compareData.value.tickets) * 100);
+
+        // 近 12 个月利润走势 (支持点击下钻切换月份)
+        const trend12Months = computed(() => {
+          const base = [520000, 560000, 610000, 580000, 676067, 697361, 645000, 712000, 745000, 626543, compareData.value.profit, currentData.value.profit];
+          return base.map((val, idx) => {
+            const mObj = currentMonthObj.value.subtract(11 - idx, 'month');
+            return {
+              label: mObj.format('M月'),
+              fullLabel: mObj.format('YYYY年M月'),
+              profit: val,
+              dateObj: mObj
+            };
+          });
+        });
+
+        const switchMonthFromTrend = (m) => {
+          currentMonthObj.value = m.dateObj;
+          antd.message.success(`已切换至 ${m.fullLabel} 经营数据看板`);
+        };
+
+        // 汇总页货类小卡
+        const cargoSummaryCards = computed(() => {
+          const c = currentData.value;
+          const p = compareData.value;
+          return [
+            { name: '普货', type: 'general', color: '#2563eb', curr: c.general, prev: p.general, rate: ((c.general - p.general) / p.general) * 100, spark: [65, 70, 68, 78, 86, 100] },
+            { name: '危险品', type: 'dg', color: '#f59e0b', curr: c.dg, prev: p.dg, rate: ((c.dg - p.dg) / p.dg) * 100, spark: [58, 64, 72, 75, 84, 100] },
+            { name: '冻柜', type: 'reefer', color: '#10b981', curr: c.reefer, prev: p.reefer, rate: ((c.reefer - p.reefer) / p.reefer) * 100, spark: [60, 62, 70, 80, 88, 100] },
+            { name: '超限箱', type: 'oog', color: '#ef4444', curr: c.oog, prev: p.oog, rate: ((c.oog - p.oog) / p.oog) * 100, spark: [85, 90, 82, 95, 100, 88] }
+          ];
+        });
+
+        // 5大战队数据
+        const rawTeams = [
+          { name: '太阳队', color: '#f59e0b', currTeu: 274, momTeu: 246, yoyTeu: 172, targetTeu: 278, profit: 209926 },
+          { name: '志远队', color: '#10b981', currTeu: 248, momTeu: 218, yoyTeu: 87, targetTeu: 251, profit: 215831 },
+          { name: '极光队', color: '#8b5cf6', currTeu: 224, momTeu: 215, yoyTeu: 391, targetTeu: 383, profit: 123577 },
+          { name: '亮剑队', color: '#2563eb', currTeu: 216, momTeu: 208, yoyTeu: 275, targetTeu: 404, profit: 190512 },
+          { name: '领航队', color: '#06b6d4', currTeu: 91, momTeu: 99, yoyTeu: 146, targetTeu: 251, profit: 96951 }
+        ];
+
+        const teamCompareRows = computed(() => {
+          const f = monthFactor.value;
+          return rawTeams.map(t => {
+            const currTeu = Math.round(t.currTeu * f);
+            let prevTeu = Math.round(t.momTeu * f);
+            if (compareType.value === 'yoy') prevTeu = Math.round(t.yoyTeu * f);
+            if (compareType.value === 'target') prevTeu = Math.round(t.targetTeu * f);
+            const teuRate = prevTeu ? ((currTeu - prevTeu) / prevTeu) * 100 : 0;
+            return {
+              ...t,
+              currTeu,
+              prevTeu,
+              profit: Math.round(t.profit * f),
+              teuRate
+            };
+          });
+        });
+
+        // 主力航线数据
+        const routeRows = computed(() => {
+          const f = monthFactor.value;
+          const list = [
+            { name: '东南亚线', port: '胡志明 / 海防 / 林查班', curr: 386, prev: 352 },
+            { name: '日韩线', port: '釜山 / 仁川', curr: 162, prev: 155 },
+            { name: '中东线', port: '杰贝阿里', curr: 144, prev: 121 },
+            { name: '印巴线', port: '那瓦舍瓦', curr: 128, prev: 136 },
+            { name: '欧洲线', port: '鹿特丹 / 汉堡', curr: 122, prev: 118 },
+            { name: '美西及南美线', port: '洛杉矶 / 桑托斯', curr: 111, prev: 104 }
+          ];
+          return list.map(r => {
+            const curr = Math.round(r.curr * f);
+            const prev = Math.round(r.prev * f);
+            return {
+              ...r,
+              curr,
+              prev,
+              rate: ((curr - prev) / prev) * 100
+            };
+          });
+        });
+
+        // 销售人员数据
+        const rawSales = [
+          { name: '张泽桐', team: '太阳队', color: '#f59e0b', teu: 173, momTeu: 142, yoyTeu: 84, targetTeu: 68.9, profit: 124381.31, momProfit: 98500, yoyProfit: 40062.21, targetProfit: 30725, cust: 16, momCust: 14, yoyCust: 17, targetCust: 14 },
+          { name: '石亚南', team: '志远队', color: '#10b981', teu: 86, momTeu: 72, yoyTeu: 40, targetTeu: 68.9, profit: 111466.60, momProfit: 86400, yoyProfit: 19322.97, targetProfit: 30725, cust: 12, momCust: 10, yoyCust: 6, targetCust: 14 },
+          { name: '王学明', team: '志远队', color: '#10b981', teu: 136, momTeu: 124, yoyTeu: 47, targetTeu: 139.8, profit: 72356.82, momProfit: 68200, yoyProfit: 61209.84, targetProfit: 77652.75, cust: 10, momCust: 10, yoyCust: 12, targetCust: 26 },
+          { name: '冯云峰', team: '太阳队', color: '#f59e0b', teu: 60, momTeu: 64, yoyTeu: 68, targetTeu: 139.8, profit: 65555.74, momProfit: 59800, yoyProfit: 37623.88, targetProfit: 77652.75, cust: 21, momCust: 20, yoyCust: 22, targetCust: 26 },
+          { name: '刘璐', team: '亮剑队', color: '#2563eb', teu: 56, momTeu: 50, yoyTeu: 47, targetTeu: 58.3, profit: 64614.07, momProfit: 54200, yoyProfit: 19449.71, targetProfit: 38333.33, cust: 11, momCust: 10, yoyCust: 10, targetCust: 20 },
+          { name: '邱鸣辉', team: '极光队', color: '#8b5cf6', teu: 104, momTeu: 98, yoyTeu: 191, targetTeu: 139.8, profit: 64463.82, momProfit: 61500, yoyProfit: 74909.83, targetProfit: 77652.75, cust: 18, momCust: 17, yoyCust: 26, targetCust: 26 },
+          { name: '马涛', team: '亮剑队', color: '#2563eb', teu: 81, momTeu: 78, yoyTeu: 107, targetTeu: 163.3, profit: 54035.06, momProfit: 51900, yoyProfit: 75041.43, targetProfit: 71166.67, cust: 5, momCust: 6, yoyCust: 12, targetCust: 17 },
+          { name: '张秀金', team: '亮剑队', color: '#2563eb', teu: 38, momTeu: 42, yoyTeu: 119, targetTeu: 139.8, profit: 50657.24, momProfit: 53800, yoyProfit: 70550.63, targetProfit: 77652.75, cust: 14, momCust: 15, yoyCust: 21, targetCust: 26 },
+          { name: '曲耀尧', team: '领航队', color: '#06b6d4', teu: 29, momTeu: 35, yoyTeu: 102, targetTeu: 139.8, profit: 40079.48, momProfit: 44200, yoyProfit: 57757.79, targetProfit: 77652.75, cust: 7, momCust: 8, yoyCust: 13, targetCust: 26 },
+          { name: '陈伟燕', team: '极光队', color: '#8b5cf6', teu: 82, momTeu: 80, yoyTeu: 185, targetTeu: 116.7, profit: 39283.74, momProfit: 41000, yoyProfit: 106724.93, targetProfit: 69166.67, cust: 18, momCust: 18, yoyCust: 22, targetCust: 22 },
+          { name: '范志崇', team: '志远队', color: '#10b981', teu: 26, momTeu: 22, yoyTeu: null, targetTeu: 42.3, profit: 32008.03, momProfit: 26500, yoyProfit: null, targetProfit: 17225, cust: 7, momCust: 6, yoyCust: null, targetCust: 13 },
+          { name: '张天卓', team: '领航队', color: '#06b6d4', teu: 29, momTeu: 31, yoyTeu: 44, targetTeu: 68.9, profit: 25529.90, momProfit: 24800, yoyProfit: 16015.42, targetProfit: 30725, cust: 8, momCust: 7, yoyCust: 7, targetCust: 14 },
+          { name: '李登越', team: '领航队', color: '#06b6d4', teu: 29, momTeu: 26, yoyTeu: null, targetTeu: 42.3, profit: 22534.61, momProfit: 19800, yoyProfit: null, targetProfit: 17225, cust: 8, momCust: 7, yoyCust: null, targetCust: 13 },
+          { name: '刘家豪', team: '太阳队', color: '#f59e0b', teu: 41, momTeu: 40, yoyTeu: 20, targetTeu: 68.9, profit: 19988.90, momProfit: 18900, yoyProfit: 6229.39, targetProfit: 30725, cust: 8, momCust: 7, yoyCust: 5, targetCust: 14 },
+          { name: '陈壮', team: '亮剑队', color: '#2563eb', teu: 29, momTeu: 26, yoyTeu: 2, targetTeu: 42.3, profit: 16348.90, momProfit: 14900, yoyProfit: 371.93, targetProfit: 17225, cust: 6, momCust: 5, yoyCust: 1, targetCust: 13 },
+          { name: '孙鼎然', team: '极光队', color: '#8b5cf6', teu: 20, momTeu: 19, yoyTeu: 15, targetTeu: 68.9, profit: 11625.39, momProfit: 10800, yoyProfit: 6276.15, targetProfit: 30725, cust: 8, momCust: 8, yoyCust: 11, targetCust: 14 },
+          { name: '赵建霖', team: '领航队', color: '#06b6d4', teu: 4, momTeu: 3, yoyTeu: null, targetTeu: null, profit: 8806.56, momProfit: 6500, yoyProfit: null, targetProfit: null, cust: 2, momCust: 2, yoyCust: null, targetCust: null },
+          { name: '孙李晨曦', team: '极光队', color: '#8b5cf6', teu: 14, momTeu: 12, yoyTeu: null, targetTeu: null, profit: 8204.07, momProfit: 7400, yoyProfit: null, targetProfit: 17225, cust: 3, momCust: 3, yoyCust: 7, targetCust: 13 },
+          { name: '刘硕', team: '亮剑队', color: '#2563eb', teu: 12, momTeu: 10, yoyTeu: null, targetTeu: null, profit: 4856.81, momProfit: 4100, yoyProfit: null, targetProfit: null, cust: 2, momCust: 2, yoyCust: null, targetCust: null }
+        ];
+
+        const teamFilter = ref('全部');
+        const salesSort = ref('profit');
+        const salesSearchKeyword = ref('');
+        const salesFocusMode = ref('all');
+        const selectedSalesmanName = ref('张泽桐');
+
+        const sortedSalesRows = computed(() => {
+          const f = monthFactor.value;
+          let rows = rawSales.map(s => {
+            const currTeu = Math.round(s.teu * f);
+            const currProfit = s.profit * f;
+            const currCust = Math.round(s.cust * f);
+
+            let prevTeu = s.momTeu !== null ? Math.round(s.momTeu * f) : null;
+            let prevProfit = s.momProfit !== null ? s.momProfit * f : null;
+            let prevCust = s.momCust !== null ? Math.round(s.momCust * f) : null;
+
+            if (compareType.value === 'yoy') {
+              prevTeu = s.yoyTeu !== null ? Math.round(s.yoyTeu * f) : null;
+              prevProfit = s.yoyProfit !== null ? s.yoyProfit * f : null;
+              prevCust = s.yoyCust !== null ? Math.round(s.yoyCust * f) : null;
+            } else if (compareType.value === 'target') {
+              prevTeu = s.targetTeu !== null ? Math.round(s.targetTeu * f) : null;
+              prevProfit = s.targetProfit !== null ? s.targetProfit * f : null;
+              prevCust = s.targetCust !== null ? Math.round(s.targetCust * f) : null;
+            }
+
+            const teuRate = prevTeu ? ((currTeu - prevTeu) / prevTeu) * 100 : null;
+            const profitRate = prevProfit ? ((currProfit - prevProfit) / prevProfit) * 100 : null;
+
+            return {
+              ...s,
+              currTeu,
+              prevTeu,
+              teuRate,
+              currProfit,
+              prevProfit,
+              profitRate,
+              currCust,
+              prevCust
+            };
+          });
+
+          if (teamFilter.value !== '全部') {
+            rows = rows.filter(r => r.team === teamFilter.value);
+          }
+
+          if (salesSearchKeyword.value.trim()) {
+            const kw = salesSearchKeyword.value.trim().toLowerCase();
+            rows = rows.filter(r => r.name.toLowerCase().includes(kw) || r.team.toLowerCase().includes(kw));
+          }
+
+          rows.sort((a, b) => {
+            if (salesSort.value === 'profit') return b.currProfit - a.currProfit;
+            if (salesSort.value === 'teu') return b.currTeu - a.currTeu;
+            return (b.profitRate ?? -999) - (a.profitRate ?? -999);
+          });
+
+          if (salesFocusMode.value === 'top3') {
+            rows = rows.slice(0, 3);
+          } else if (salesFocusMode.value === 'alert') {
+            rows = rows.filter(r => (r.profitRate !== null && r.profitRate < 0) || (r.teuRate !== null && r.teuRate < 0));
+          }
+
+          return rows;
+        });
+
+        const activeSales = computed(() => {
+          const match = sortedSalesRows.value.find(s => s.name === selectedSalesmanName.value);
+          return match || sortedSalesRows.value[0] || {};
+        });
+
+        const currentSalesIndex = computed(() => {
+          return sortedSalesRows.value.findIndex(s => s.name === activeSales.value.name);
+        });
+
+        const salesRankClass = computed(() => {
+          const idx = currentSalesIndex.value;
+          if (idx === 0) return 'rank-1';
+          if (idx === 1) return 'rank-2';
+          if (idx === 2) return 'rank-3';
+          return 'rank-plain';
+        });
+
+        const prevSalesman = () => {
+          const idx = currentSalesIndex.value;
+          if (idx > 0) {
+            selectedSalesmanName.value = sortedSalesRows.value[idx - 1].name;
+          }
+        };
+
+        const nextSalesman = () => {
+          const idx = currentSalesIndex.value;
+          if (idx < sortedSalesRows.value.length - 1) {
+            selectedSalesmanName.value = sortedSalesRows.value[idx + 1].name;
+          }
+        };
+
+        const salesFooter = computed(() => {
+          const list = sortedSalesRows.value;
+          const currTeu = list.reduce((a, b) => a + b.currTeu, 0);
+          const prevTeu = list.reduce((a, b) => a + (b.prevTeu || 0), 0);
+          const currProfit = list.reduce((a, b) => a + b.currProfit, 0);
+          const prevProfit = list.reduce((a, b) => a + (b.prevProfit || 0), 0);
+          const currCust = list.reduce((a, b) => a + b.currCust, 0);
+          return {
+            currTeu,
+            prevTeu,
+            teuRate: prevTeu ? ((currTeu - prevTeu) / prevTeu) * 100 : 0,
+            currProfit,
+            profitRate: prevProfit ? ((currProfit - prevProfit) / prevProfit) * 100 : 0,
+            currCust
+          };
+        });
+
+        const getPersonRoutes = (s) => {
+          const t1 = Math.round((s.currTeu || 0) * 0.68);
+          const t2 = (s.currTeu || 0) - t1;
+          return [
+            { name: '东南亚线', pct: 68, teu: t1 },
+            { name: '中东 / 日韩线', pct: 32, teu: t2 }
+          ];
+        };
+
+        // 操作人员数据
+        const rawOps = [
+          { name: '王磊', tickets: 206, prevTickets: 200, general: 168, prevGeneral: 160, dg: 12, prevDg: 11, reefer: 8, prevReefer: 8, oog: 18, prevOog: 21, direct: 142, prevDirect: 135, peer: 64, prevPeer: 65 },
+          { name: '刘洋', tickets: 172, prevTickets: 165, general: 142, prevGeneral: 136, dg: 14, prevDg: 13, reefer: 10, prevReefer: 9, oog: 6, prevOog: 7, direct: 112, prevDirect: 105, peer: 60, prevPeer: 60 },
+          { name: '陈静', tickets: 171, prevTickets: 151, general: 128, prevGeneral: 116, dg: 34, prevDg: 27, reefer: 6, prevReefer: 5, oog: 3, prevOog: 3, direct: 115, prevDirect: 98, peer: 56, prevPeer: 53 },
+          { name: '张敏', tickets: 169, prevTickets: 156, general: 104, prevGeneral: 98, dg: 6, prevDg: 5, reefer: 56, prevReefer: 50, oog: 3, prevOog: 3, direct: 108, prevDirect: 99, peer: 61, prevPeer: 57 },
+          { name: '李娜', tickets: 154, prevTickets: 145, general: 96, prevGeneral: 92, dg: 52, prevDg: 47, reefer: 4, prevReefer: 4, oog: 2, prevOog: 2, direct: 82, prevDirect: 76, peer: 72, prevPeer: 69 },
+          { name: '赵丽', tickets: 152, prevTickets: 142, general: 112, prevGeneral: 104, dg: 8, prevDg: 8, reefer: 30, prevReefer: 27, oog: 2, prevOog: 3, direct: 94, prevDirect: 88, peer: 58, prevPeer: 54 },
+          { name: '杨帆', tickets: 144, prevTickets: 116, general: 118, prevGeneral: 96, dg: 10, prevDg: 8, reefer: 12, prevReefer: 9, oog: 4, prevOog: 3, direct: 95, prevDirect: 74, peer: 49, prevPeer: 42 },
+          { name: '黄涛', tickets: 118, prevTickets: 128, general: 94, prevGeneral: 103, dg: 12, prevDg: 12, reefer: 8, prevReefer: 9, oog: 4, prevOog: 4, direct: 64, prevDirect: 71, peer: 54, prevPeer: 57 }
+        ];
+
+        const opsSort = ref('tickets');
+        const opsSearchKeyword = ref('');
+        const opsFocusMode = ref('all');
+        const selectedOperatorName = ref('王磊');
+
+        const sortedOpsRows = computed(() => {
+          const f = monthFactor.value;
+          let rows = rawOps.map(o => {
+            const tickets = Math.round(o.tickets * f);
+            const prevTickets = Math.round(o.prevTickets * f);
+            return {
+              ...o,
+              tickets,
+              prevTickets,
+              rate: ((tickets - prevTickets) / prevTickets) * 100,
+              generalRate: ((o.general - o.prevGeneral) / o.prevGeneral) * 100,
+              dgRate: ((o.dg - o.prevDg) / o.prevDg) * 100,
+              reeferRate: ((o.reefer - o.prevReefer) / o.prevReefer) * 100,
+              oogRate: ((o.oog - o.prevOog) / o.prevOog) * 100
+            };
+          });
+
+          if (opsSearchKeyword.value.trim()) {
+            const kw = opsSearchKeyword.value.trim().toLowerCase();
+            rows = rows.filter(r => r.name.toLowerCase().includes(kw));
+          }
+
+          rows.sort((a, b) => {
+            if (opsSort.value === 'tickets') return b.tickets - a.tickets;
+            if (opsSort.value === 'rate') return b.rate - a.rate;
+            if (opsSort.value === 'direct') return b.direct - a.direct;
+            if (opsSort.value === 'dg') return b.dg - a.dg;
+            return 0;
+          });
+
+          if (opsFocusMode.value === 'top3') {
+            rows = rows.slice(0, 3);
+          } else if (opsFocusMode.value === 'alert') {
+            rows = rows.filter(r => r.rate < 0);
+          }
+
+          return rows;
+        });
+
+        const activeOp = computed(() => {
+          const match = sortedOpsRows.value.find(o => o.name === selectedOperatorName.value);
+          return match || sortedOpsRows.value[0] || {};
+        });
+
+        const currentOpsIndex = computed(() => {
+          return sortedOpsRows.value.findIndex(o => o.name === activeOp.value.name);
+        });
+
+        const opsRankClass = computed(() => {
+          const idx = currentOpsIndex.value;
+          if (idx === 0) return 'rank-1';
+          if (idx === 1) return 'rank-2';
+          if (idx === 2) return 'rank-3';
+          return 'rank-plain';
+        });
+
+        const prevOperator = () => {
+          const idx = currentOpsIndex.value;
+          if (idx > 0) {
+            selectedOperatorName.value = sortedOpsRows.value[idx - 1].name;
+          }
+        };
+
+        const nextOperator = () => {
+          const idx = currentOpsIndex.value;
+          if (idx < sortedOpsRows.value.length - 1) {
+            selectedOperatorName.value = sortedOpsRows.value[idx + 1].name;
+          }
+        };
+
+        // 顶部 Hero 元数据
+        const heroMeta = computed(() => {
+          if (activeTab.value === 'summary') {
+            return { eyebrow: 'MONTHLY BUSINESS REVIEW', title: '经营分析月报' };
+          } else if (activeTab.value === 'sales') {
+            return { eyebrow: 'SALES · BY SALESPERSON', title: '销售人员明细' };
+          } else {
+            return { eyebrow: 'OPERATIONS · BY OPERATOR', title: '操作人员明细' };
+          }
+        });
+
+        const heroHighlights = computed(() => {
+          if (activeTab.value === 'summary') {
+            return [
+              { icon: 'ant-design:line-chart-outlined', color: 'green', title: '销售总毛利稳步增长', val: '¥' + currentData.value.profit.toLocaleString(), rate: Math.abs(profitDiffRate.value).toFixed(1) + '%', up: profitDiffRate.value >= 0, warn: false, targetTab: 'sales', jumpTip: '点击切换到【销售人员】看毛利明细' },
+              { icon: 'ant-design:rise-outlined', color: 'blue', title: '操作票数 & 直客占比提升', val: currentData.value.tickets.toLocaleString() + ' 票 (直客 63.1%)', rate: Math.abs(ticketsDiffRate.value).toFixed(1) + '%', up: true, warn: false, targetTab: 'ops', jumpTip: '点击切换到【操作人员】看客源明细' },
+              { icon: 'ant-design:trophy-outlined', color: 'green', title: '领跑战队：志远队 & 太阳队', val: '¥21.6万 / ¥21.0万', rate: '超目标 71.8%', up: true, warn: false, targetTab: 'sales', targetTeam: '志远队', jumpTip: '点击查看【志远队】销售明细' },
+              { icon: 'ant-design:warning-outlined', color: 'red', title: '需关注：印巴线及部分战队箱量', val: currentData.value.teu.toLocaleString() + ' TEU', rate: '4.2%', up: false, warn: true, targetTab: 'sales', targetTeam: '领航队', jumpTip: '点击查看箱量下滑战队' }
+            ];
+          } else if (activeTab.value === 'sales') {
+            return [
+              { icon: 'ant-design:user-outlined', color: 'blue', title: 'TEU & 利润双冠：张泽桐', val: '173 TEU · ¥124,381', rate: '25.1%', up: true, warn: false, targetPerson: '张泽桐', jumpTip: '点击定位张泽桐明细' },
+              { icon: 'ant-design:rise-outlined', color: 'green', title: '利润爆发亚军：石亚南', val: '86 TEU · ¥111,467', rate: '29.0%', up: true, warn: false, targetPerson: '石亚南', jumpTip: '点击定位石亚南明细' },
+              { icon: 'ant-design:team-outlined', color: 'green', title: '高单箱效益：刘璐 / 张秀金', val: '单箱 ¥1,154 / ¥1,333', rate: '19.2%', up: true, warn: false, targetPerson: '刘璐', jumpTip: '点击定位刘璐明细' },
+              { icon: 'ant-design:warning-outlined', color: 'red', title: '需关注：张秀金 / 曲耀尧 箱量回调', val: '38 TEU / 29 TEU', rate: '9.5%', up: false, warn: true, targetPerson: '曲耀尧', jumpTip: '点击定位曲耀尧明细' }
+            ];
+          } else {
+            return [
+              { icon: 'ant-design:trophy-outlined', color: 'blue', title: '票数最多：王磊', val: '206 票 (直客 142 票)', rate: '3.0%', up: true, warn: false, targetOp: '王磊', jumpTip: '点击定位王磊明细' },
+              { icon: 'ant-design:rise-outlined', color: 'green', title: '增速最快：杨帆', val: '144 票 (直客 +28.4%)', rate: '24.1%', up: true, warn: false, targetOp: '杨帆', jumpTip: '点击定位杨帆明细' },
+              { icon: 'ant-design:experiment-outlined', color: 'green', title: '危险品主力：李娜', val: '52 票 · 占全司 35.1%', rate: '10.6%', up: true, warn: false, targetOp: '李娜', jumpTip: '点击定位李娜明细' },
+              { icon: 'ant-design:warning-outlined', color: 'red', title: '需关注：黄涛 票数下滑', val: '118 票', rate: '7.8%', up: false, warn: true, targetOp: '黄涛', jumpTip: '点击定位黄涛明细' }
+            ];
+          }
+        });
+
+        // 联动跳转逻辑
+        const jumpToTeam = (teamName) => {
+          teamFilter.value = teamName;
+          activeTab.value = 'sales';
+          const match = sortedSalesRows.value.find(s => s.team === teamName);
+          if (match) selectedSalesmanName.value = match.name;
+          antd.message.success(`已穿透至【${teamName}】销售团队`);
+        };
+
+        const jumpToOpsCargo = (type) => {
+          activeTab.value = 'ops';
+          if (type === 'direct') {
+            opsSort.value = 'direct';
+            antd.message.success('已切换至操作人员【直客票数】排行');
+          } else if (type === 'dg') {
+            opsSort.value = 'dg';
+            const li = sortedOpsRows.value.find(o => o.name === '李娜');
+            if (li) selectedOperatorName.value = li.name;
+            antd.message.success('已切换至操作人员【危险品】明细');
+          } else {
+            opsSort.value = 'tickets';
+          }
+        };
+
+        const handleHeroCardClick = (item) => {
+          if (item.targetTab) {
+            activeTab.value = item.targetTab;
+            if (item.targetTeam) jumpToTeam(item.targetTeam);
+          }
+          if (item.targetPerson) {
+            selectedSalesmanName.value = item.targetPerson;
+          }
+          if (item.targetOp) {
+            selectedOperatorName.value = item.targetOp;
+          }
+        };
+
+        const onMonthChange = () => {
+          antd.message.info(`已切换至 ${selectedMonthLabel.value} 经营数据`);
+        };
+
+        // 导出月报弹窗与快捷复制
+        const exportModalVisible = ref(false);
+
+        const handleExport = () => {
+          exportModalVisible.value = true;
+        };
+
+        const copyReportText = () => {
+          const text = `【青岛海鼎 · ${selectedMonthLabel.value} 总裁经营月报摘要】
+-----------------------------------
+一、核心经营指标（对比 ${compareTargetLabel.value}）：
+1. 销售毛利：¥${currentData.value.profit.toLocaleString()}（较${compareShortLabel.value} ${profitDiffRate.value >= 0 ? '+' : ''}${profitDiffRate.value.toFixed(1)}%）
+2. 销售箱量：${currentData.value.teu.toLocaleString()} TEU（较${compareShortLabel.value} ${teuDiffRate.value >= 0 ? '+' : ''}${teuDiffRate.value.toFixed(1)}%）
+3. 操作票数：${currentData.value.tickets.toLocaleString()} 票（直客 ${currentData.value.direct} 票 / 占比 ${currentData.value.tickets ? ((currentData.value.direct/currentData.value.tickets)*100).toFixed(1) : 0}%）
+
+二、标杆人员与团队：
+• 销售领跑战队：志远队（¥21.6万）、太阳队（¥21.0万）
+• 销售冠军：张泽桐（173 TEU / ¥124,381 毛利）
+• 利润增速王：石亚南（毛利环比 +29.0%）
+• 操作标杆：王磊（206 票）· 危险品主力 李娜（52 票）
+
+三、经营关注项：
+• 印巴线及部分战队箱量需持续拓展，强化直客与高毛利特种柜转化。
+-----------------------------------
+（数据来源：青岛海鼎经营BI中心）`;
+
+          navigator.clipboard.writeText(text).then(() => {
+            antd.message.success('月报简讯已复制到剪贴板，可直接发送微信！');
+          }).catch(() => {
+            antd.message.info('请手动选中文本复制');
+          });
+        };
+
+        const printReport = () => {
+          window.print();
+        };
+
+        const exportCsvData = () => {
+          let csv = "\uFEFF姓名,部门/战队,本期数值,对比期数值,变化率,备注\n";
+          rawSales.forEach(s => {
+            csv += `${s.name},销售-${s.team},${s.teu} TEU / ¥${s.profit},${s.momTeu} TEU / ¥${s.momProfit},--,\n`;
+          });
+          rawOps.forEach(o => {
+            csv += `${o.name},操作部,${o.tickets} 票 (直客${o.direct}),${o.prevTickets} 票 (直客${o.prevDirect}),--,\n`;
+          });
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.setAttribute("href", url);
+          link.setAttribute("download", `青岛海鼎经营月报_${selectedMonthLabel.value}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          antd.message.success('CSV 数据明细已成功生成下载！');
+        };
+
+        return {
+          activeTab,
+          currentMonthObj,
+          compareType,
+          customCompareMonthObj,
+          selectedMonthLabel,
+          prevMonthLabel,
+          yoyMonthLabel,
+          periodRangeText,
+          periodEndText,
+          compareTargetLabel,
+          compareShortLabel,
+          currentData,
+          compareData,
+          profitDiffVal,
+          profitDiffRate,
+          teuDiffVal,
+          teuDiffRate,
+          ticketsDiffVal,
+          ticketsDiffRate,
+          trend12Months,
+          switchMonthFromTrend,
+          cargoSummaryCards,
+          teamCompareRows,
+          routeRows,
+          teamFilter,
+          salesSort,
+          salesSearchKeyword,
+          salesFocusMode,
+          selectedSalesmanName,
+          sortedSalesRows,
+          activeSales,
+          currentSalesIndex,
+          salesRankClass,
+          prevSalesman,
+          nextSalesman,
+          salesFooter,
+          getPersonRoutes,
+          opsSort,
+          opsSearchKeyword,
+          opsFocusMode,
+          selectedOperatorName,
+          sortedOpsRows,
+          activeOp,
+          currentOpsIndex,
+          opsRankClass,
+          prevOperator,
+          nextOperator,
+          heroMeta,
+          heroHighlights,
+          jumpToTeam,
+          jumpToOpsCargo,
+          handleHeroCardClick,
+          onMonthChange,
+          exportModalVisible,
+          handleExport,
+          copyReportText,
+          printReport,
+          exportCsvData
+        };
+      }
+    }).use(antd).mount('#app');
+  </script>
+</body>
+</html>

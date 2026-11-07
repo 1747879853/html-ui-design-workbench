@@ -1,0 +1,4813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>银行流水详情与编辑 - 财务管理</title>
+
+  <!-- 核心样式：Ant Design Vue 4 重置样式与通用规范 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <!-- 本地核心依赖 (全量包含 7 项 Dayjs 插件、Vue 3、Ant Design Vue 4.2.6、Iconify) -->
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       企业级 B2B 银行流水详情／编辑页与内嵌核销工作台 · 高保真生产级样式规范
+       设计基准：1920×1080 视口，极致紧凑、严谨克制、零 AI 浮夸、100% 业务字段保真
+       ========================================================================== */
+
+    body {
+      background-color: #f4f6f9;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .wb-layout {
+      min-height: 100vh;
+      padding: 10px 14px 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 顶部场景与状态沙盘切换器 (原型审查与多状态验证专用) */
+    .wb-scenario-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #1e293b;
+      color: #f8fafc;
+      border-radius: 6px;
+      padding: 8px 14px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .wb-scenario-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .wb-scenario-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #38bdf8;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .wb-scenario-badge {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    /* 页面身份标题栏 (Header Bar · 升级为高定金融资产水单驾驶舱) */
+    .cockpit-header {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .cockpit-left-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bank-avatar-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .statement-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .statement-main-num {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .statement-no-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing: -0.2px;
+    }
+
+    .copy-btn {
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 14px;
+      transition: color 0.15s;
+    }
+    .copy-btn:hover {
+      color: #1677ff;
+    }
+
+    /* 状态微标 */
+    .status-glow-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 10px;
+      line-height: 1.4;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .pill-success {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .pill-warning {
+      background: #fffbeb;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+
+    .pill-blue {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .pill-locked {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .pill-cyan {
+      background: #ecfeff;
+      color: #0e7490;
+      border: 1px solid #a5f3fc;
+    }
+
+    .unsaved-draft-tag {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #c2410c;
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+
+    .statement-sub-meta {
+      font-size: 12px;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .meta-sep {
+      color: #cbd5e1;
+    }
+
+    .currency-tag {
+      background: #f1f5f9;
+      color: #1e293b;
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
+    /* 右侧资产大盘看板 (Billboard) */
+    .cockpit-right-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cockpit-stat-billboard {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 4px 14px;
+    }
+
+    .billboard-item {
+      display: flex;
+      flex-direction: column;
+      text-align: right;
+    }
+
+    .billboard-label {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .billboard-val {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      color: #0f172a;
+    }
+
+    .billboard-val.val-total {
+      color: #0f172a;
+    }
+
+    .billboard-val.val-settled {
+      color: #0284c7;
+    }
+
+    .billboard-val.is-positive {
+      color: #16a34a;
+    }
+
+    .billboard-val.is-zero {
+      color: #059669;
+    }
+
+    .billboard-val.is-negative {
+      color: #dc2626;
+    }
+
+    .billboard-divider {
+      width: 1px;
+      height: 22px;
+      background: #e2e8f0;
+    }
+
+    .header-action-btns {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       Master-Detail Dual-Rail 左右双轨沉浸式对账台 (1920×1080 视口最佳实践)
+       ========================================================================== */
+    .studio-split-container {
+      display: grid;
+      grid-template-columns: 390px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    /* 左轨：390px 独立常驻资金底账 (Pinned Financial Ledger Rail) */
+    .studio-left-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: sticky;
+      top: 10px;
+      max-height: calc(100vh - 125px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 transparent;
+      padding-right: 2px;
+    }
+
+    .studio-left-rail::-webkit-scrollbar {
+      width: 4px;
+    }
+    .studio-left-rail::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .rail-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .rail-card-head {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fbfcfe;
+    }
+
+    .rail-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rail-extra-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .rail-card-body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 资金总成看板三维网格 */
+    .rail-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 6px;
+    }
+
+    .rail-metric-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 2px;
+    }
+
+    .rail-metric-box:not(:last-child) {
+      border-right: 1px solid #e2e8f0;
+    }
+
+    .metric-lbl {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+      margin-bottom: 2px;
+      white-space: nowrap;
+    }
+
+    .metric-num {
+      font-size: 14px;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .metric-num.num-total {
+      color: #0f172a;
+    }
+
+    .metric-num.num-settled {
+      color: #0284c7;
+    }
+
+    .metric-sub {
+      font-size: 10px;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    /* 纵向高密度表单定义列表 */
+    .voucher-vertical-form {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .v-fact-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .v-fact-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .v-fact-lbl .required {
+      color: #ef4444;
+      font-weight: bold;
+    }
+
+    .v-fact-duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .v-fact-sub {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    /* 左轨底座快捷操作 */
+    .rail-action-dock {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dock-unsaved-dot {
+      width: 6px;
+      height: 6px;
+      background: #ef4444;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 4px;
+      animation: pulseAlert 1.5s infinite;
+    }
+
+    /* 右轨：全高核销调度与对账画布 */
+    .studio-right-canvas {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .canvas-command-strip {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 14px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .strip-left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .strip-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .canvas-panel-view {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* 联动高亮 (Cross-Rail Illumination) */
+    .is-highlighted-seg {
+      filter: brightness(1.25) !important;
+      box-shadow: 0 0 6px rgba(2, 132, 199, 0.8);
+      z-index: 5;
+    }
+
+    .is-legend-active {
+      background: #e0f2fe;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    /* 即时对账候选池动态操作底座 (Real-Time Liquidity Impact Bar) */
+    .in-place-dock-bar {
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 -2px 6px rgba(15, 23, 42, 0.03);
+    }
+
+    .in-place-stat-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+    }
+
+    /* 传统兼容样式 */
+    .panel-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 8px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fbfcfe;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .panel-extra {
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-body {
+      padding: 10px 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 弹性自适应水单表单网格 (彻底解决长文本挤爆截断) */
+    .voucher-flex-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .voucher-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .v-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .v-field-fixed-date {
+      width: 145px;
+      flex-shrink: 0;
+    }
+
+    .v-field-fixed-curr {
+      width: 95px;
+      flex-shrink: 0;
+    }
+
+    .v-field-fixed-money {
+      width: 145px;
+      flex-shrink: 0;
+    }
+
+    .v-field-fixed-fee {
+      width: 95px;
+      flex-shrink: 0;
+    }
+
+    .v-field-grow-large {
+      flex: 1.4;
+      min-width: 240px;
+    }
+
+    .v-field-grow-normal {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .v-field-grow-wide {
+      flex: 1.6;
+      min-width: 260px;
+    }
+
+    .v-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .v-label .required {
+      color: #ef4444;
+      font-weight: bold;
+    }
+
+    .v-readonly-pill {
+      min-height: 25px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      color: #1e293b;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 1px 7px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .v-readonly-pill.is-locked {
+      background: #f1f5f9;
+      color: #475569;
+      border-color: #cbd5e1;
+    }
+
+    .v-readonly-pill.is-money {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      justify-content: flex-end;
+      color: #0f172a;
+    }
+
+    .draft-alert-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      color: #b45309;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* 右侧：分段资金分配条 (Interactive Split Allocation Bar) */
+    .split-bar-section {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+
+    .split-bar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+
+    .split-bar-track {
+      height: 18px;
+      border-radius: 4px;
+      background: #e2e8f0;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    .split-segment {
+      height: 100%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #ffffff;
+      font-weight: 700;
+      font-family: monospace;
+      transition: filter 0.15s, transform 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      padding: 0 4px;
+    }
+
+    .split-segment:hover {
+      filter: brightness(1.12);
+      transform: scaleY(1.08);
+      z-index: 2;
+    }
+
+    .split-segment-remaining {
+      background: repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 6px, #e2e8f0 6px, #e2e8f0 12px);
+      color: #64748b;
+    }
+
+    .split-segment-over {
+      background: repeating-linear-gradient(45deg, #ef4444, #ef4444 6px, #b91c1c 6px, #b91c1c 12px);
+      color: #ffffff;
+      animation: overHazard 1.5s infinite linear;
+    }
+
+    @keyframes overHazard {
+      0% { background-position: 0 0; }
+      100% { background-position: 24px 0; }
+    }
+
+    .split-legend-list {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .split-legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      padding: 1px 6px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+
+    .split-legend-pill:hover {
+      background: #e0f2fe;
+    }
+
+    .split-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    /* 凭据与附件中心 (Voucher Hub) */
+    .voucher-hub-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .voucher-item-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 5px 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 12px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .voucher-item-card:hover {
+      border-color: #cbd5e1;
+      background: #ffffff;
+    }
+
+    .voucher-file-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .official-seal-tag {
+      border: 1px solid #ef4444;
+      color: #dc2626;
+      border-radius: 3px;
+      font-size: 10px;
+      padding: 0 4px;
+      font-weight: 700;
+      transform: scale(0.92);
+      transform-origin: left center;
+      flex-shrink: 0;
+      background: #fff5f5;
+    }
+
+    .attachment-notice-compact {
+      display: none;
+    }
+
+    .voucher-item-card {
+      padding: 3px 8px !important;
+      font-size: 11.5px !important;
+    }
+
+    .voucher-vertical-form {
+      gap: 4px !important;
+    }
+
+    .v-readonly-pill {
+      min-height: 24px !important;
+      font-size: 11px !important;
+      padding: 0 6px !important;
+    }
+
+    /* 下半部：收费核销全屏呼吸决策表 */
+    .settlement-panel-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .settlement-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 8px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #fbfcfe;
+    }
+
+    .toolbar-left-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-selection-pill {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toolbar-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 表格样式增强与全宽自适应 */
+    .settlement-table .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      font-weight: 600;
+      color: #334155;
+      font-size: 12px;
+      padding: 7px 10px !important;
+    }
+
+    .settlement-table .ant-table-tbody > tr > td {
+      font-size: 12px;
+      padding: 7px 10px !important;
+    }
+
+    .settlement-table .ant-table-tbody > tr.is-row-highlighted > td {
+      background: #eff6ff !important;
+    }
+
+    .amount-cell-number {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 600;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .amount-cell-emphasis {
+      color: #0284c7;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .amount-diff-warn {
+      color: #ea580c;
+      font-weight: 700;
+    }
+
+    .amount-diff-muted {
+      color: #94a3b8;
+    }
+
+    /* 货代物流特色航线与货况标签 (Logistics Route Tag) */
+    .logistics-voyage-tag,
+    .logistics-voyage-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #1e293b;
+      border-radius: 4px;
+      padding: 1px 8px;
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .logistics-voyage-tag .voyage-route {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .logistics-voyage-tag .voyage-sep {
+      color: #cbd5e1;
+    }
+
+    .logistics-voyage-tag .voyage-meta {
+      color: #475569;
+    }
+
+    .logistics-voyage-tag .voyage-date {
+      color: #64748b;
+    }
+
+    .staff-pair-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #475569;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 1px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* 展开行明细区 */
+    
+    /* 所有核销单原币合计看板横幅与胶囊 */
+    .settlement-currency-summary-bar {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 12px;
+      margin: 10px 14px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .summary-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .summary-bar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .summary-currency-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .summary-curr-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .summary-curr-tag.tag-curr-usd {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1e40af;
+    }
+
+    .summary-curr-tag.tag-curr-rmb,
+    .summary-curr-tag.tag-curr-cny {
+      border-color: #fed7aa;
+      background: #fff7ed;
+      color: #9a3412;
+    }
+
+    .summary-curr-tag.tag-curr-eur {
+      border-color: #e9d5ff;
+      background: #faf5ff;
+      color: #6b21a8;
+    }
+
+    .summary-curr-tag.tag-curr-hkd {
+      border-color: #fde68a;
+      background: #fffbeb;
+      color: #854d0e;
+    }
+
+    .curr-symbol-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 0 4px;
+      border-radius: 3px;
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .curr-amount-val {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11.5px;
+      color: #64748b;
+      margin-left: auto;
+    }
+
+    .summary-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .summary-meta-sep {
+      color: #cbd5e1;
+    }
+
+    .meta-val {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .meta-val.meta-highlight {
+      color: #0284c7;
+      font-weight: 700;
+    }
+
+    /* 左轨常驻原币汇总小计 */
+    .rail-currency-sub-bar {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 4px 8px;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .rail-currency-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .rail-currency-chips {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .rail-curr-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 0 5px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .chip-curr {
+      font-size: 9.5px;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .chip-num {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .table-row-curr-breakdown {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin-top: 2px;
+    }
+
+    .row-curr-tag {
+      font-size: 10.5px;
+      color: #64748b;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #f1f5f9;
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
+    .expanded-detail-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin: 4px 0;
+    }
+
+    .expanded-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed #cbd5e1;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    .invoice-issue-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-bottom: 8px;
+    }
+
+    .invoice-issue-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: #334155;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #fbfcfe;
+      padding: 4px 6px;
+      border-radius: 3px;
+    }
+
+    /* 空数据引导卡片 */
+    .settlement-empty-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 20px;
+      gap: 12px;
+      text-align: center;
+      background: #ffffff;
+    }
+
+    .empty-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #eff6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #3b82f6;
+      font-size: 24px;
+    }
+
+    /* 批量删除弹窗表格 */
+    .batch-delete-table-wrap {
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .batch-delete-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.5fr;
+      padding: 6px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12px;
+      align-items: center;
+    }
+
+    .batch-delete-head {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    /* 新建核销抽屉内嵌样式 */
+    .drawer-statement-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 8px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .drawer-statement-badge {
+      background: #3b82f6;
+      color: #fff;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    .drawer-remain-tag {
+      margin-left: auto;
+      font-weight: 700;
+      font-family: monospace;
+      color: #4ade80;
+      font-size: 13px;
+    }
+
+    .drawer-remain-tag.is-over {
+      color: #f87171;
+    }
+
+    
+    /* 新增银行流水录入场景专属高保真样式 */
+    .create-pending-no-pill {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #d97706;
+      background: #fef3c7;
+      border: 1px dashed #f59e0b;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .create-guide-container {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #f8fafc;
+      overflow-y: auto;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .create-guide-hero {
+      background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+      border: 1px solid #bae0ff;
+      border-radius: 8px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(22, 119, 255, 0.05);
+    }
+
+    .create-hero-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0958d9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .create-hero-desc {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    .create-hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .readiness-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .readiness-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .readiness-card.is-ready {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+
+    .readiness-card.is-pending {
+      border-color: #fde68a;
+      background: #fffbeb;
+    }
+
+    .readiness-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .readiness-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .readiness-tip {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .create-flow-steps-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+
+    .workbench-filter-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+
+    .auto-alloc-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .drawer-bottom-settle-bar {
+      position: sticky;
+      bottom: 0;
+      background: #ffffff;
+      border-top: 1px solid #e5e7eb;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
+      margin-top: 10px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <a-config-provider :theme="{ token: { colorPrimary: '#1677ff', borderRadius: 4 } }">
+
+      <div class="wb-layout">
+
+        <!-- 1. 顶部场景沙盘与演示预设切换栏 (支持实测 7 种核心业务态验证) -->
+        <div class="wb-scenario-bar">
+          <div class="wb-scenario-left">
+            <span class="wb-scenario-title">
+              <iconify-icon icon="ant-design:experiment-outlined"></iconify-icon>
+              <span>场景沙盘与边界切换器</span>
+            </span>
+            <span class="wb-scenario-badge">1920×1080 交付基准</span>
+
+            <a-radio-group v-model:value="currentPreset" button-style="solid" size="small" @change="onPresetChange">
+              <a-radio-button value="preset_create">
+                场景0：新增银行流水 (创建录入场景)
+              </a-radio-button>
+              <a-radio-button value="preset_done">
+                样本1：核销完成 (SH261026025 · 1,000 RMB)
+              </a-radio-button>
+              <a-radio-button value="preset_partial">
+                样本2：部分核销 (SH261023022 · 余20 RMB)
+              </a-radio-button>
+              <a-radio-button value="preset_empty">
+                样本3：待核销空态 (SH261022019 · 3 USD)
+              </a-radio-button>
+              <a-radio-button value="preset_auto_import">
+                样本4：自动导入流水 (银企直连 · 核心字段锁定)
+              </a-radio-button>
+              <a-radio-button value="preset_locked">
+                样本5：流水已锁定 (50,000 RMB · 审计冻结)
+              </a-radio-button>
+              <a-radio-button value="preset_over_settled">
+                样本6：异常超核销 (-800 RMB 预警)
+              </a-radio-button>
+              <a-radio-button value="preset_loading_error">
+                样本7：加载与局部重试
+              </a-radio-button>
+            </a-radio-group>
+          </div>
+
+          <div class="header-actions">
+            <a-button type="default" ghost size="small" @click="resetCurrentData">
+              <template #icon><iconify-icon icon="ant-design:reload-outlined"></iconify-icon></template>
+              重置当前样本
+            </a-button>
+          </div>
+        </div>
+
+        <!-- 2. 页面标题栏 (Header Bar · 极简金融水单资产驾驶舱) -->
+        <div class="cockpit-header">
+          <div class="cockpit-left-brand">
+            <div class="bank-avatar-icon" :style="isCreateMode ? 'background: #eff6ff; color: #1677ff; border-color: #bfdbfe;' : ''">
+              <iconify-icon :icon="isCreateMode ? 'ant-design:plus-circle-outlined' : 'ant-design:bank-outlined'"></iconify-icon>
+            </div>
+            <div class="statement-title-wrap">
+              <div class="statement-main-num">
+                <span class="statement-no-title">
+                  {{ isCreateMode ? '新增银行流水录入' : ('银行流水 ' + currentStatement.bankStatementNo) }}
+                </span>
+                <span v-if="isCreateMode" class="create-pending-no-pill">
+                  [保存入库后自动生成流水编号]
+                </span>
+                <iconify-icon
+                  v-else
+                  icon="ant-design:copy-outlined"
+                  class="copy-btn"
+                  title="复制流水号"
+                  @click="copyText(currentStatement.bankStatementNo, '流水号已复制')"
+                ></iconify-icon>
+
+                <!-- 状态徽章 -->
+                <span class="status-glow-pill" :class="'pill-' + writeOffStatusTag.color">
+                  <span class="pulse-dot"></span>
+                  {{ writeOffStatusTag.label }}
+                </span>
+
+                <!-- 锁定状态 -->
+                <span v-if="currentStatement.locked" class="status-glow-pill pill-locked">
+                  <iconify-icon icon="ant-design:lock-outlined"></iconify-icon>
+                  审计冻结
+                </span>
+
+                <!-- 自动导入 -->
+                <span v-if="currentStatement.inputType === 1" class="status-glow-pill pill-cyan">
+                  <iconify-icon icon="ant-design:api-outlined"></iconify-icon>
+                  银企直连
+                </span>
+
+                <!-- 未保存草稿 -->
+                <span v-if="hasUnsavedChanges && !isCreateMode" class="unsaved-draft-tag">
+                  <iconify-icon icon="ant-design:exclamation-circle-outlined"></iconify-icon>
+                  流水有未保存修改
+                </span>
+              </div>
+
+              <div class="statement-sub-meta">
+                <span>付款客户：<b>{{ currentStatement.settlementName || (isCreateMode ? '待在左侧选择' : '-') }}</b></span>
+                <span class="meta-sep">/</span>
+                <span>入账账户：<b>{{ currentStatement.orgBankAccountName || '-' }}</b></span>
+                <span class="meta-sep">/</span>
+                <span>归属组织：{{ currentStatement.orgName || '-' }}</span>
+                <span class="meta-sep">/</span>
+                <span>币别：<b class="currency-tag">{{ currentStatement.currencyCode }}</b></span>
+                <span class="meta-sep">/</span>
+                <span>录入：{{ isCreateMode ? '财务录入中 (草稿)' : (currentStatement.inputType === 1 ? '直连自动入账' : '财务手工录入') }}</span>
+                <template v-if="currentStatement.locked">
+                  <span class="meta-sep">/</span>
+                  <span style="color: #dc2626;">锁定：{{ currentStatement.lockedUserName }} ({{ currentStatement.lockedTime }})</span>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧动作操作栏 (资金大盘统一由左轨常驻底账呈现，消除重复冗余) -->
+          <div class="cockpit-right-section">
+            <div class="header-action-btns">
+              <template v-if="isCreateMode">
+                <a-button @click="handleBackToList">取消并返回</a-button>
+                <a-button
+                  type="default"
+                  :loading="isSaving"
+                  @click="handleSaveStatement"
+                >
+                  保存流水入库
+                </a-button>
+                <a-button
+                  type="primary"
+                  :loading="isSaving"
+                  @click="handleSaveAndStartReconcile"
+                >
+                  <template #icon><iconify-icon icon="ant-design:thunderbolt-outlined"></iconify-icon></template>
+                  保存并立即开启对账
+                </a-button>
+              </template>
+              <template v-else>
+                <a-button @click="handleBackToList">返回列表</a-button>
+                <a-button
+                  type="primary"
+                  :loading="isSaving"
+                  :disabled="!canEditCurrentAmount || !hasUnsavedChanges"
+                  @click="handleSaveStatement"
+                >
+                  保存流水
+                </a-button>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 加载与失败状态视图 (若是 Preset 7) -->
+        <div v-if="isPageLoading" class="panel-card" style="padding: 60px; text-align: center;">
+          <a-spin tip="正在从银行流水服务读取详情与收费核销关联..."></a-spin>
+        </div>
+        <div v-else-if="isPageError" class="panel-card" style="padding: 40px; text-align: center;">
+          <a-result
+            status="500"
+            title="银行流水详情加载失败"
+            sub-title="接口响应超时 (ERR_CONNECTION_TIMED_OUT)，请检查网络后重试。"
+          >
+            <template #extra>
+              <a-button type="primary" @click="handleRetryLoad">重新加载</a-button>
+              <a-button @click="handleBackToList">返回列表</a-button>
+            </template>
+          </a-result>
+        </div>
+
+        <!-- 4. 主体内容区 (Master-Detail Dual-Rail 左右双轨沉浸式对账工作台) -->
+        <template v-else>
+          <div class="studio-split-container">
+
+            <!-- ==================== 左轨：390px 独立常驻资金底账 (Pinned Financial Ledger Rail) ==================== -->
+            <aside class="studio-left-rail">
+              <!-- 1. 资金总成与核销水位大盘 (Pinned Liquidity Billboard) -->
+              <div class="rail-card rail-liquidity-card">
+                <div class="rail-card-head">
+                  <span class="rail-card-title">
+                    <iconify-icon icon="ant-design:pie-chart-outlined" style="color: #0284c7;"></iconify-icon>
+                    <span>资金盘面与核销水位</span>
+                  </span>
+                  <div class="rail-extra-badge">
+                    <a-popover title="可核销经办人" trigger="click" placement="bottomRight">
+                      <template #content>
+                        <div style="width: 240px;">
+                          <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">具备此流水核销操作权限的人员：</p>
+                          <a-tag v-for="user in currentStatement.operators" :key="user.id" color="blue" style="margin-bottom: 4px;">
+                            {{ user.name }} ({{ user.remark || '核销经办' }})
+                          </a-tag>
+                        </div>
+                      </template>
+                      <a-button type="link" size="small" style="padding: 0; font-size: 11px;">
+                        经办人 ({{ currentStatement.operators?.length || 1 }})
+                      </a-button>
+                    </a-popover>
+                  </div>
+                </div>
+
+                <div class="rail-card-body" style="padding: 10px 12px;">
+                  <!-- 三维资金大盘指标 -->
+                  <div class="rail-metric-grid">
+                    <div class="rail-metric-box">
+                      <div class="metric-lbl">{{ isCreateMode ? '拟录入总额' : '流水到账总额' }}</div>
+                      <div class="metric-num num-total">{{ formatMoney(isCreateMode ? (currentStatement.amount || 0) : savedSnapshot.amount) }}</div>
+                      <span class="currency-tag" style="margin-top: 2px;">{{ currentStatement.currencyCode }}</span>
+                    </div>
+                    <div class="rail-metric-box">
+                      <div class="metric-lbl">已核销金额</div>
+                      <div class="metric-num num-settled">{{ formatMoney(currentSettledAmount) }}</div>
+                      <span class="metric-sub" :style="{ color: isCreateMode ? '#64748b' : (isOverSettled ? '#dc2626' : (remainingAmount <= 0.005 ? '#16a34a' : '#0284c7')) }">
+                        {{ isCreateMode ? '待建单核销' : ('消清率 ' + progressPercent + '%') }}
+                      </span>
+                    </div>
+                    <div class="rail-metric-box">
+                      <div class="metric-lbl">{{ isCreateMode ? '保存后可用' : '剩余可用额度' }}</div>
+                      <div class="metric-num" :class="isCreateMode ? 'is-positive' : remainingClass">
+                        {{ formatMoney(isCreateMode ? (currentStatement.amount || 0) : remainingAmount) }}
+                      </div>
+                      <span class="metric-sub" v-if="isCreateMode" style="color: #16a34a; font-weight: 600;">
+                        {{ Number(currentStatement.amount) > 0 ? '✓ 可全额核销' : '待输入金额' }}
+                      </span>
+                      <span class="metric-sub" v-else-if="isOverSettled" style="color: #dc2626; font-weight: 700;">⚠️ 溢出风险</span>
+                      <span class="metric-sub" v-else-if="remainingAmount <= 0.005" style="color: #16a34a; font-weight: 600;">✓ 全部结清</span>
+                      <span class="metric-sub" v-else style="color: #16a34a;">可用于核销</span>
+                    </div>
+                  </div>
+
+                  <!-- 交互式分段资金分配条 -->
+                  <!-- 各原币核销合计 (常驻底账即时可见) -->
+                  <div v-if="settledOriginalCurrencyTotals.length > 0" class="rail-currency-sub-bar">
+                    <div class="rail-currency-title">
+                      <iconify-icon icon="ant-design:wallet-outlined" style="color: #0284c7;"></iconify-icon>
+                      <span>核销原币合计:</span>
+                    </div>
+                    <div class="rail-currency-chips">
+                      <span v-for="c in settledOriginalCurrencyTotals" :key="c.currency" class="rail-curr-chip">
+                        <span class="chip-curr">{{ c.currency }}</span>
+                        <b class="chip-num">{{ c.formatted }}</b>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="split-bar-track" style="margin-top: 8px;">
+                    <template v-if="isCreateMode">
+                      <div
+                        v-if="Number(currentStatement.amount) > 0"
+                        class="split-segment split-segment-remaining"
+                        style="width: 100%; justify-content: center; background: #e0f2fe; color: #0369a1; border-color: #7dd3fc;"
+                        :title="'待分配全额度：' + formatMoney(currentStatement.amount)"
+                      >
+                        待核销可用 {{ formatMoney(currentStatement.amount) }} (100%)
+                      </div>
+                      <div
+                        v-else
+                        class="split-segment"
+                        style="width: 100%; justify-content: center; background: #f1f5f9; color: #94a3b8; border: 1px dashed #cbd5e1;"
+                      >
+                        请在下方录入到账总额
+                      </div>
+                    </template>
+                    <template v-else>
+                      <div
+                        v-for="seg in allocationSegments"
+                        :key="seg.id"
+                        class="split-segment"
+                        :class="{ 'is-highlighted-seg': hoveredSettlementId === seg.id }"
+                        :style="{ width: seg.percent + '%', background: seg.color }"
+                        :title="seg.settlementNo + ' (' + (seg.type === 0 ? '按费用' : '按发票') + ')：' + formatMoney(seg.actualSettled) + ' (' + seg.percent + '%)'"
+                        @mouseenter="handleSegmentHover(seg.id)"
+                        @mouseleave="handleSegmentHover(null)"
+                        @click="handleSegmentClick(seg.id)"
+                      >
+                        <span v-if="seg.percent >= 15">{{ seg.settlementNo }} ({{ seg.percent }}%)</span>
+                      </div>
+
+                      <!-- 剩余未分配额度段 -->
+                      <div
+                        v-if="remainingAmount > 0.005 && !isOverSettled"
+                        class="split-segment split-segment-remaining"
+                        :style="{ flex: 1 }"
+                        title="待分配剩余额度"
+                      >
+                        待分配 {{ formatMoney(remainingAmount) }}
+                      </div>
+
+                      <!-- 超核销溢出段 -->
+                      <div
+                        v-if="isOverSettled"
+                        class="split-segment split-segment-over"
+                        :style="{ width: '100%' }"
+                        title="超核销异常警示"
+                      >
+                        ⚠️ 超额溢出 {{ formatMoney(Math.abs(remainingAmount)) }}
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- 图例列表 -->
+                  <div v-if="!isCreateMode" class="split-legend-list" style="margin-top: 6px;">
+                    <span
+                      v-for="seg in allocationSegments"
+                      :key="seg.id"
+                      class="split-legend-pill"
+                      :class="{ 'is-legend-active': hoveredSettlementId === seg.id }"
+                      @mouseenter="handleSegmentHover(seg.id)"
+                      @mouseleave="handleSegmentHover(null)"
+                      @click="handleSegmentClick(seg.id)"
+                    >
+                      <span class="split-dot" :style="{ background: seg.color }"></span>
+                      <b>{{ seg.settlementNo }}</b>: {{ formatMoney(seg.actualSettled) }}
+                    </span>
+                  </div>
+                  <div v-else class="split-legend-list" style="margin-top: 6px;">
+                    <span class="split-legend-pill is-legend-active">
+                      <span class="split-dot" style="background: #0284c7;"></span>
+                      待分配全额资金池 (100%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. 水单入账凭据事实卡片 (Bank Receipt Voucher Facts) -->
+              <div class="rail-card bank-voucher-card">
+                <div class="rail-card-head">
+                  <span class="rail-card-title">
+                    <iconify-icon icon="ant-design:file-protect-outlined" style="color: #475569;"></iconify-icon>
+                    <span>水单交易事实</span>
+                  </span>
+                  <div class="rail-extra-badge">
+                    <span v-if="currentStatement.locked" style="color: #dc2626; font-size: 11px;">
+                      <iconify-icon icon="ant-design:lock-outlined"></iconify-icon> 关账冻结
+                    </span>
+                    <span v-else-if="currentStatement.inputType === 1" style="color: #0891b2; font-size: 11px;">
+                      <iconify-icon icon="ant-design:info-circle-outlined"></iconify-icon> 银企直连
+                    </span>
+                    <span v-else-if="hasReceiveSettlements" style="color: #d97706; font-size: 11px;">
+                      <iconify-icon icon="ant-design:lock-outlined"></iconify-icon> 要素锁定
+                    </span>
+                    <span v-else style="color: #16a34a; font-size: 11px;">
+                      <iconify-icon icon="ant-design:edit-outlined"></iconify-icon> 待核销自由编辑
+                    </span>
+                  </div>
+                </div>
+
+                <div class="rail-card-body" style="padding: 10px 12px;">
+                  <!-- 草稿与快照差异提示 -->
+                  <div v-if="hasAmountDraftDifference" class="draft-alert-banner">
+                    <span>
+                      <iconify-icon icon="ant-design:warning-outlined"></iconify-icon>
+                      草稿金额 {{ formatMoney(currentStatement.amount) }} (落库 {{ formatMoney(savedSnapshot.amount) }})
+                    </span>
+                    <a-button size="small" type="link" style="padding: 0; font-size: 11px;" @click="restoreSavedAmount">还原金额</a-button>
+                  </div>
+
+                  <div class="voucher-vertical-form">
+                    <!-- 付款方客户 (打款抬头) -->
+                    <div class="v-fact-item highlight-fact">
+                      <div class="v-fact-lbl">
+                        <span>付款客户 (打款抬头)</span>
+                        <span v-if="canEditCurrencyAndPayer" class="required">*</span>
+                      </div>
+                      <a-select
+                        v-if="canEditCurrencyAndPayer"
+                        v-model:value="currentStatement.settlementId"
+                        :options="payerOptions"
+                        placeholder="请选择付款方"
+                        show-search
+                        size="small"
+                        style="width: 100%;"
+                        @change="onPayerChange"
+                      ></a-select>
+                      <div v-else class="v-readonly-pill is-locked" :title="currentStatement.settlementName">
+                        <iconify-icon icon="ant-design:safety-certificate-filled" style="color: #0284c7; font-size: 13px;"></iconify-icon>
+                        <span style="font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                          {{ currentStatement.settlementName || '未指定' }}
+                        </span>
+                        <iconify-icon
+                          icon="ant-design:copy-outlined"
+                          class="copy-btn"
+                          title="复制付款方名称"
+                          @click="copyText(currentStatement.settlementName, '付款方名称已复制')"
+                        ></iconify-icon>
+                      </div>
+                    </div>
+
+                    <!-- 双列 1: 交易时间 + 流水币别 -->
+                    <div class="v-fact-duo">
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">
+                          <span>交易时间</span>
+                          <span v-if="canEditStatementFields" class="required">*</span>
+                        </div>
+                        <a-date-picker
+                          v-if="canEditStatementFields"
+                          v-model:value="currentStatement.statementTimeDayjs"
+                          format="YYYY-MM-DD"
+                          style="width: 100%;"
+                          size="small"
+                          @change="markFormDirty"
+                        ></a-date-picker>
+                        <div v-else class="v-readonly-pill is-locked">
+                          <iconify-icon icon="ant-design:calendar-outlined" style="color: #94a3b8;"></iconify-icon>
+                          {{ currentStatement.statementDate || '-' }}
+                        </div>
+                      </div>
+
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">
+                          <span>币别</span>
+                          <span v-if="canEditCurrencyAndPayer" class="required">*</span>
+                        </div>
+                        <a-select
+                          v-if="canEditCurrencyAndPayer"
+                          v-model:value="currentStatement.currencyCode"
+                          :options="currencyOptions"
+                          size="small"
+                          style="width: 100%;"
+                          @change="markFormDirty"
+                        ></a-select>
+                        <div v-else class="v-readonly-pill is-locked">
+                          <b style="color: #0284c7;">{{ currentStatement.currencyCode || '-' }}</b>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 双列 2: 流水金额 + 手续费 -->
+                    <div class="v-fact-duo">
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">
+                          <span>总金额 (流水币)</span>
+                          <span v-if="canEditCurrentAmount" class="required">*</span>
+                        </div>
+                        <a-input-number
+                          v-if="canEditCurrentAmount"
+                          v-model:value="currentStatement.amount"
+                          :min="0"
+                          :precision="2"
+                          :controls="false"
+                          size="small"
+                          style="width: 100%; font-family: monospace; font-weight: 700; color: #0f172a;"
+                          :status="isAmountInvalid ? 'error' : ''"
+                          @change="markFormDirty"
+                        ></a-input-number>
+                        <div v-else class="v-readonly-pill is-money">
+                          {{ formatMoney(currentStatement.amount) }}
+                        </div>
+                      </div>
+
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">手续费</div>
+                        <a-input-number
+                          v-if="canEditStatementFields"
+                          v-model:value="currentStatement.transactionFee"
+                          :min="0"
+                          :precision="2"
+                          :controls="false"
+                          size="small"
+                          style="width: 100%; font-family: monospace;"
+                          @change="markFormDirty"
+                        ></a-input-number>
+                        <div v-else class="v-readonly-pill is-money">
+                          {{ formatMoney(currentStatement.transactionFee) }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 双列 3: 归属组织 + 我司入账账户 -->
+                    <div class="v-fact-duo">
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">
+                          <span>归属组织</span>
+                          <span v-if="canEditStatementFields" class="required">*</span>
+                        </div>
+                        <a-select
+                          v-if="canEditStatementFields"
+                          v-model:value="currentStatement.orgId"
+                          :options="orgOptions"
+                          size="small"
+                          style="width: 100%;"
+                          @change="markFormDirty"
+                        ></a-select>
+                        <div v-else class="v-readonly-pill is-locked" :title="currentStatement.orgName">
+                          <iconify-icon icon="ant-design:apartment-outlined" style="color: #64748b;"></iconify-icon>
+                          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ currentStatement.orgName || '-' }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">我司入账账户</div>
+                        <a-select
+                          v-if="canEditStatementFields"
+                          v-model:value="currentStatement.orgBankAccountId"
+                          :options="myBankOptions"
+                          allow-clear
+                          size="small"
+                          style="width: 100%;"
+                          @change="markFormDirty"
+                        ></a-select>
+                        <div v-else class="v-readonly-pill is-locked" :title="currentStatement.orgBankAccountName">
+                          <iconify-icon icon="ant-design:bank-outlined" style="color: #059669;"></iconify-icon>
+                          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace;">
+                            {{ currentStatement.orgBankAccountName || '-' }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 双列 4: 对方开户行 + 银行交易摘要 -->
+                    <div class="v-fact-duo">
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">对方开户银行</div>
+                        <a-select
+                          v-if="canEditStatementFields"
+                          v-model:value="currentStatement.clientInvoiceBankId"
+                          :options="clientBankOptions"
+                          allow-clear
+                          size="small"
+                          style="width: 100%;"
+                          :placeholder="currentStatement.settlementId ? '选择对方开户行' : '请先选付款方'"
+                          :disabled="!currentStatement.settlementId"
+                          @change="markFormDirty"
+                        ></a-select>
+                        <div v-else class="v-readonly-pill" :title="currentStatement.clientInvoiceBankName">
+                          <iconify-icon icon="ant-design:wallet-outlined" style="color: #64748b;"></iconify-icon>
+                          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ currentStatement.clientInvoiceBankName || '-' }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">银行交易摘要 (原始回单)</div>
+                        <a-input
+                          v-if="canEditStatementFields"
+                          v-model:value="currentStatement.statementRemark"
+                          placeholder="回单原始摘要"
+                          size="small"
+                          allow-clear
+                          @change="markFormDirty"
+                        ></a-input>
+                        <div v-else class="v-readonly-pill" :title="currentStatement.statementRemark">
+                          {{ currentStatement.statementRemark || '-' }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 双列 5: 付款留言 + 内部备注 -->
+                    <div class="v-fact-duo">
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">付款方附言留言</div>
+                        <a-input
+                          v-if="canEditStatementFields"
+                          v-model:value="currentStatement.message"
+                          placeholder="附言打款备注"
+                          size="small"
+                          allow-clear
+                          @change="markFormDirty"
+                        ></a-input>
+                        <div v-else class="v-readonly-pill" :title="currentStatement.message">
+                          {{ currentStatement.message || '-' }}
+                        </div>
+                      </div>
+
+                      <div class="v-fact-sub">
+                        <div class="v-fact-lbl">内部备注 (财务协作)</div>
+                        <a-input
+                          v-if="canEditRemark"
+                          v-model:value="currentStatement.remark"
+                          placeholder="仅内部财务可见备注"
+                          size="small"
+                          allow-clear
+                          @change="markFormDirty"
+                        ></a-input>
+                        <div v-else class="v-readonly-pill" :title="currentStatement.remark">
+                          {{ currentStatement.remark || '-' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. 到账凭证与回单 (Receipt Attachments) -->
+              <div class="rail-card voucher-hub-card">
+                <div class="rail-card-head">
+                  <span class="rail-card-title">
+                    <iconify-icon icon="ant-design:paper-clip-outlined" style="color: #475569;"></iconify-icon>
+                    <span>到账凭证与回单 ({{ currentStatement.attachments?.length || 0 }})</span>
+                  </span>
+                  <div class="rail-extra-badge">
+                    <a-upload
+                      :before-upload="handleUploadAttachment"
+                      :show-upload-list="false"
+                      :disabled="!canEditCurrentAmount || isUploading"
+                    >
+                      <a-button size="small" type="link" style="padding: 0; font-size: 11px;" :loading="isUploading" :disabled="!canEditCurrentAmount">
+                        <template #icon><iconify-icon icon="ant-design:upload-outlined"></iconify-icon></template>
+                        上传凭据
+                      </a-button>
+                    </a-upload>
+                  </div>
+                </div>
+
+                <div class="rail-card-body" style="padding: 8px 12px; gap: 4px;">
+                  <div v-if="currentStatement.attachments?.length" style="display: flex; flex-direction: column; gap: 4px;">
+                    <div
+                      v-for="item in currentStatement.attachments"
+                      :key="item.attachmentId"
+                      class="voucher-item-card"
+                    >
+                      <div class="voucher-file-left">
+                        <iconify-icon icon="ant-design:file-pdf-outlined" style="color: #dc2626; font-size: 14px; flex-shrink: 0;"></iconify-icon>
+                        <span
+                          style="font-size: 12px; font-weight: 500; color: #1e293b; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                          :title="item.friendlyFileName"
+                          @click="previewAttachment(item)"
+                        >
+                          {{ item.friendlyFileName }}
+                        </span>
+                        <span v-if="item.friendlyFileName.includes('中行') || currentStatement.inputType === 1" class="official-seal-tag">
+                          回单已验
+                        </span>
+                      </div>
+
+                      <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                        <span style="font-size: 11px; color: #94a3b8;">{{ item.fileSize || '120 KB' }}</span>
+                        <a-button
+                          v-if="canEditCurrentAmount"
+                          type="link"
+                          danger
+                          size="small"
+                          style="padding: 0; font-size: 11px;"
+                          @click="removeAttachment(item)"
+                        >
+                          移除
+                        </a-button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else style="padding: 8px; text-align: center; color: #94a3b8; font-size: 11px; background: #f8fafc; border-radius: 4px;">
+                    暂无凭证附件，可点击右上角上传
+                  </div>
+
+                  <div class="attachment-notice-compact" style="margin-top: 6px;">
+                    💡 附件在点击「保存流水」后正式生效；银企直连回单已通过防伪核验。
+                  </div>
+              </div>
+            </aside>
+
+            <!-- ==================== 右轨：全高核销调度与对账画布 (Reconciliation Studio Canvas) ==================== -->
+            <main class="studio-right-canvas">
+              <!-- 画布顶部统筹指令条 (Command Strip) -->
+              <div class="canvas-command-strip">
+                <div class="strip-left-section">
+                  <!-- 双模核销工作区切换器 -->
+                  <a-segmented
+                    v-model:value="activeCanvasTab"
+                    :options="isCreateMode ? [
+                      { label: '新建向导与对账预备', value: 'create_guide' },
+                      { label: '即时对账候选池预览 (' + selectableFeeList.length + '条待核)', value: 'pool' }
+                    ] : [
+                      { label: '关联收费核销单 (' + settlementListFiltered.length + ')', value: 'settlements' },
+                      { label: '即时对账候选池 (' + selectableFeeList.length + '条应收待核)', value: 'pool' }
+                    ]"
+                  ></a-segmented>
+
+                  <a-input
+                    v-if="activeCanvasTab === 'settlements' && !isCreateMode"
+                    v-model:value="searchSettlementNo"
+                    placeholder="搜索核销单号..."
+                    size="small"
+                    style="width: 200px;"
+                    allow-clear
+                  >
+                    <template #prefix>
+                      <iconify-icon icon="ant-design:search-outlined" style="color: #94a3b8;"></iconify-icon>
+                    </template>
+                  </a-input>
+
+                  <!-- 当前单选核销单 / 多选费用提示 -->
+                  <span v-if="selectedSettlementId && activeCanvasTab === 'settlements'" class="toolbar-selection-pill">
+                    <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon>
+                    已选核销单: <b>{{ selectedSettlementRow?.settlementNo }}</b> ({{ selectedSettlementTypeLabel }})
+                  </span>
+
+                  <span v-if="selectedFeeCount > 0 && activeCanvasTab === 'settlements'" class="toolbar-selection-pill" style="background: #fef2f2; border-color: #fecaca; color: #b91c1c;">
+                    <iconify-icon icon="ant-design:delete-outlined"></iconify-icon>
+                    已跨单勾选费用: <b>{{ selectedFeeCount }}</b> 条
+                  </span>
+                </div>
+
+                <!-- 右侧顶部统一操作按钮 -->
+                <div class="strip-right-actions">
+                  <template v-if="isCreateMode">
+                    <a-space size="small">
+                      <a-button
+                        size="small"
+                        type="primary"
+                        ghost
+                        @click="handleQuickFillCreateSample"
+                      >
+                        <template #icon><iconify-icon icon="ant-design:thunderbolt-outlined"></iconify-icon></template>
+                        填入测试样本 (捷顺达 · ¥10,000)
+                      </a-button>
+                      <a-button
+                        size="small"
+                        type="primary"
+                        @click="handleSaveAndStartReconcile"
+                      >
+                        <template #icon><iconify-icon icon="ant-design:check-outlined"></iconify-icon></template>
+                        保存并立即对账
+                      </a-button>
+                    </a-space>
+                  </template>
+                  <template v-else-if="activeCanvasTab === 'settlements'">
+                    <!-- 添加费用 (单选核销单驱动) -->
+                    <a-button
+                      size="small"
+                      :disabled="!canAddFeeToSelected"
+                      @click="openAddFeeDrawer"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                      添加费用
+                    </a-button>
+
+                    <!-- 批量删除费用 (多选费用驱动) -->
+                    <a-button
+                      size="small"
+                      danger
+                      :disabled="selectedFeeCount === 0 || currentStatement.locked"
+                      @click="openBatchDeleteFeeModal"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:delete-outlined"></iconify-icon></template>
+                      删除费用 {{ selectedFeeCount > 0 ? ('(' + selectedFeeCount + ')') : '' }}
+                    </a-button>
+
+                    <!-- 删除整单 (单选核销单驱动) -->
+                    <a-button
+                      size="small"
+                      danger
+                      :disabled="!canDeleteSelectedSettlement"
+                      @click="confirmDeleteSelectedSettlement"
+                    >
+                      删除核销单
+                    </a-button>
+
+                    <!-- 新建核销 (Dropdown: 按费用 / 按发票) -->
+                    <a-dropdown>
+                      <template #overlay>
+                        <a-menu @click="handleCreateSettlementMenu">
+                          <a-menu-item key="fee">
+                            <iconify-icon icon="ant-design:unordered-list-outlined" style="margin-right: 6px;"></iconify-icon>
+                            按费用核销
+                          </a-menu-item>
+                          <a-menu-item key="invoice">
+                            <iconify-icon icon="ant-design:file-done-outlined" style="margin-right: 6px;"></iconify-icon>
+                            按发票核销
+                          </a-menu-item>
+                        </a-menu>
+                      </template>
+                      <a-button
+                        type="primary"
+                        size="small"
+                        :disabled="!canCreateNewSettlement"
+                        @click="requestOpenWorkbench('fee')"
+                      >
+                        <template #icon><iconify-icon icon="ant-design:plus-circle-outlined"></iconify-icon></template>
+                        新建收费核销
+                        <iconify-icon icon="ant-design:down-outlined" style="font-size: 10px; margin-left: 4px;"></iconify-icon>
+                      </a-button>
+                    </a-dropdown>
+                  </template>
+
+                  <!-- 模式 B 下的操作 -->
+                  <template v-else>
+                    <a-space size="small">
+                      <span style="font-size: 12px; color: #64748b;">
+                        已勾选待核费用: <b style="color: #0284c7;">{{ selectedWorkbenchFeeIds.length }}</b> 笔
+                      </span>
+                    </a-space>
+                  </template>
+                </div>
+              </div>
+
+              <!-- 视图 0：新建向导与对账预备中心 (仅在创建模式展示) -->
+              <div v-show="isCreateMode && activeCanvasTab === 'create_guide'" class="canvas-panel-view create-guide-container">
+                <!-- Hero 引导卡片 -->
+                <div class="create-guide-hero">
+                  <div>
+                    <div class="create-hero-title">
+                      <iconify-icon icon="ant-design:form-outlined" style="font-size: 18px;"></iconify-icon>
+                      <span>录入银行流水收款事实 · 即时发起应收对账</span>
+                    </div>
+                    <div class="create-hero-desc">
+                      在左侧资金底账录入到账事实（付款客户、金额、入账账户及电子回单）。录入完成后点击「保存流水」或「⚡ 保存并立即对账」，系统将自动生成流水编号并解锁对账调度。
+                    </div>
+                  </div>
+                  <div class="create-hero-actions">
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="middle"
+                      @click="handleQuickFillCreateSample"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:thunderbolt-outlined"></iconify-icon></template>
+                      填入标准示例数据 (捷顺达 · ¥10,000)
+                    </a-button>
+                    <a-button
+                      type="primary"
+                      size="middle"
+                      @click="handleSaveAndStartReconcile"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:arrow-right-outlined"></iconify-icon></template>
+                      保存并立即开启对账
+                    </a-button>
+                  </div>
+                </div>
+
+                <!-- 录入就绪度四维检测卡片网格 -->
+                <div class="readiness-grid">
+                  <!-- 维度 1: 付款客户 -->
+                  <div class="readiness-card" :class="currentStatement.settlementId ? 'is-ready' : 'is-pending'">
+                    <div class="readiness-head">
+                      <span>付款客户 (打款抬头)</span>
+                      <a-tag :color="currentStatement.settlementId ? 'success' : 'warning'" size="small">
+                        {{ currentStatement.settlementId ? '✓ 已选定' : '待在左侧选择' }}
+                      </a-tag>
+                    </div>
+                    <div class="readiness-val" :title="currentStatement.settlementName">
+                      {{ currentStatement.settlementName || '尚未选择付款方' }}
+                    </div>
+                    <div class="readiness-tip">
+                      {{ currentStatement.settlementId ? '对账时将优先匹配该客户名下费用' : '必填项，影响对账候选池范围' }}
+                    </div>
+                  </div>
+
+                  <!-- 维度 2: 到账金额 -->
+                  <div class="readiness-card" :class="Number(currentStatement.amount) > 0 ? 'is-ready' : 'is-pending'">
+                    <div class="readiness-head">
+                      <span>到账总金额 (流水币)</span>
+                      <a-tag :color="Number(currentStatement.amount) > 0 ? 'success' : 'warning'" size="small">
+                        {{ Number(currentStatement.amount) > 0 ? '✓ 已录入' : '待输入金额' }}
+                      </a-tag>
+                    </div>
+                    <div class="readiness-val" style="font-family: monospace; color: #0284c7;">
+                      {{ Number(currentStatement.amount) > 0 ? formatMoney(currentStatement.amount) : '¥ 0.00' }}
+                    </div>
+                    <div class="readiness-tip">
+                      {{ Number(currentStatement.amount) > 0 ? '左侧资金盘面已实时联动' : '必填项，决定本次可核销资金额度上限' }}
+                    </div>
+                  </div>
+
+                  <!-- 维度 3: 我司入账账户与时间 -->
+                  <div class="readiness-card is-ready">
+                    <div class="readiness-head">
+                      <span>入账账户与时间</span>
+                      <a-tag color="success" size="small">✓ 默认已就绪</a-tag>
+                    </div>
+                    <div class="readiness-val">
+                      {{ currentStatement.statementDate }} · 中国银行
+                    </div>
+                    <div class="readiness-tip">
+                      中国银行青岛市南支行 (028374910293)
+                    </div>
+                  </div>
+
+                  <!-- 维度 4: 回单凭证与附件 -->
+                  <div class="readiness-card" :class="currentStatement.attachments?.length ? 'is-ready' : ''">
+                    <div class="readiness-head">
+                      <span>电子回单附件</span>
+                      <a-tag :color="currentStatement.attachments?.length ? 'success' : 'default'" size="small">
+                        {{ currentStatement.attachments?.length ? ('✓ 已上传 (' + currentStatement.attachments.length + ')') : '选填 (建议上传)' }}
+                      </a-tag>
+                    </div>
+                    <div class="readiness-val">
+                      {{ currentStatement.attachments?.length ? currentStatement.attachments[0].friendlyFileName : '暂未上传电子凭证' }}
+                    </div>
+                    <div class="readiness-tip">
+                      支持 PDF/图片格式，保存后归档入账
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 流程图示与业务向导 -->
+                <div class="create-flow-steps-card">
+                  <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <iconify-icon icon="ant-design:branches-outlined" style="color: #1677ff;"></iconify-icon>
+                    <span>银行流水录入与对账核销标准作业流程 (SOP)</span>
+                  </div>
+                  <a-steps :current="currentStatement.settlementId && Number(currentStatement.amount) > 0 ? 1 : 0" size="small">
+                    <a-step title="事实录入" description="在左侧输入付款方、到账金额、入账账户并上传回单"></a-step>
+                    <a-step title="流水入库" description="点击保存流水，系统自动分配 SH 流水号并落库生效"></a-step>
+                    <a-step title="应收对账" description="在右侧即时对账候选池勾选费用，一键冲抵生成核销单"></a-step>
+                    <a-step title="闭环归档" description="额度全额消清或生成部分核销凭据，支持随时追溯审计"></a-step>
+                  </a-steps>
+                </div>
+
+                <!-- 预备候选池预览卡片提示 -->
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 16px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 13px; font-weight: 600; color: #1e293b;">
+                      <iconify-icon icon="ant-design:table-outlined" style="color: #0284c7; margin-right: 6px;"></iconify-icon>
+                      待核费用预览雷达 (当前系统池共 {{ selectableFeeList.length }} 笔应收账款待认领)
+                    </span>
+                    <a-button type="link" size="small" @click="activeCanvasTab = 'pool'">
+                      切换至候选池视图 ➔
+                    </a-button>
+                  </div>
+                  <p style="font-size: 12px; color: #64748b; margin: 0;">
+                    💡 贴心提示：您可以直接点击上方「⚡ 保存并立即开启对账」，系统将立即自动完成入库并切换至对账池，您可立即勾选海运费、港杂费或订舱费执行核销，实现「录入即对账」的极致流畅体验。
+                  </p>
+                </div>
+              </div>
+
+              <!-- 视图 1：已关联收费核销单穿透表 (仅在非创建模式展示) -->
+              <div v-show="!isCreateMode && activeCanvasTab === 'settlements'" ref="settlementSectionRef" class="canvas-panel-view">
+                <!-- 空态展示 -->
+                <div v-if="settlementListFiltered.length === 0" class="settlement-empty-container">
+                  <div class="empty-icon-wrap">
+                    <iconify-icon :icon="searchSettlementNo ? 'ant-design:file-search-outlined' : 'ant-design:account-book-outlined'"></iconify-icon>
+                  </div>
+                  <div style="font-size: 14px; font-weight: 600; color: #1e293b;">
+                    {{ searchSettlementNo ? '未找到匹配的收费核销单' : '暂无关联收费核销单' }}
+                  </div>
+                  <p style="font-size: 12px; color: #64748b; margin: 0; max-width: 480px;">
+                    <template v-if="searchSettlementNo">
+                      请尝试核对核销单号是否有误，或清除搜索条件重新查看。
+                    </template>
+                    <template v-else>
+                      当前流水总金额 {{ formatMoney(savedSnapshot.amount) }}，剩余可用核销额度
+                      <b style="color: #16a34a;">{{ formatMoney(remainingAmount) }}</b>。您可以立即基于本流水创建第一张核销单。
+                    </template>
+                  </p>
+                  <div style="margin-top: 6px;">
+                    <a-button v-if="searchSettlementNo" size="small" @click="searchSettlementNo = ''">清除搜索</a-button>
+                    <a-space v-else-if="canCreateNewSettlement">
+                      <a-button type="primary" size="small" @click="requestOpenWorkbench('fee')">
+                        按费用核销
+                      </a-button>
+                      <a-button size="small" @click="requestOpenWorkbench('invoice')">
+                        按发票核销
+                      </a-button>
+                    </a-space>
+                  </div>
+                </div>
+
+                <!-- 关联核销单高密度数据表与原币别汇总 -->
+                <template v-else>
+                  <!-- 所有核销多原币合计看板横幅 (Multi-Currency Aggregate Banner) -->
+                  <div class="settlement-currency-summary-bar">
+                    <div class="summary-bar-left">
+                      <div class="summary-bar-badge">
+                        <iconify-icon icon="ant-design:global-outlined" style="color: #1677ff; font-size: 14px;"></iconify-icon>
+                        <span>所有核销原币合计：</span>
+                      </div>
+                      <div class="summary-currency-pills">
+                        <div
+                          v-for="item in settledOriginalCurrencyTotals"
+                          :key="item.currency"
+                          class="summary-curr-tag"
+                          :class="'tag-curr-' + item.currency.toLowerCase()"
+                          :title="'原币：' + item.currency + '，所有已核明细小计：' + item.formatted"
+                        >
+                          <span class="curr-symbol-badge">{{ item.currency }}</span>
+                          <span class="curr-amount-val">{{ item.formatted }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="summary-bar-right">
+                      <span class="summary-meta-item">
+                        <span class="meta-lbl">核销单:</span>
+                        <b class="meta-val">{{ settlementListFiltered.length }} 张 ({{ totalFeeItemCount }} 条明细)</b>
+                      </span>
+                      <span class="summary-meta-sep">|</span>
+                      <span class="summary-meta-item">
+                        <span class="meta-lbl">折合流水币总额:</span>
+                        <b class="meta-val meta-highlight">{{ formatMoney(currentSettledAmount) }}</b>
+                      </span>
+                      <span class="summary-meta-sep">|</span>
+                      <span class="summary-meta-item">
+                        <span class="meta-lbl">折算差值:</span>
+                        <b class="meta-val" :style="{ color: Math.abs(totalDiffAmount) > 0.005 ? '#d97706' : '#64748b' }">
+                          {{ formatMoney(totalDiffAmount) }}
+                        </b>
+                      </span>
+                    </div>
+                  </div>
+
+                  <a-table
+                    :data-source="settlementListFiltered"
+                    :columns="settlementColumns"
+                  :pagination="false"
+                  row-key="id"
+                  size="small"
+                  class="settlement-table"
+                  :row-selection="settlementRowSelection"
+                  :row-class-name="getSettlementRowClassName"
+                  v-model:expanded-row-keys="expandedRowKeys"
+                  :scroll="{ y: 560 }"
+                >
+                  <!-- 展开行：费用明细 / 发票开出两级结构 -->
+                  <template v-slot:[expandrowslot]="{ record }">
+                    <!-- 1. 按费用核销明细展开 -->
+                    <div v-if="record.type === 0" class="expanded-detail-box">
+                      <div class="expanded-header-bar">
+                        <span>
+                          <iconify-icon icon="ant-design:bars-outlined"></iconify-icon>
+                          <b>{{ record.settlementNo }}</b> · 费用明细清单 (共 {{ record.items?.length || 0 }} 条)
+                          <span style="color: #94a3b8; margin-left: 8px;">
+                            💡 支持勾选多条费用后，点击上方统一操作栏中的【删除费用】
+                          </span>
+                        </span>
+                        <span style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                          <span style="font-size: 11px; color: #64748b;">
+                            本单原币:
+                            <span v-for="c in getSettlementOriginalCurrencies(record)" :key="c.currency" style="margin-left: 5px; font-weight: 700; color: #1e293b; font-family: monospace;">
+                              {{ c.currency }} {{ c.formatted }}
+                            </span>
+                          </span>
+                          <span class="amount-cell-number" style="color: #0284c7;">
+                            本次结算小计: {{ formatMoney(record.actualSettled) }}
+                          </span>
+                        </span>
+                      </div>
+
+                      <a-table
+                        :data-source="record.items"
+                        :columns="feeItemColumns"
+                        :pagination="false"
+                        row-key="id"
+                        size="small"
+                        :row-selection="getFeeItemRowSelection(record.id)"
+                      >
+                        <template v-slot:[bodycellslot]="{ column, record: fee }">
+                          <template v-if="column.key === 'orderNo'">
+                            <span style="font-family: monospace; font-weight: 600;">{{ fee.orderNo }}</span>
+                            <iconify-icon
+                              icon="ant-design:copy-outlined"
+                              class="copy-btn"
+                              title="复制委托编号"
+                              @click="copyText(fee.orderNo, '委托编号已复制')"
+                            ></iconify-icon>
+                          </template>
+
+                          <template v-else-if="column.key === 'masterBl'">
+                            <span style="font-family: monospace;">{{ fee.masterBl || '-' }}</span>
+                            <iconify-icon
+                              v-if="fee.masterBl"
+                              icon="ant-design:copy-outlined"
+                              class="copy-btn"
+                              title="复制提单号"
+                              @click="copyText(fee.masterBl, '主提单号已复制')"
+                            ></iconify-icon>
+                          </template>
+
+                          <template v-else-if="column.key === 'voyageSummary'">
+                            <span class="logistics-voyage-tag">
+                              <span class="voyage-route">{{ fee.pol || '-' }} ➔ {{ fee.pod || '-' }}</span>
+                              <span class="voyage-sep">·</span>
+                              <span class="voyage-meta">{{ fee.container || '-' }}</span>
+                              <span class="voyage-sep">·</span>
+                              <span class="voyage-meta">{{ fee.carrier || '-' }}</span>
+                              <span class="voyage-sep">·</span>
+                              <span class="voyage-date">{{ fee.etd || '-' }}</span>
+                            </span>
+                          </template>
+
+                          <template v-else-if="column.key === 'feeStaff'">
+                            <span class="staff-pair-pill" :title="`操作：${fee.opName || '-'} / 揽货：${fee.saleName || '-'}`">
+                              <span>操: {{ fee.opName || '-' }}</span>
+                              <span style="color: #cbd5e1;">|</span>
+                              <span>揽: {{ fee.saleName || '-' }}</span>
+                            </span>
+                          </template>
+
+                          <template v-else-if="column.key === 'feeName'">
+                            <span style="font-weight: 600;">{{ fee.feeName }}</span>
+                          </template>
+
+                          <template v-else-if="column.key === 'paySide'">
+                            <a-tag :color="fee.paySide === 1 ? 'blue' : 'orange'" size="small">
+                              {{ fee.paySide === 1 ? '应收' : '应付' }}
+                            </a-tag>
+                          </template>
+
+                          <template v-else-if="column.key === 'feeCurrency'">
+                            <a-tag size="small">{{ fee.feeCurrency }}</a-tag>
+                          </template>
+
+                          <template v-else-if="column.key === 'settledAmount'">
+                            <span class="amount-cell-number amount-cell-emphasis">{{ formatCurrencyAmount(fee.feeCurrency, fee.settledAmount) }}</span>
+                          </template>
+
+                          <template v-else-if="column.key === 'exchangeRate'">
+                            <span class="amount-cell-number" style="color: #64748b;">{{ Number(fee.exchangeRate).toFixed(4) }}</span>
+                          </template>
+
+                          <template v-else-if="column.key === 'originalSettledAmount'">
+                            <span class="amount-cell-number">{{ formatMoney(fee.originalSettledAmount) }}</span>
+                          </template>
+                        </template>
+                      </a-table>
+                    </div>
+
+                    <!-- 2. 按发票开出核销明细展开 -->
+                    <div v-else class="expanded-detail-box">
+                      <div class="expanded-header-bar">
+                        <span>
+                          <iconify-icon icon="ant-design:file-done-outlined"></iconify-icon>
+                          <b>{{ record.settlementNo }}</b> · 关联发票开出与费用拆解 (共 {{ record.invoiceIssues?.length || 0 }} 个开出单)
+                        </span>
+                        <span class="amount-cell-number" style="color: #0284c7;">
+                          本次核销小计: {{ formatMoney(record.actualSettled) }}
+                        </span>
+                      </div>
+
+                      <div v-for="inv in record.invoiceIssues" :key="inv.id" class="invoice-issue-card">
+                        <div class="invoice-issue-card-head">
+                          <span>发票开出单: <b style="font-family: monospace;">{{ inv.issueNo }}</b></span>
+                          <span style="color: #64748b;">发票号码: <b style="font-family: monospace; color: #1e293b;">{{ inv.invoiceNo || '-' }}</b></span>
+                          <span style="color: #64748b;">币别: <a-tag size="small">{{ inv.currencyCode }}</a-tag></span>
+                          <span style="margin-left: auto;" class="amount-cell-number">
+                            价税合计: {{ formatCurrencyAmount(inv.currencyCode, inv.totalAmount) }} ｜ 本次核销: <b style="color: #0284c7;">{{ formatCurrencyAmount(inv.currencyCode, inv.settledAmount) }}</b>
+                          </span>
+                        </div>
+
+                        <a-table
+                          :data-source="inv.feeItems"
+                          :columns="invoiceFeeColumns"
+                          :pagination="false"
+                          row-key="id"
+                          size="small"
+                        >
+                          <template v-slot:[bodycellslot]="{ column, record: item }">
+                            <template v-if="column.key === 'orderNo'">
+                              <span style="font-family: monospace; font-weight: 600;">{{ item.orderNo }}</span>
+                            </template>
+                            <template v-else-if="column.key === 'voyageSummary'">
+                              <span class="logistics-voyage-tag">
+                                <span class="voyage-route">{{ item.pol || '-' }} ➔ {{ item.pod || '-' }}</span>
+                                <span class="voyage-sep">·</span>
+                                <span class="voyage-meta">{{ item.container || '-' }}</span>
+                                <span class="voyage-sep">·</span>
+                                <span class="voyage-meta">{{ item.carrier || '-' }}</span>
+                                <span class="voyage-sep">·</span>
+                                <span class="voyage-date">{{ item.etd || '-' }}</span>
+                              </span>
+                            </template>
+                            <template v-else-if="column.key === 'feeStaff'">
+                              <span class="staff-pair-pill" :title="`操作：${item.opName || '-'} / 揽货：${item.saleName || '-'}`">
+                                <span>操: {{ item.opName || '-' }}</span>
+                                <span style="color: #cbd5e1;">|</span>
+                                <span>揽: {{ item.saleName || '-' }}</span>
+                              </span>
+                            </template>
+                            <template v-else-if="column.key === 'feeName'">
+                              <span>{{ item.feeName }}</span>
+                            </template>
+                            <template v-else-if="column.key === 'invoicedAmount'">
+                              <span class="amount-cell-number">{{ formatCurrencyAmount(item.feeCurrency, item.invoicedAmount) }}</span>
+                            </template>
+                            <template v-else-if="column.key === 'settledAmount'">
+                              <span class="amount-cell-number amount-cell-emphasis">{{ formatCurrencyAmount(item.feeCurrency, item.settledAmount) }}</span>
+                            </template>
+                          </template>
+                        </a-table>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- 表体自定义单元格 -->
+                  <template v-slot:[bodycellslot]="{ column, record }">
+                    <template v-if="column.key === 'settlementNo'">
+                      <a
+                        href="javascript:void(0)"
+                        style="font-family: monospace; font-weight: 700; color: #1677ff;"
+                        @click="handleOpenEditSettlement(record)"
+                        :title="`点击进入核销单 ${record.settlementNo} 编辑工作台`"
+                      >
+                        {{ record.settlementNo }}
+                      </a>
+                      <iconify-icon
+                        icon="ant-design:copy-outlined"
+                        class="copy-btn"
+                        title="复制核销单号"
+                        @click="copyText(record.settlementNo, '核销单号已复制')"
+                      ></iconify-icon>
+                    </template>
+
+                    <template v-else-if="column.key === 'type'">
+                      <a-tag :color="record.type === 0 ? 'blue' : 'purple'" size="small">
+                        {{ record.type === 0 ? '按费用' : '按发票' }}
+                      </a-tag>
+                    </template>
+
+                    <template v-else-if="column.key === 'status'">
+                      <span class="status-glow-pill" :class="record.status === 2 ? 'pill-success' : 'pill-blue'">
+                        <span class="pulse-dot"></span>
+                        {{ record.status === 2 ? '已结算' : '审批中' }}
+                      </span>
+                    </template>
+
+                    <template v-else-if="column.key === 'actualSettled'">
+                      <span class="amount-cell-number amount-cell-emphasis">
+                        {{ formatMoney(record.actualSettled) }}
+                      </span>
+                      <div class="table-row-curr-breakdown" :title="'本单原币合计：' + getSettlementOriginalCurrencies(record).map(c => c.currency + ' ' + c.formatted).join(' + ')">
+                        <span v-for="c in getSettlementOriginalCurrencies(record)" :key="c.currency" class="row-curr-tag">
+                          {{ c.currency }} {{ c.formatted }}
+                        </span>
+                      </div>
+                    </template>
+
+                    <template v-else-if="column.key === 'originalSettledAmount'">
+                      <span class="amount-cell-number">
+                        {{ formatMoney(record.originalSettledAmount) }}
+                      </span>
+                    </template>
+
+                    <template v-else-if="column.key === 'diffAmount'">
+                      <span
+                        class="amount-cell-number"
+                        :class="Math.abs(Number(record.diffAmount || 0)) > 0.005 ? 'amount-diff-warn' : 'amount-diff-muted'"
+                      >
+                        {{ formatMoney(record.diffAmount) }}
+                      </span>
+                    </template>
+
+                    <template v-else-if="column.key === 'itemCount'">
+                      <span style="font-family: monospace;">{{ record.itemCount || 0 }} 条</span>
+                    </template>
+
+                    <template v-else-if="column.key === 'remark'">
+                      <span style="color: #334155;">{{ record.remark || '-' }}</span>
+                    </template>
+                  </template>
+                </a-table>
+              </template>
+            </div>
+
+              <!-- 视图 2：即时对账候选池 (In-Place Matching Canvas) -->
+              <div v-show="activeCanvasTab === 'pool'" class="canvas-panel-view in-place-pool-view">
+                <!-- 待核费用检索与快捷过滤 -->
+                <div class="workbench-filter-box" style="margin: 12px 14px 6px; border-radius: 6px;">
+                  <div style="display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 8px 10px; align-items: end;">
+                    <div>
+                      <div class="v-fact-lbl">委托客户</div>
+                      <a-input v-model:value="feeFilter.clientName" placeholder="委托客户名" size="small" allow-clear></a-input>
+                    </div>
+                    <div>
+                      <div class="v-fact-lbl">业务编号 (委托/提单)</div>
+                      <a-input v-model:value="feeFilter.keyword" placeholder="模糊匹配三类编号" size="small" allow-clear></a-input>
+                    </div>
+                    <div>
+                      <div class="v-fact-lbl">开船日期区间</div>
+                      <a-range-picker v-model:value="feeFilter.etdRange" size="small" style="width: 100%;"></a-range-picker>
+                    </div>
+                    <div>
+                      <div class="v-fact-lbl">收付方向</div>
+                      <a-select v-model:value="feeFilter.paySide" size="small" style="width: 100%;">
+                        <a-select-option :value="1">仅应收</a-select-option>
+                        <a-select-option :value="2">全部 (应收应付互抵)</a-select-option>
+                      </a-select>
+                    </div>
+                    <div>
+                      <a-button type="primary" size="small" style="margin-right: 6px;" @click="handleFilterFees">查询</a-button>
+                      <a-button size="small" @click="resetFeeFilter">重置</a-button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 自动分配快捷栏 -->
+                <div class="auto-alloc-box" style="margin: 0 14px 8px;">
+                  <div style="font-size: 12px; color: #166534;">
+                    <iconify-icon icon="ant-design:thunderbolt-outlined" style="font-size: 14px; margin-right: 4px;"></iconify-icon>
+                    <b>按金额自动分配：</b>录入分配金额，系统按净额小的业务自动勾选并分配流水额度。
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; color: #475569;">分配额度:</span>
+                    <a-input-number
+                      v-model:value="autoAllocAmount"
+                      size="small"
+                      :min="0.01"
+                      :max="remainingAmount"
+                      :precision="2"
+                      placeholder="≤ 剩余可用"
+                      style="width: 130px; font-family: monospace;"
+                    ></a-input-number>
+                    <a-button
+                      size="small"
+                      type="primary"
+                      ghost
+                      :disabled="!autoAllocAmount || autoAllocAmount <= 0"
+                      @click="executeAutoAlloc"
+                    >
+                      自动分配选中
+                    </a-button>
+                  </div>
+                </div>
+
+                <!-- 候选费用数据表格 -->
+                <div style="flex: 1; padding: 0 14px 10px; min-height: 0;">
+                  <a-table
+                    :data-source="selectableFeeList"
+                    :columns="workbenchFeeColumns"
+                    :pagination="false"
+                    row-key="id"
+                    size="small"
+                    class="settlement-table"
+                    :row-selection="workbenchFeeRowSelection"
+                    :scroll="{ x: 1380, y: 380 }"
+                  >
+                    <template v-slot:[bodycellslot]="{ column, record: fee }">
+                      <template v-if="column.key === 'orderNo'">
+                        <span style="font-family: monospace; font-weight: 600;">{{ fee.orderNo }}</span>
+                      </template>
+                      <template v-else-if="column.key === 'paySide'">
+                        <a-tag :color="fee.paySide === 1 ? 'blue' : 'orange'" size="small">
+                          {{ fee.paySide === 1 ? '应收' : '应付' }}
+                        </a-tag>
+                      </template>
+                      <template v-else-if="column.key === 'feeCurrency'">
+                        <a-tag size="small">{{ fee.feeCurrency }}</a-tag>
+                      </template>
+                      <template v-else-if="column.key === 'unsettledAmount'">
+                        <span class="amount-cell-number">{{ formatAmountPlain(fee.unsettledAmount) }}</span>
+                      </template>
+                      <template v-else-if="column.key === 'exchangeRate'">
+                        <a-input-number
+                          v-model:value="fee.exchangeRate"
+                          size="small"
+                          :min="0.000001"
+                          :precision="6"
+                          style="width: 100px; font-family: monospace;"
+                          @change="updateFeeConverted(fee)"
+                        ></a-input-number>
+                      </template>
+                      <template v-else-if="column.key === 'thisSettled'">
+                        <a-input-number
+                          v-model:value="fee.thisSettled"
+                          size="small"
+                          :precision="2"
+                          style="width: 110px; font-family: monospace; font-weight: 600;"
+                          @change="updateFeeConverted(fee)"
+                        ></a-input-number>
+                      </template>
+                    </template>
+                  </a-table>
+                </div>
+
+                <!-- 底部即时结算动态冲击条 (In-Place Impact Dock Bar · 精简单一主动作) -->
+                <div class="in-place-dock-bar">
+                  <div class="in-place-stat-group">
+                    <span>当前可用结余: <b style="font-family: monospace; color: #16a34a;">{{ formatMoney(isCreateMode ? (currentStatement.amount || 0) : remainingAmount) }}</b></span>
+                    <span>｜</span>
+                    <span>本次勾选核销: <b style="font-family: monospace; color: #0284c7;">{{ formatMoney(inPlaceTotalSelectedAmount) }}</b> ({{ selectedWorkbenchFeeIds.length }} 笔)</span>
+                    <span>｜</span>
+                    <span>核销后预计结余:
+                      <b
+                        style="font-family: monospace;"
+                        :style="{ color: ((isCreateMode ? (currentStatement.amount || 0) : remainingAmount) - inPlaceTotalSelectedAmount) < -0.005 ? '#dc2626' : '#16a34a' }"
+                      >
+                        {{ formatMoney((isCreateMode ? (currentStatement.amount || 0) : remainingAmount) - inPlaceTotalSelectedAmount) }}
+                      </b>
+                    </span>
+                  </div>
+
+                  <!-- 消除冗余按钮堆叠，仅保留 1 个明确的核销确认主动作 -->
+                  <div>
+                    <a-button
+                      type="primary"
+                      size="middle"
+                      :disabled="selectedWorkbenchFeeIds.length === 0 || inPlaceTotalSelectedAmount <= 0 || ((isCreateMode ? (currentStatement.amount || 0) : remainingAmount) - inPlaceTotalSelectedAmount) < -0.005"
+                      @click="isCreateMode ? handleSaveAndInstantMatchFees() : handleInPlaceInstantMatch()"
+                    >
+                      <template #icon><iconify-icon icon="ant-design:check-outlined"></iconify-icon></template>
+                      {{ isCreateMode ? (selectedWorkbenchFeeIds.length > 0 ? ('保存流水并核销 (' + formatMoney(inPlaceTotalSelectedAmount) + ')') : '保存流水并直接核销') : (selectedWorkbenchFeeIds.length > 0 ? ('确认核销 (' + formatMoney(inPlaceTotalSelectedAmount) + ')') : '确认生成核销单') }}
+                    </a-button>
+                  </div>
+                </div>
+              </div>
+            </main>
+
+          </div>
+        </template>
+
+      </div>
+
+      <!-- ======================================================================
+           模态框与抽屉交互系统 (Modals & Drawers)
+           ====================================================================== -->
+
+      <!-- 1. 批量删除费用确认弹窗 (跨多张单明细影响展示) -->
+      <a-modal
+        v-model:open="showBatchDeleteModal"
+        title="⚠️ 批量删除核销费用确认"
+        width="620px"
+        :confirm-loading="isBatchDeleting"
+        ok-text="确认删除费用"
+        ok-type="danger"
+        @ok="handleConfirmBatchDelete"
+      >
+        <a-alert
+          type="warning"
+          show-icon
+          style="margin-bottom: 12px;"
+          :message="`本次将从 ${batchDeleteSummary.settlementCount} 张核销单中删除 ${selectedFeeCount} 条费用明细`"
+          description="系统将自动扣减所选费用对应的结算金额，核销单明细删光将自动置零；请核对各单删除后的剩余情况与预计结算额。"
+        ></a-alert>
+
+        <div class="batch-delete-table-wrap">
+          <div class="batch-delete-row batch-delete-head">
+            <span>核销单号</span>
+            <span>删除数量</span>
+            <span>删除后剩余</span>
+            <span style="text-align: right;">删除后预计本次结算</span>
+          </div>
+          <div
+            v-for="item in batchDeleteSummary.rows"
+            :key="item.settlementId"
+            class="batch-delete-row"
+          >
+            <b style="font-family: monospace;">{{ item.settlementNo }}</b>
+            <span style="color: #dc2626; font-weight: 600;">-{{ item.deleteCount }} 条</span>
+            <span>{{ item.remainingCount }} 条</span>
+            <span class="amount-cell-number" style="color: #0284c7;">
+              {{ formatMoney(item.newActualSettled) }}
+            </span>
+          </div>
+        </div>
+      </a-modal>
+
+      <!-- 2. 删除整张核销单二次确认 -->
+      <a-modal
+        v-model:open="showDeleteSettlementModal"
+        title="🗑️ 删除核销单确认"
+        width="460px"
+        :confirm-loading="isDeletingSettlement"
+        ok-text="确定删除整单"
+        ok-type="danger"
+        @ok="handleConfirmDeleteSettlement"
+      >
+        <p style="font-size: 13px; color: #1e293b;">
+          确定删除核销单 <b style="font-family: monospace; color: #dc2626;">{{ selectedSettlementRow?.settlementNo }}</b> 及其所有关联明细吗？
+        </p>
+        <p style="font-size: 12px; color: #64748b; margin: 0;">
+          删除后，该单占用的 <b style="color: #16a34a;">{{ formatMoney(selectedSettlementRow?.actualSettled) }}</b> 额度将全额释放回当前银行流水。
+        </p>
+      </a-modal>
+
+      <!-- 3. 草稿未保存拦截提醒 (新建/添加费用前提示) -->
+      <a-modal
+        v-model:open="showUnsavedAlertModal"
+        title="⚠️ 先保存流水信息"
+        width="480px"
+        :confirm-loading="isSaving"
+        ok-text="保存并继续"
+        cancel-text="继续编辑草稿"
+        @ok="handleSaveAndProceed"
+      >
+        <p style="font-size: 13px; color: #1e293b;">
+          检测到您已修改了流水金额或基础信息，但<b>尚未保存入库</b>。
+        </p>
+        <p style="font-size: 12px; color: #64748b; margin: 0;">
+          收费核销必须基于已落库的付款方、币别和金额额度生效，避免产生金额账实不符。建议您先保存流水后再继续执行核销操作。
+        </p>
+      </a-modal>
+
+      <!-- 4. 内嵌新建核销工作台抽屉 (Drawer) -->
+      <a-drawer
+        v-model:open="showWorkbenchDrawer"
+        :title="workbenchTitle"
+        width="1180px"
+        :destroy-on-close="true"
+        :body-style="{ padding: '12px 16px', background: '#f4f6f9' }"
+      >
+        <!-- 抽屉顶部常驻流水额度指示带 -->
+        <div class="drawer-statement-strip">
+          <span class="drawer-statement-badge">目标流水</span>
+          <b style="font-family: monospace;">{{ currentStatement.bankStatementNo }}</b>
+          <span>｜</span>
+          <span>付款方: <b>{{ currentStatement.settlementName }}</b></span>
+          <span>｜</span>
+          <span>总额: {{ formatMoney(savedSnapshot.amount) }}</span>
+          <span>｜</span>
+          <span>已核: {{ formatMoney(currentSettledAmount) }}</span>
+          <span class="drawer-remain-tag" :class="{ 'is-over': drawerRemaining < 0 }">
+            剩余可用: {{ formatMoney(drawerRemaining) }}
+          </span>
+        </div>
+
+        <!-- 模式切换与操作说明 -->
+        <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+          <a-segmented
+            v-model:value="workbenchMode"
+            :options="[
+              { label: '按费用逐条核销', value: 'fee' },
+              { label: '按发票开出核销', value: 'invoice' }
+            ]"
+          ></a-segmented>
+          <span style="font-size: 12px; color: #64748b;">
+            核销币别以流水币别 <b>{{ currentStatement.currencyCode }}</b> 为准；异币别费用自动按结算汇率折算。
+          </span>
+        </div>
+
+        <!-- A. 按费用核销面板 -->
+        <div v-if="workbenchMode === 'fee'">
+          <!-- 检索过滤器 -->
+          <div class="workbench-filter-box">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 8px 10px; align-items: end;">
+              <div>
+                <div class="form-label">委托单位</div>
+                <a-input v-model:value="feeFilter.clientName" placeholder="委托客户名" size="small" allow-clear></a-input>
+              </div>
+              <div>
+                <div class="form-label">业务编号 (委托/提单)</div>
+                <a-input v-model:value="feeFilter.keyword" placeholder="模糊匹配三类编号" size="small" allow-clear></a-input>
+              </div>
+              <div>
+                <div class="form-label">开船日期区间</div>
+                <a-range-picker v-model:value="feeFilter.etdRange" size="small" style="width: 100%;"></a-range-picker>
+              </div>
+              <div>
+                <div class="form-label">收付方向</div>
+                <a-select v-model:value="feeFilter.paySide" size="small" style="width: 100%;">
+                  <a-select-option :value="1">仅应收</a-select-option>
+                  <a-select-option :value="2">全部 (应收应付互抵)</a-select-option>
+                </a-select>
+              </div>
+              <div>
+                <a-button type="primary" size="small" style="margin-right: 6px;" @click="handleFilterFees">查询</a-button>
+                <a-button size="small" @click="resetFeeFilter">重置</a-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 按金额自动核销区域 (TAPD 特性) -->
+          <div class="auto-alloc-box">
+            <div style="font-size: 12px; color: #166534;">
+              <iconify-icon icon="ant-design:thunderbolt-outlined" style="font-size: 14px; margin-right: 4px;"></iconify-icon>
+              <b>按金额自动分配：</b>录入本次结算金额，系统将按净额小的业务自动结清同付款方同币别费用。
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 12px; color: #475569;">输入分配额度:</span>
+              <a-input-number
+                v-model:value="autoAllocAmount"
+                size="small"
+                :min="0.01"
+                :max="drawerRemaining"
+                :precision="2"
+                placeholder="≤ 剩余可用"
+                style="width: 130px; font-family: monospace;"
+              ></a-input-number>
+              <a-button
+                size="small"
+                type="primary"
+                ghost
+                :disabled="!autoAllocAmount || autoAllocAmount <= 0"
+                @click="executeAutoAlloc"
+              >
+                自动分配选中
+              </a-button>
+            </div>
+          </div>
+
+          <!-- 待选费用明细表 -->
+          <a-table
+            :data-source="selectableFeeList"
+            :columns="workbenchFeeColumns"
+            :pagination="false"
+            row-key="id"
+            size="small"
+            :row-selection="workbenchFeeRowSelection"
+            :scroll="{ x: 1380, y: 320 }"
+          >
+            <template v-slot:[bodycellslot]="{ column, record: fee }">
+              <template v-if="column.key === 'orderNo'">
+                <span style="font-family: monospace; font-weight: 600;">{{ fee.orderNo }}</span>
+              </template>
+              <template v-else-if="column.key === 'paySide'">
+                <a-tag :color="fee.paySide === 1 ? 'blue' : 'orange'" size="small">
+                  {{ fee.paySide === 1 ? '应收' : '应付' }}
+                </a-tag>
+              </template>
+              <template v-else-if="column.key === 'feeCurrency'">
+                <a-tag size="small">{{ fee.feeCurrency }}</a-tag>
+              </template>
+              <template v-else-if="column.key === 'unsettledAmount'">
+                <span class="amount-cell-number">{{ formatAmountPlain(fee.unsettledAmount) }}</span>
+              </template>
+              <template v-else-if="column.key === 'exchangeRate'">
+                <a-input-number
+                  v-model:value="fee.exchangeRate"
+                  size="small"
+                  :min="0.000001"
+                  :precision="6"
+                  style="width: 100px; font-family: monospace;"
+                  @change="updateFeeConverted(fee)"
+                ></a-input-number>
+              </template>
+              <template v-else-if="column.key === 'thisSettled'">
+                <a-input-number
+                  v-model:value="fee.thisSettled"
+                  size="small"
+                  :precision="2"
+                  style="width: 110px; font-family: monospace; font-weight: 600;"
+                  @change="updateFeeConverted(fee)"
+                ></a-input-number>
+              </template>
+            </template>
+          </a-table>
+        </div>
+
+        <!-- B. 按发票开出核销面板 -->
+        <div v-else>
+          <div class="workbench-filter-box" style="margin-bottom: 8px;">
+            <a-space>
+              <a-input placeholder="搜索发票号 / 开出单号" size="small" style="width: 220px;" allow-clear></a-input>
+              <a-button type="primary" size="small">查询发票</a-button>
+            </a-space>
+          </div>
+
+          <a-table
+            :data-source="selectableInvoiceList"
+            :columns="workbenchInvoiceColumns"
+            :pagination="false"
+            row-key="id"
+            size="small"
+            :row-selection="workbenchInvoiceRowSelection"
+            :scroll="{ x: 1000, y: 340 }"
+          >
+            <template v-slot:[bodycellslot]="{ column, record: inv }">
+              <template v-if="column.key === 'issueNo'">
+                <b style="font-family: monospace;">{{ inv.issueNo }}</b>
+              </template>
+              <template v-else-if="column.key === 'currencyCode'">
+                <a-tag size="small">{{ inv.currencyCode }}</a-tag>
+              </template>
+              <template v-else-if="column.key === 'totalAmount'">
+                <span class="amount-cell-number">{{ formatMoney(inv.totalAmount) }}</span>
+              </template>
+              <template v-else-if="column.key === 'unsettledAmount'">
+                <span class="amount-cell-number" style="color: #0284c7;">{{ formatMoney(inv.unsettledAmount) }}</span>
+              </template>
+              <template v-else-if="column.key === 'exchangeRate'">
+                <a-input-number
+                  v-model:value="inv.exchangeRate"
+                  size="small"
+                  :precision="6"
+                  style="width: 100px; font-family: monospace;"
+                ></a-input-number>
+              </template>
+              <template v-else-if="column.key === 'thisSettled'">
+                <a-input-number
+                  v-model:value="inv.thisSettled"
+                  size="small"
+                  :precision="2"
+                  style="width: 110px; font-family: monospace; font-weight: 600;"
+                ></a-input-number>
+              </template>
+            </template>
+          </a-table>
+        </div>
+
+        <!-- 抽屉底部决策条 -->
+        <div class="drawer-bottom-settle-bar">
+          <div>
+            <span style="font-size: 13px; color: #475569;">已选项目：<b>{{ selectedWorkbenchItemsCount }}</b> 项</span>
+            <span style="margin: 0 12px; color: #cbd5e1;">｜</span>
+            <span style="font-size: 13px; color: #1e293b;">
+              本次核销合计：
+              <b class="amount-cell-number" style="font-size: 16px; color: #0284c7;">
+                {{ formatMoney(workbenchTotalSettled) }}
+              </b>
+            </span>
+            <span style="margin: 0 12px; color: #cbd5e1;">｜</span>
+            <span style="font-size: 13px;">
+              核销后结余：
+              <b
+                class="amount-cell-number"
+                :style="{ color: workbenchRemainingAfterSubmit < 0 ? '#dc2626' : '#16a34a' }"
+              >
+                {{ formatMoney(workbenchRemainingAfterSubmit) }}
+              </b>
+            </span>
+          </div>
+
+          <a-space>
+            <a-button @click="showWorkbenchDrawer = false">取消</a-button>
+            <a-button
+              type="primary"
+              :disabled="workbenchTotalSettled <= 0 || workbenchRemainingAfterSubmit < 0"
+              @click="submitWorkbenchSettlement"
+            >
+              确认新建核销单
+            </a-button>
+          </a-space>
+        </div>
+      </a-drawer>
+
+    </a-config-provider>
+  </div>
+
+  <!-- 页面驱动与响应式逻辑 -->
+  <script>
+    const { createApp, ref, reactive, computed, watch, nextTick } = Vue;
+
+    const app = createApp({
+      setup() {
+        // --------------------------------------------------------------------
+        // 1. 状态定义与预设样本库 (7大真实场景)
+        // --------------------------------------------------------------------
+        const currentPreset = ref('preset_done');
+
+        const isCreateMode = computed(() => {
+          return Boolean(currentStatement.isCreate);
+        });
+        const isPageLoading = ref(false);
+        const isPageError = ref(false);
+        const isSaving = ref(false);
+        const isUploading = ref(false);
+        const isBatchDeleting = ref(false);
+        const isDeletingSettlement = ref(false);
+
+        // 弹窗与抽屉可见性
+        const showBatchDeleteModal = ref(false);
+        const showDeleteSettlementModal = ref(false);
+        const showUnsavedAlertModal = ref(false);
+        const showWorkbenchDrawer = ref(false);
+        const pendingActionAfterSave = ref(null);
+
+        // 当前选中的核销单与费用明细
+        const selectedSettlementId = ref(null);
+        const hoveredSettlementId = ref(null);
+        const expandedRowKeys = ref(['SETTLE_001']);
+        const selectedFeeIds = ref([]); // 格式: "settlementId::feeId"
+        const searchSettlementNo = ref('');
+        const settlementSectionRef = ref(null);
+
+        // 工作台抽屉状态
+        const activeCanvasTab = ref('settlements'); // 'settlements' | 'pool'
+        const workbenchMode = ref('fee'); // 'fee' | 'invoice'
+        const autoAllocAmount = ref(null);
+        const selectedWorkbenchFeeIds = ref([]);
+        const selectedWorkbenchInvoiceIds = ref([]);
+
+        // 下拉字典选项
+        const payerOptions = [
+          { label: '青岛捷顺达国际供应链管理有限公司', value: 'PAYER_001' },
+          { label: '上海美设货运代理有限公司青岛分公司', value: 'PAYER_002' },
+          { label: '深圳市联宇物流有限公司', value: 'PAYER_003' },
+          { label: '海信视像科技股份有限公司', value: 'PAYER_004' }
+        ];
+
+        const orgOptions = [
+          { label: '佳越国际物流（青岛）有限公司 / 财务部', value: 'ORG_001' },
+          { label: '佳越国际物流（上海）分公司 / 航运部', value: 'ORG_002' }
+        ];
+
+        const currencyOptions = [
+          { label: 'CNY (人民币)', value: 'RMB' },
+          { label: 'USD (美元)', value: 'USD' },
+          { label: 'EUR (欧元)', value: 'EUR' },
+          { label: 'HKD (港币)', value: 'HKD' }
+        ];
+
+        const myBankOptions = [
+          { label: '中国银行青岛市南支行 (028374910293)', value: 'BANK_MY_01' },
+          { label: '中国工商银行青岛黄岛支行 (38192039481)', value: 'BANK_MY_02' },
+          { label: '招商银行青岛分行营业部 (7382910394)', value: 'BANK_MY_03' }
+        ];
+
+        const clientBankOptions = [
+          { label: '招商银行深圳科苑支行 (75591823901)', value: 'BANK_CLI_01' },
+          { label: '交通银行上海陆家嘴支行 (31002938491)', value: 'BANK_CLI_02' },
+          { label: '中国农业银行青岛香港中路支行 (3819201948)', value: 'BANK_CLI_03' }
+        ];
+
+        // 7 大标准场景数据模板
+        const presetsData = {
+          // 场景 0：新增银行流水 (创建录入场景)
+          preset_create: {
+            isCreate: true,
+            bankStatementNo: '',
+            id: null,
+            amount: null,
+            currencyCode: 'RMB',
+            statementDate: dayjs().format('YYYY-MM-DD'),
+            statementTimeDayjs: dayjs(),
+            transactionFee: 0.00,
+            statementRemark: '',
+            message: '',
+            remark: '',
+            orgId: 'ORG_001',
+            orgName: '佳越国际物流（青岛）有限公司 / 财务部',
+            orgBankAccountId: 'BANK_MY_01',
+            orgBankAccountName: '中国银行青岛市南支行 (028374910293)',
+            settlementId: null,
+            settlementName: '',
+            clientInvoiceBankId: null,
+            clientInvoiceBankName: '',
+            writeOffStatus: 0,
+            inputType: 0,
+            locked: false,
+            creatorUserName: '当前操作员 (财务录入)',
+            operators: [{ id: 1, name: '当前操作员', remark: '录入经办' }],
+            attachments: [],
+            settlements: []
+          },
+          // 样本 1：核销完成 (指定实测样本 SH261026025 · 1,000 RMB，挂 2 张单)
+          preset_done: {
+            bankStatementNo: 'SH261026025',
+            id: '374557c7-a660-439c-9da6-a39e51fe3bc8',
+            amount: 1000.00,
+            currencyCode: 'RMB',
+            statementDate: '2026-10-26',
+            statementTimeDayjs: dayjs('2026-10-26'),
+            transactionFee: 5.00,
+            statementRemark: '收海运费及港杂货款-1026',
+            message: '请查收10月提单货款',
+            remark: '财务复核完毕，已全部结清对账',
+            orgId: 'ORG_001',
+            orgName: '佳越国际物流（青岛）有限公司 / 财务部',
+            orgBankAccountId: 'BANK_MY_01',
+            orgBankAccountName: '中国银行青岛市南支行 (028374910293)',
+            settlementId: 'PAYER_001',
+            settlementName: '青岛捷顺达国际供应链管理有限公司',
+            clientInvoiceBankId: 'BANK_CLI_01',
+            clientInvoiceBankName: '招商银行深圳科苑支行 (75591823901)',
+            writeOffStatus: 2, // 2 = 核销完成
+            inputType: 0, // 0 = 手动录入
+            locked: false,
+            lockedUserName: null,
+            lockedTime: null,
+            unLockedUserName: '李建华',
+            unLockedTime: '2026-10-26 11:20',
+            creatorUserName: '财务专员-王静',
+            operators: [
+              { id: 1, name: '王静', remark: '录入经办' },
+              { id: 2, name: '陈会计', remark: '复核人' }
+            ],
+            attachments: [
+              { attachmentId: 'ATT_001', friendlyFileName: '中行电子回单_SH261026025.pdf', fileSize: '142 KB' },
+              { attachmentId: 'ATT_002', friendlyFileName: '捷顺达对账确认单(盖章).pdf', fileSize: '850 KB' }
+            ],
+            settlements: [
+              {
+                id: 'SETTLE_001',
+                settlementNo: 'HX261026001',
+                type: 0, // 按费用
+                status: 2, // 已结算
+                actualSettled: 600.00,
+                originalSettledAmount: 600.00,
+                diffAmount: 0.00,
+                itemCount: 3,
+                settlementTime: '2026-10-26 14:15',
+                creatorUserName: '王静',
+                remark: '10月第一批出运海运费+杂费结清',
+                items: [
+                  { id: 'fee_1', orderNo: 'QD261019001', masterBl: 'MSK9283719', etd: '2026-10-21', pol: '青岛', pod: '长滩', container: '2*40HQ', carrier: 'MSK', opName: '孙立', saleName: '赵明', feeName: '海运费 (O/F)', paySide: 1, feeCurrency: 'USD', settledAmount: 50.00, exchangeRate: 7.000000, originalSettledAmount: 350.00 },
+                  { id: 'fee_2', orderNo: 'QD261019001', masterBl: 'MSK9283719', etd: '2026-10-21', pol: '青岛', pod: '长滩', container: '2*40HQ', carrier: 'MSK', opName: '孙立', saleName: '赵明', feeName: '港杂费 (THC)', paySide: 1, feeCurrency: 'RMB', settledAmount: 150.00, exchangeRate: 1.000000, originalSettledAmount: 150.00 },
+                  { id: 'fee_3', orderNo: 'QD261020008', masterBl: 'COS2918471', etd: '2026-10-23', pol: '青岛', pod: '鹿特丹', container: '1*20GP', carrier: 'COSCO', opName: '钱华', saleName: '赵明', feeName: '报关代理费', paySide: 1, feeCurrency: 'RMB', settledAmount: 100.00, exchangeRate: 1.000000, originalSettledAmount: 100.00 }
+                ]
+              },
+              {
+                id: 'SETTLE_002',
+                settlementNo: 'HX261026002',
+                type: 1, // 按发票
+                status: 2,
+                actualSettled: 400.00,
+                originalSettledAmount: 398.50,
+                diffAmount: 1.50,
+                itemCount: 2,
+                settlementTime: '2026-10-26 15:30',
+                creatorUserName: '陈会计',
+                remark: '按发票开出组核销 (存在1.5元尾差已核销调平)',
+                invoiceGroups: [
+                  {
+                    issueId: 'ISS_001',
+                    issueNo: 'KP261026008',
+                    invoiceNo: '08273619',
+                    issueDate: '2026-10-26 14:20',
+                    currencyCode: 'RMB',
+                    originalSettledAmount: 398.50,
+                    items: [
+                      { id: 'inv_fee_1', orderNo: 'QD261022015', feeName: '堆存提箱费', paySide: 1, feeCurrency: 'RMB', appliedAmount: 250.00, settledAmount: 250.00, exchangeRate: 1.000000, originalSettledAmount: 250.00 },
+                      { id: 'inv_fee_2', orderNo: 'QD261022015', feeName: '文件换单费', paySide: 1, feeCurrency: 'RMB', appliedAmount: 148.50, settledAmount: 148.50, exchangeRate: 1.000000, originalSettledAmount: 148.50 }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+
+          // 样本 2：部分核销 (实测样本 SH261023022 · 100.00 RMB，已核 80，余 20)
+          preset_partial: {
+            bankStatementNo: 'SH261023022',
+            id: '81b7a829-0192-4f81-9b12-108273645192',
+            amount: 100.00,
+            currencyCode: 'RMB',
+            statementDate: '2026-10-23',
+            statementTimeDayjs: dayjs('2026-10-23'),
+            transactionFee: 0.00,
+            statementRemark: '预付订舱服务费',
+            message: '先行结清订舱，余款待对账',
+            remark: '还剩 20 元额度等待补录费用',
+            orgId: 'ORG_001',
+            orgName: '佳越国际物流（青岛）有限公司 / 财务部',
+            orgBankAccountId: 'BANK_MY_01',
+            orgBankAccountName: '中国银行青岛市南支行 (028374910293)',
+            settlementId: 'PAYER_002',
+            settlementName: '上海美设货运代理有限公司青岛分公司',
+            clientInvoiceBankId: 'BANK_CLI_02',
+            clientInvoiceBankName: '交通银行上海陆家嘴支行 (31002938491)',
+            writeOffStatus: 1, // 1 = 部分核销
+            inputType: 0,
+            locked: false,
+            creatorUserName: '刘敏',
+            operators: [{ id: 3, name: '刘敏', remark: '经办' }],
+            attachments: [
+              { attachmentId: 'ATT_003', friendlyFileName: '部分收款回单.pdf', fileSize: '98 KB' }
+            ],
+            settlements: [
+              {
+                id: 'SETTLE_003',
+                settlementNo: 'HX261023005',
+                type: 0,
+                status: 2,
+                actualSettled: 50.00,
+                originalSettledAmount: 50.00,
+                diffAmount: 0.00,
+                itemCount: 1,
+                settlementTime: '2026-10-23 16:00',
+                creatorUserName: '刘敏',
+                remark: '先结清订舱服务费',
+                items: [
+                  { id: 'fee_21', orderNo: 'QD261023001', masterBl: 'ONE819284', etd: '2026-10-24', pol: '青岛', pod: '新加坡', container: '1*40GP', carrier: 'ONE', opName: '周婷', saleName: '钱华', feeName: '订舱费', paySide: 1, feeCurrency: 'RMB', settledAmount: 50.00, exchangeRate: 1.000000, originalSettledAmount: 50.00 }
+                ]
+              },
+              {
+                id: 'SETTLE_004',
+                settlementNo: 'HX261023009',
+                type: 0,
+                status: 2,
+                actualSettled: 30.00,
+                originalSettledAmount: 30.00,
+                diffAmount: 0.00,
+                itemCount: 1,
+                settlementTime: '2026-10-24 09:30',
+                creatorUserName: '刘敏',
+                remark: '提单电放费结清',
+                items: [
+                  { id: 'fee_22', orderNo: 'QD261023001', masterBl: 'ONE819284', etd: '2026-10-24', pol: '青岛', pod: '新加坡', container: '1*40GP', carrier: 'ONE', opName: '周婷', saleName: '钱华', feeName: '电放费 (TLX)', paySide: 1, feeCurrency: 'RMB', settledAmount: 30.00, exchangeRate: 1.000000, originalSettledAmount: 30.00 }
+                ]
+              }
+            ]
+          },
+
+          // 样本 3：待核销空态 (实测样本 SH261022019 · 3.00 USD，0 关联单)
+          preset_empty: {
+            bankStatementNo: 'SH261022019',
+            id: '92c81726-1928-4819-a1b2-108273645819',
+            amount: 3.00,
+            currencyCode: 'USD',
+            statementDate: '2026-10-22',
+            statementTimeDayjs: dayjs('2026-10-22'),
+            transactionFee: 0.00,
+            statementRemark: '外币小额到账电汇',
+            message: '样品单杂费补差',
+            remark: '新到款项，尚未开始核销',
+            orgId: 'ORG_001',
+            orgName: '佳越国际物流（青岛）有限公司 / 财务部',
+            orgBankAccountId: 'BANK_MY_01',
+            orgBankAccountName: '中国银行青岛市南支行 (028374910293)',
+            settlementId: 'PAYER_003',
+            settlementName: '深圳市联宇物流有限公司',
+            clientInvoiceBankId: 'BANK_CLI_01',
+            clientInvoiceBankName: '招商银行深圳科苑支行 (75591823901)',
+            writeOffStatus: 0, // 0 = 待核销
+            inputType: 0,
+            locked: false,
+            creatorUserName: '陈会计',
+            operators: [{ id: 4, name: '陈会计', remark: '录入经办' }],
+            attachments: [],
+            settlements: []
+          },
+
+          // 样本 4：流水已锁定 (50,000 RMB，审计冻结)
+          preset_locked: {
+            bankStatementNo: 'SH261015099',
+            id: 'lock-statement-guid-99',
+            amount: 50000.00,
+            currencyCode: 'RMB',
+            statementDate: '2026-10-15',
+            statementTimeDayjs: dayjs('2026-10-15'),
+            transactionFee: 20.00,
+            statementRemark: '大宗季度结算款',
+            message: '10月中期款全清',
+            remark: '期间已结账审计归档，已由主管锁定',
+            orgId: 'ORG_001',
+            orgName: '佳越国际物流（青岛）有限公司 / 财务部',
+            orgBankAccountId: 'BANK_MY_01',
+            orgBankAccountName: '中国银行青岛市南支行 (028374910293)',
+            settlementId: 'PAYER_001',
+            settlementName: '青岛捷顺达国际供应链管理有限公司',
+            clientInvoiceBankId: 'BANK_CLI_01',
+            clientInvoiceBankName: '招商银行深圳科苑支行 (75591823901)',
+            writeOffStatus: 2,
+            inputType: 0,
+            locked: true,
+            lockedUserName: '财务主管-张晓燕',
+            lockedTime: '2026-10-26 17:30',
+            creatorUserName: '王静',
+            operators: [{ id: 1, name: '王静', remark: '经办' }],
+            attachments: [
+              { attachmentId: 'ATT_099', friendlyFileName: '审计锁定回单_归档.pdf', fileSize: '2.4 MB' }
+            ],
+            settlements: [
+              {
+                id: 'SETTLE_099',
+                settlementNo: 'HX261015012',
+                type: 0,
+                status: 2,
+                actualSettled: 50000.00,
+                originalSettledAmount: 50000.00,
+                diffAmount: 0.00,
+                itemCount: 1,
+                settlementTime: '2026-10-15 16:20',
+                creatorUserName: '王静',
+                remark: '大宗季度整笔核销',
+                items: [
+                  { id: 'fee_99', orderNo: 'QD261010001', masterBl: 'MSK009182', etd: '2026-10-12', pol: '青岛', pod: '鹿特丹', container: '10*40HQ', carrier: 'MSK', opName: '孙立', saleName: '赵明', feeName: '大宗海运费', paySide: 1, feeCurrency: 'RMB', settledAmount: 50000.00, exchangeRate: 1.000000, originalSettledAmount: 50000.00 }
+                ]
+              }
+            ]
+          },
+
+          // 样本 5：自动导入流水 (银企直连生成，inputType = 1)
+          preset_auto_import: {
+            bankStatementNo: 'SH261026999',
+            id: 'auto-import-guid-001',
+            amount: 8800.00,
+            currencyCode: 'RMB',
+            statementDate: '2026-10-26',
+            statementTimeDayjs: dayjs('2026-10-26'),
+            transactionFee: 0.00,
+            statementRemark: '直连抓取：网银贷记来账-捷顺达',
+            message: '中行直连自动认领流水',
+            remark: '银企直连通道自动入账，核心要素不可修改',
+            orgId: 'ORG_001',
+            orgName: '佳越国际物流（青岛）有限公司 / 财务部',
+            orgBankAccountId: 'BANK_MY_01',
+            orgBankAccountName: '中国银行青岛市南支行 (028374910293)',
+            settlementId: 'PAYER_001',
+            settlementName: '青岛捷顺达国际供应链管理有限公司',
+            clientInvoiceBankId: 'BANK_CLI_01',
+            clientInvoiceBankName: '招商银行深圳科苑支行 (75591823901)',
+            writeOffStatus: 1,
+            inputType: 1, // 1 = 自动导入
+            locked: false,
+            creatorUserName: '银企直连系统同步',
+            operators: [{ id: 10, name: '银企直连认领专员', remark: '自动认领' }],
+            attachments: [],
+            settlements: [
+              {
+                id: 'SETTLE_AUTO_1',
+                settlementNo: 'HX261026091',
+                type: 0,
+                status: 2,
+                actualSettled: 5000.00,
+                originalSettledAmount: 5000.00,
+                diffAmount: 0.00,
+                itemCount: 1,
+                settlementTime: '2026-10-26 10:10',
+                creatorUserName: '王静',
+                remark: '自动匹配首批应收费用',
+                items: [
+                  { id: 'fee_auto_1', orderNo: 'QD261025008', masterBl: 'EMC8192039', etd: '2026-10-25', pol: '青岛', pod: '洛杉矶', container: '1*40HQ', carrier: 'EMC', opName: '钱华', saleName: '赵明', feeName: '海运整箱费', paySide: 1, feeCurrency: 'RMB', settledAmount: 5000.00, exchangeRate: 1.000000, originalSettledAmount: 5000.00 }
+                ]
+              }
+            ]
+          },
+
+          // 样本 6：异常超核销 (-800 RMB 预警)
+          preset_over_settled: {
+            bankStatementNo: 'SH261020088',
+            id: 'over-settled-guid-088',
+            amount: 5000.00,
+            currencyCode: 'RMB',
+            statementDate: '2026-10-20',
+            statementTimeDayjs: dayjs('2026-10-20'),
+            transactionFee: 0.00,
+            statementRemark: '历史对账遗留流水',
+            message: '存量单据超额',
+            remark: '存量数据历史修改导致超额核销，需剔除一张单',
+            orgId: 'ORG_001',
+            orgName: '佳越国际物流（青岛）有限公司 / 财务部',
+            orgBankAccountId: 'BANK_MY_01',
+            orgBankAccountName: '中国银行青岛市南支行 (028374910293)',
+            settlementId: 'PAYER_001',
+            settlementName: '青岛捷顺达国际供应链管理有限公司',
+            clientInvoiceBankId: 'BANK_CLI_01',
+            clientInvoiceBankName: '招商银行深圳科苑支行 (75591823901)',
+            writeOffStatus: 1,
+            inputType: 0,
+            locked: false,
+            creatorUserName: '陈会计',
+            operators: [{ id: 2, name: '陈会计', remark: '经办' }],
+            attachments: [],
+            settlements: [
+              {
+                id: 'SETTLE_OVER_1',
+                settlementNo: 'HX261020011',
+                type: 0,
+                status: 2,
+                actualSettled: 3000.00,
+                originalSettledAmount: 3000.00,
+                diffAmount: 0.00,
+                itemCount: 1,
+                settlementTime: '2026-10-20 14:00',
+                creatorUserName: '陈会计',
+                remark: '正常核销单',
+                items: [
+                  { id: 'fee_ov_1', orderNo: 'QD261018099', masterBl: 'CMA192837', etd: '2026-10-19', pol: '青岛', pod: '汉堡', container: '1*40HQ', carrier: 'CMA', opName: '钱华', saleName: '赵明', feeName: '海运费', paySide: 1, feeCurrency: 'RMB', settledAmount: 3000.00, exchangeRate: 1.000000, originalSettledAmount: 3000.00 }
+                ]
+              },
+              {
+                id: 'SETTLE_OVER_2',
+                settlementNo: 'HX261020012',
+                type: 0,
+                status: 2,
+                actualSettled: 2800.00, // 合计 5800 > 5000, 超额 800
+                originalSettledAmount: 2800.00,
+                diffAmount: 0.00,
+                itemCount: 1,
+                settlementTime: '2026-10-20 16:30',
+                creatorUserName: '陈会计',
+                remark: '异常多占额度的核销单',
+                items: [
+                  { id: 'fee_ov_2', orderNo: 'QD261018100', masterBl: 'CMA192838', etd: '2026-10-19', pol: '青岛', pod: '汉堡', container: '1*40HQ', carrier: 'CMA', opName: '钱华', saleName: '赵明', feeName: '海运费 (异常超占)', paySide: 1, feeCurrency: 'RMB', settledAmount: 2800.00, exchangeRate: 1.000000, originalSettledAmount: 2800.00 }
+                ]
+              }
+            ]
+          }
+        };
+
+        // 当前正在查看/编辑的流水实体与已保存快照
+        const currentStatement = reactive(JSON.parse(JSON.stringify(presetsData.preset_done)));
+        currentStatement.statementTimeDayjs = dayjs(currentStatement.statementDate);
+        const savedSnapshot = reactive(JSON.parse(JSON.stringify(presetsData.preset_done)));
+        const settlementList = ref(JSON.parse(JSON.stringify(presetsData.preset_done.settlements)));
+
+        // --------------------------------------------------------------------
+        // 2. 表单变更与指纹计算 (未保存草稿与边界判定)
+        // --------------------------------------------------------------------
+        const formFingerprint = computed(() => {
+          return JSON.stringify({
+            amount: currentStatement.amount,
+            currencyCode: currentStatement.currencyCode,
+            settlementId: currentStatement.settlementId,
+            orgId: currentStatement.orgId,
+            orgBankAccountId: currentStatement.orgBankAccountId,
+            clientInvoiceBankId: currentStatement.clientInvoiceBankId,
+            statementRemark: currentStatement.statementRemark,
+            message: currentStatement.message,
+            remark: currentStatement.remark,
+            statementDate: currentStatement.statementDate,
+            attachmentsCount: currentStatement.attachments?.length || 0
+          });
+        });
+
+        const savedFingerprint = ref(formFingerprint.value);
+
+        const hasUnsavedChanges = computed(() => {
+          return formFingerprint.value !== savedFingerprint.value;
+        });
+
+        const hasAmountDraftDifference = computed(() => {
+          return Number(currentStatement.amount) !== Number(savedSnapshot.amount);
+        });
+
+        function markFormDirty() {
+          if (currentStatement.statementTimeDayjs) {
+            currentStatement.statementDate = currentStatement.statementTimeDayjs.format('YYYY-MM-DD');
+          }
+        }
+
+        function restoreSavedAmount() {
+          currentStatement.amount = savedSnapshot.amount;
+        }
+
+        // --------------------------------------------------------------------
+        // 3. 金额与核销计算体系 (流水金额、已核销、剩余可核销)
+        // --------------------------------------------------------------------
+        const currentSettledAmount = computed(() => {
+          return settlementList.value.reduce((sum, item) => sum + (Number(item.actualSettled) || 0), 0);
+        });
+
+        // 剩余可核销以已落库金额为基准
+        const remainingAmount = computed(() => {
+          return Number(savedSnapshot.amount) - currentSettledAmount.value;
+        });
+
+        const isOverSettled = computed(() => {
+          return remainingAmount.value < -0.005;
+        });
+
+        const isAmountInvalid = computed(() => {
+          // 修改总金额不能低于已核销金额
+          if (currentStatement.amount === null || currentStatement.amount === undefined) return true;
+          return Number(currentStatement.amount) < currentSettledAmount.value;
+        });
+
+        const progressPercent = computed(() => {
+          if (Number(savedSnapshot.amount) <= 0) return 0;
+          const ratio = (currentSettledAmount.value / Number(savedSnapshot.amount)) * 100;
+          return Math.min(100, Math.max(0, Number(ratio.toFixed(1))));
+        });
+
+        const progressColor = computed(() => {
+          if (isOverSettled.value) return '#dc2626'; // 红色超核销
+          if (remainingAmount.value <= 0.005 && Number(savedSnapshot.amount) > 0) return '#16a34a'; // 绿色完成
+          return '#1677ff'; // 蓝色部分核销
+        });
+
+        const remainingClass = computed(() => {
+          if (remainingAmount.value < -0.005) return 'is-negative';
+          if (remainingAmount.value <= 0.005) return 'is-zero';
+          return 'is-positive';
+        });
+
+        const writeOffStatusTag = computed(() => {
+          if (isCreateMode.value) {
+            return { label: '草稿未入库', color: 'warning' };
+          }
+          if (currentSettledAmount.value <= 0) {
+            return { label: '待核销', color: 'blue' };
+          }
+          if (Math.abs(remainingAmount.value) <= 0.005) {
+            return { label: '核销完成', color: 'success' };
+          }
+          return { label: '部分核销', color: 'warning' };
+        });
+
+        // --------------------------------------------------------------------
+        // 3.1 所有核销单各原币别金额汇总 (Multi-Currency Settlement Totals)
+        // --------------------------------------------------------------------
+        function getCurrencySymbol(curr) {
+          if (!curr) return '¥';
+          const c = String(curr).toUpperCase();
+          if (c === 'USD') return String.fromCharCode(36); // $
+          if (c === 'EUR') return '€';
+          if (c === 'HKD') return 'HK$';
+          if (c === 'GBP') return '£';
+          if (c === 'JPY') return 'JP¥';
+          return '¥';
+        }
+
+        function formatCurrencyAmount(curr, amount) {
+          if (amount === null || amount === undefined || isNaN(amount)) return '-';
+          const sym = getCurrencySymbol(curr);
+          const formattedNum = Number(amount).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          return sym + formattedNum;
+        }
+
+        // 所有核销单合计的各个原币别金额
+        const settledOriginalCurrencyTotals = computed(() => {
+          const map = {};
+          
+          settlementList.value.forEach(st => {
+            // A. 按费用明细
+            if (st.items && Array.isArray(st.items)) {
+              st.items.forEach(f => {
+                const curr = (f.feeCurrency || currentStatement.currencyCode || 'RMB').toUpperCase();
+                const amt = Number(f.settledAmount) || 0;
+                map[curr] = (map[curr] || 0) + amt;
+              });
+            }
+            // B. 按发票开出组明细
+            if (st.invoiceGroups && Array.isArray(st.invoiceGroups)) {
+              st.invoiceGroups.forEach(g => {
+                if (g.items && Array.isArray(g.items) && g.items.length > 0) {
+                  g.items.forEach(it => {
+                    const curr = (it.feeCurrency || g.currencyCode || currentStatement.currencyCode || 'RMB').toUpperCase();
+                    const amt = Number(it.settledAmount || it.appliedAmount) || 0;
+                    map[curr] = (map[curr] || 0) + amt;
+                  });
+                } else {
+                  const curr = (g.currencyCode || currentStatement.currencyCode || 'RMB').toUpperCase();
+                  const amt = Number(g.originalSettledAmount || g.settledAmount || g.totalAmount) || 0;
+                  map[curr] = (map[curr] || 0) + amt;
+                }
+              });
+            }
+          });
+
+          return Object.entries(map).map(([currency, amount]) => ({
+            currency,
+            amount: Number(amount.toFixed(2)),
+            symbol: getCurrencySymbol(currency),
+            formatted: formatCurrencyAmount(currency, amount)
+          })).sort((a, b) => b.amount - a.amount);
+        });
+
+        // 差值总额 (原始结算折合 - 本次结算合计)
+        const totalDiffAmount = computed(() => {
+          return settlementList.value.reduce((sum, s) => sum + (Number(s.diffAmount) || 0), 0);
+        });
+
+        // 单张核销单的原币别汇总
+        function getSettlementOriginalCurrencies(st) {
+          const map = {};
+          if (st.items && Array.isArray(st.items)) {
+            st.items.forEach(f => {
+              const curr = (f.feeCurrency || currentStatement.currencyCode || 'RMB').toUpperCase();
+              const amt = Number(f.settledAmount) || 0;
+              map[curr] = (map[curr] || 0) + amt;
+            });
+          }
+          if (st.invoiceGroups && Array.isArray(st.invoiceGroups)) {
+            st.invoiceGroups.forEach(g => {
+              if (g.items && Array.isArray(g.items) && g.items.length > 0) {
+                g.items.forEach(it => {
+                  const curr = (it.feeCurrency || g.currencyCode || currentStatement.currencyCode || 'RMB').toUpperCase();
+                  const amt = Number(it.settledAmount || it.appliedAmount) || 0;
+                  map[curr] = (map[curr] || 0) + amt;
+                });
+              } else {
+                const curr = (g.currencyCode || currentStatement.currencyCode || 'RMB').toUpperCase();
+                const amt = Number(g.originalSettledAmount || g.settledAmount || g.totalAmount) || 0;
+                map[curr] = (map[curr] || 0) + amt;
+              }
+            });
+          }
+          return Object.entries(map).map(([currency, amount]) => ({
+            currency,
+            amount: Number(amount.toFixed(2)),
+            formatted: formatCurrencyAmount(currency, amount)
+          }));
+        }
+
+        // 统计关联核销明细与费用总条数
+        const totalFeeItemCount = computed(() => {
+          let count = 0;
+          settlementList.value.forEach(s => {
+            if (s.items) count += s.items.length;
+            if (s.invoiceGroups) {
+              s.invoiceGroups.forEach(g => {
+                if (g.items) count += g.items.length;
+              });
+            }
+          });
+          return count;
+        });
+
+        // 资金分段条数据驱动模型 (按单色相区分、悬停联动、点击下钻)
+        const feePalette = ['#2563eb', '#3b82f6', '#60a5fa', '#1d4ed8'];
+        const invPalette = ['#10b981', '#059669', '#34d399', '#047857'];
+        const allocationSegments = computed(() => {
+          const total = Number(savedSnapshot.amount) || 1;
+          let feeIdx = 0;
+          let invIdx = 0;
+          return settlementList.value.map(s => {
+            const pct = Number(((Number(s.actualSettled) / total) * 100).toFixed(1));
+            let color = '#2563eb';
+            if (s.type === 0) {
+              color = feePalette[feeIdx % feePalette.length];
+              feeIdx++;
+            } else {
+              color = invPalette[invIdx % invPalette.length];
+              invIdx++;
+            }
+            return {
+              id: s.id,
+              settlementNo: s.settlementNo,
+              type: s.type,
+              actualSettled: s.actualSettled,
+              percent: pct,
+              color
+            };
+          });
+        });
+
+        function handleSegmentHover(id) {
+          hoveredSettlementId.value = id;
+        }
+
+        function handleSegmentClick(id) {
+          selectedSettlementId.value = id;
+          if (!expandedRowKeys.value.includes(id)) {
+            expandedRowKeys.value = [...expandedRowKeys.value, id];
+          }
+          scrollToSettlementTable();
+        }
+
+        function getSettlementRowClassName(record) {
+          const classes = [];
+          if (record.id === hoveredSettlementId.value) {
+            classes.push('is-row-highlighted');
+          }
+          if (record.id === selectedSettlementId.value) {
+            classes.push('is-row-selected');
+          }
+          return classes.join(' ');
+        }
+
+        // --------------------------------------------------------------------
+        // 4. 字段可编辑与锁定逻辑矩阵
+        // --------------------------------------------------------------------
+        const hasReceiveSettlements = computed(() => {
+          return settlementList.value.length > 0;
+        });
+
+        // 允许编辑流水金额的条件：未锁定，且（待核销状态 或 已有核销单）
+        const canEditCurrentAmount = computed(() => {
+          if (isCreateMode.value) return true;
+          if (currentStatement.locked) return false;
+          if (currentStatement.inputType === 1) return false;
+          return true;
+        });
+
+        const canEditCurrencyAndPayer = computed(() => {
+          if (isCreateMode.value) return true;
+          if (currentStatement.locked) return false;
+          if (currentStatement.inputType === 1) return false;
+          return !hasReceiveSettlements.value;
+        });
+
+        const canEditStatementFields = computed(() => {
+          if (isCreateMode.value) return true;
+          if (currentStatement.locked) return false;
+          if (currentStatement.inputType === 1) return false;
+          return !hasReceiveSettlements.value;
+        });
+
+        const canEditRemark = computed(() => {
+          if (isCreateMode.value) return true;
+          return !currentStatement.locked;
+        });
+
+        // 允许新建核销的条件：未锁定、未超核销、且还有剩余可用额度
+        const canCreateNewSettlement = computed(() => {
+          if (currentStatement.locked) return false;
+          if (isOverSettled.value) return false;
+          return remainingAmount.value > 0.005;
+        });
+
+        // --------------------------------------------------------------------
+        // 5. 关联核销单表格与选择交互 (单选单据 / 跨单多选费用)
+        // --------------------------------------------------------------------
+        const settlementListFiltered = computed(() => {
+          if (!searchSettlementNo.value.trim()) return settlementList.value;
+          const kw = searchSettlementNo.value.trim().toLowerCase();
+          return settlementList.value.filter(s => s.settlementNo.toLowerCase().includes(kw));
+        });
+
+        const selectedSettlementRow = computed(() => {
+          return settlementList.value.find(s => s.id === selectedSettlementId.value);
+        });
+
+        const selectedSettlementTypeLabel = computed(() => {
+          if (!selectedSettlementRow.value) return '';
+          return selectedSettlementRow.value.type === 0 ? '按费用核销' : '按发票核销';
+        });
+
+        const canAddFeeToSelected = computed(() => {
+          if (currentStatement.locked) return false;
+          if (!selectedSettlementRow.value) return false;
+          // 仅未锁定的按费用核销单允许添加费用
+          return selectedSettlementRow.value.type === 0;
+        });
+
+        const canDeleteSelectedSettlement = computed(() => {
+          if (currentStatement.locked) return false;
+          return Boolean(selectedSettlementRow.value);
+        });
+
+        const settlementRowSelection = {
+          type: 'radio',
+          selectedRowKeys: computed(() => selectedSettlementId.value ? [selectedSettlementId.value] : []),
+          onChange: (selectedKeys) => {
+            selectedSettlementId.value = selectedKeys[0] || null;
+          }
+        };
+
+        // 费用明细多选逻辑 (支持跨核销单多选)
+        const selectedFeeCount = computed(() => selectedFeeIds.value.length);
+
+        function getFeeItemRowSelection(settlementId) {
+          return {
+            selectedRowKeys: computed(() => {
+              const prefix = `${settlementId}::`;
+              return selectedFeeIds.value
+                .filter(id => id.startsWith(prefix))
+                .map(id => id.replace(prefix, ''));
+            }),
+            onChange: (keys) => {
+              const prefix = `${settlementId}::`;
+              // 先移除本单的旧选
+              const otherKeys = selectedFeeIds.value.filter(id => !id.startsWith(prefix));
+              // 加入新勾选
+              const newKeys = keys.map(k => `${prefix}${k}`);
+              selectedFeeIds.value = [...otherKeys, ...newKeys];
+            }
+          };
+        }
+
+        // 批量删除费用汇总分析
+        const batchDeleteSummary = computed(() => {
+          const map = {};
+          selectedFeeIds.value.forEach(key => {
+            const [settlementId, feeId] = key.split('::');
+            if (!map[settlementId]) map[settlementId] = [];
+            map[settlementId].push(feeId);
+          });
+
+          const rows = [];
+          Object.entries(map).forEach(([settleId, feeIds]) => {
+            const st = settlementList.value.find(s => s.id === settleId);
+            if (!st) return;
+            const deleteCount = feeIds.length;
+            const remainingCount = Math.max(0, (st.items?.length || 0) - deleteCount);
+            // 计算被删费用的折合流水币金额
+            const deletedAmountSum = st.items
+              ?.filter(f => feeIds.includes(f.id))
+              ?.reduce((sum, f) => sum + (Number(f.originalSettledAmount) || 0), 0) || 0;
+            const newActualSettled = remainingCount > 0 ? Math.max(0, st.actualSettled - deletedAmountSum) : 0;
+            rows.push({
+              settlementId: settleId,
+              settlementNo: st.settlementNo,
+              deleteCount,
+              remainingCount,
+              currentActualSettled: st.actualSettled,
+              newActualSettled
+            });
+          });
+
+          return {
+            settlementCount: rows.length,
+            rows
+          };
+        });
+
+        // --------------------------------------------------------------------
+        // 6. 表格列配置定义 (100% 保真，等宽数字，右对齐)
+        // --------------------------------------------------------------------
+        const settlementColumns = [
+          { title: '核销单号', dataIndex: 'settlementNo', key: 'settlementNo', width: 160 },
+          { title: '核销方式', dataIndex: 'type', key: 'type', width: 110 },
+          { title: '状态', dataIndex: 'status', key: 'status', width: 90 },
+          { title: '本次结算', dataIndex: 'actualSettled', key: 'actualSettled', width: 130, align: 'right' },
+          { title: '原始结算金额', dataIndex: 'originalSettledAmount', key: 'originalSettledAmount', width: 130, align: 'right' },
+          { title: '差值', dataIndex: 'diffAmount', key: 'diffAmount', width: 100, align: 'right' },
+          { title: '明细数', dataIndex: 'itemCount', key: 'itemCount', width: 80, align: 'right' },
+          { title: '核销时间', dataIndex: 'settlementTime', key: 'settlementTime', width: 140 },
+          { title: '创建人', dataIndex: 'creatorUserName', key: 'creatorUserName', width: 100 },
+          { title: '备注', dataIndex: 'remark', key: 'remark', minWidth: 260 }
+        ];
+
+        // 按费用展开明细列 (融入航运微胶囊与经办责任人，信息密度提升 300%)
+        const feeItemColumns = [
+          { title: '委托编号', dataIndex: 'orderNo', key: 'orderNo', width: 140 },
+          { title: '主提单号', dataIndex: 'masterBl', key: 'masterBl', width: 130 },
+          { title: '航线航程与箱型', dataIndex: 'voyageSummary', key: 'voyageSummary', minWidth: 280 },
+          { title: '经办责任人', dataIndex: 'staffPair', key: 'staffPair', width: 130 },
+          { title: '费用名称', dataIndex: 'feeName', key: 'feeName', width: 120 },
+          { title: '收付', dataIndex: 'paySide', key: 'paySide', width: 65 },
+          { title: '原币', dataIndex: 'feeCurrency', key: 'feeCurrency', width: 65 },
+          { title: '原币结算额', dataIndex: 'settledAmount', key: 'settledAmount', width: 110, align: 'right' },
+          { title: '结算汇率', dataIndex: 'exchangeRate', key: 'exchangeRate', width: 95, align: 'right' },
+          { title: '折合流水币', dataIndex: 'originalSettledAmount', key: 'originalSettledAmount', width: 110, align: 'right' }
+        ];
+
+        // 按发票展开明细列
+        const invoiceFeeColumns = [
+          { title: '委托编号', dataIndex: 'orderNo', key: 'orderNo', width: 150 },
+          { title: '费用名称', dataIndex: 'feeName', key: 'feeName', width: 140 },
+          { title: '收付', dataIndex: 'paySide', key: 'paySide', width: 70 },
+          { title: '币别', dataIndex: 'feeCurrency', key: 'feeCurrency', width: 70 },
+          { title: '开票金额', dataIndex: 'appliedAmount', key: 'appliedAmount', width: 110, align: 'right' },
+          { title: '结算金额', dataIndex: 'settledAmount', key: 'settledAmount', width: 110, align: 'right' },
+          { title: '发票结算汇率', dataIndex: 'exchangeRate', key: 'exchangeRate', width: 110, align: 'right' },
+          { title: '原始结算折合', dataIndex: 'originalSettledAmount', key: 'originalSettledAmount', width: 120, align: 'right' }
+        ];
+
+        // --------------------------------------------------------------------
+        // 7. 交互动作实现 (保存流水、增删费用、新建核销、草稿拦截)
+        // --------------------------------------------------------------------
+        function handleQuickFillCreateSample() {
+          currentStatement.settlementId = 'PAYER_001';
+          currentStatement.settlementName = '青岛捷顺达国际供应链管理有限公司';
+          currentStatement.clientInvoiceBankId = 'BANK_CLI_01';
+          currentStatement.clientInvoiceBankName = '招商银行深圳科苑支行 (75591823901)';
+          currentStatement.amount = 10000.00;
+          currentStatement.transactionFee = 0.00;
+          currentStatement.statementRemark = '网银转账贷记来账-10月美线运费';
+          currentStatement.message = '请查收10月集装箱海运费';
+          currentStatement.remark = '捷顺达常规结算款，已填入';
+          currentStatement.attachments = [
+            { attachmentId: 'ATT_NEW_01', friendlyFileName: '中行网银转账电子回单_10000.pdf', fileSize: '168 KB' }
+          ];
+          markFormDirty();
+          antd.message.success('已自动填入标准到账样本，左侧盘面已即刻联动！');
+        }
+
+        function handleSaveAndStartReconcile() {
+          if (!currentStatement.settlementId) {
+            antd.message.warning('请选择打款抬头的付款客户');
+            return;
+          }
+          if (!currentStatement.amount || Number(currentStatement.amount) <= 0) {
+            antd.message.warning('请输入有效的到账总金额（大于 0）');
+            return;
+          }
+          if (!currentStatement.currencyCode) {
+            antd.message.warning('请选择流水币别');
+            return;
+          }
+
+          isSaving.value = true;
+          setTimeout(() => {
+            isSaving.value = false;
+            const newNo = 'SH' + dayjs().format('YYMMDD') + String(Math.floor(Math.random() * 800) + 100);
+            currentStatement.bankStatementNo = newNo;
+            currentStatement.id = 'statement_' + Date.now();
+            currentStatement.isCreate = false;
+            currentStatement.writeOffStatus = 0; // 待核销
+            Object.assign(savedSnapshot, JSON.parse(JSON.stringify(currentStatement)));
+            savedFingerprint.value = formFingerprint.value;
+
+            activeCanvasTab.value = 'pool';
+            antd.message.success('银行流水 ' + newNo + ' 已成功保存入库！已自动为您就地开启即时对账候选池。');
+          }, 600);
+        }
+
+        function handleSaveAndInstantMatchFees() {
+          if (!currentStatement.settlementId) {
+            antd.message.warning('请先在左侧选择付款客户');
+            return;
+          }
+          if (!currentStatement.amount || Number(currentStatement.amount) <= 0) {
+            antd.message.warning('请先在左侧输入到账总金额');
+            return;
+          }
+          if (selectedWorkbenchFeeIds.value.length === 0) {
+            antd.message.warning('请勾选待核销的费用明细');
+            return;
+          }
+          const takeTotal = inPlaceTotalSelectedAmount.value;
+          if (takeTotal > Number(currentStatement.amount)) {
+            antd.message.error('所选核销金额已超出流水到账总金额');
+            return;
+          }
+
+          isSaving.value = true;
+          setTimeout(() => {
+            isSaving.value = false;
+            const newStatementNo = 'SH' + dayjs().format('YYMMDD') + String(Math.floor(Math.random() * 800) + 100);
+            const newSettleNo = 'HX' + dayjs().format('YYMMDD') + String(Math.floor(Math.random() * 800) + 100);
+            currentStatement.bankStatementNo = newStatementNo;
+            currentStatement.id = 'statement_' + Date.now();
+            currentStatement.isCreate = false;
+
+            const chosenFees = selectableFeeList.value.filter(f => selectedWorkbenchFeeIds.value.includes(f.id));
+            const newSettlement = {
+              id: 'SETTLE_' + Date.now(),
+              settlementNo: newSettleNo,
+              type: 0,
+              status: 2,
+              actualSettled: takeTotal,
+              originalSettledAmount: takeTotal,
+              diffAmount: 0.00,
+              itemCount: chosenFees.length,
+              settlementTime: dayjs().format('YYYY-MM-DD HH:mm'),
+              creatorUserName: '当前操作员',
+              remark: '新增流水即时直核生成的核销单',
+              items: chosenFees.map(f => ({
+                id: f.id,
+                orderNo: f.orderNo,
+                masterBl: 'MSK' + Math.floor(100000 + Math.random() * 900000),
+                etd: dayjs().format('YYYY-MM-DD'),
+                pol: '青岛', pod: '长滩', container: '1*40HQ', carrier: 'MSK', opName: '孙立', saleName: '赵明',
+                feeName: f.feeName, paySide: f.paySide, feeCurrency: f.feeCurrency,
+                settledAmount: f.thisSettled, exchangeRate: f.exchangeRate, originalSettledAmount: f.thisSettled
+              })),
+              invoiceGroups: []
+            };
+
+            settlementList.value.unshift(newSettlement);
+            selectableFeeList.value = selectableFeeList.value.filter(f => !selectedWorkbenchFeeIds.value.includes(f.id));
+            selectedWorkbenchFeeIds.value = [];
+
+            Object.assign(savedSnapshot, JSON.parse(JSON.stringify(currentStatement)));
+            savedFingerprint.value = formFingerprint.value;
+
+            activeCanvasTab.value = 'settlements';
+            selectedSettlementId.value = newSettlement.id;
+            expandedRowKeys.value = [newSettlement.id];
+            antd.message.success('银行流水 ' + newStatementNo + ' 保存成功，并已即时生成核销单 ' + newSettleNo + '！');
+          }, 600);
+        }
+
+        function handleSaveStatement() {
+          if (isCreateMode.value) {
+            if (!currentStatement.settlementId) {
+              antd.message.warning('请选择打款抬头的付款客户');
+              return;
+            }
+            if (!currentStatement.amount || Number(currentStatement.amount) <= 0) {
+              antd.message.warning('请输入有效的到账总金额（大于 0）');
+              return;
+            }
+            if (!currentStatement.currencyCode) {
+              antd.message.warning('请选择流水币别');
+              return;
+            }
+
+            isSaving.value = true;
+            setTimeout(() => {
+              isSaving.value = false;
+              const newNo = 'SH' + dayjs().format('YYMMDD') + String(Math.floor(Math.random() * 800) + 100);
+              currentStatement.bankStatementNo = newNo;
+              currentStatement.id = 'statement_' + Date.now();
+              currentStatement.isCreate = false;
+              currentStatement.writeOffStatus = 0;
+              Object.assign(savedSnapshot, JSON.parse(JSON.stringify(currentStatement)));
+              savedFingerprint.value = formFingerprint.value;
+              activeCanvasTab.value = 'settlements';
+              antd.message.success('银行流水 ' + newNo + ' 保存成功，当前状态为待核销！');
+            }, 600);
+            return;
+          }
+
+          if (!canEditCurrentAmount.value) {
+            antd.message.warning('当前流水状态不可修改');
+            return;
+          }
+          if (isAmountInvalid.value) {
+            antd.message.error('银行流水金额不能小于已核销金额：' + formatMoney(currentSettledAmount.value));
+            return;
+          }
+
+          isSaving.value = true;
+          setTimeout(() => {
+            isSaving.value = false;
+            // 更新快照
+            Object.assign(savedSnapshot, JSON.parse(JSON.stringify(currentStatement)));
+            savedFingerprint.value = formFingerprint.value;
+            antd.message.success('银行流水保存成功，核销额度已同步更新');
+
+            if (pendingActionAfterSave.value) {
+              const action = pendingActionAfterSave.value;
+              pendingActionAfterSave.value = null;
+              action();
+            }
+          }, 600);
+        }
+
+        // 付款方变更联动
+        function onPayerChange(payerId) {
+          markFormDirty();
+          currentStatement.clientInvoiceBankId = null;
+          currentStatement.clientInvoiceBankName = null;
+          const p = payerOptions.find(o => o.value === payerId);
+          if (p) currentStatement.settlementName = p.label;
+          antd.message.info('付款方已变更，对方开户行已清空，请重新选择');
+        }
+
+        // 打开新建核销前草稿拦截
+        function requestOpenWorkbench(mode) {
+          if (currentStatement.locked) {
+            antd.message.warning('银行流水已锁定，无法新建核销');
+            return;
+          }
+          if (isOverSettled.value) {
+            antd.message.warning('当前流水已超核销，暂不建议新建核销');
+            return;
+          }
+
+          if (hasUnsavedChanges.value) {
+            pendingActionAfterSave.value = () => openWorkbench(mode);
+            showUnsavedAlertModal.value = true;
+            return;
+          }
+          openWorkbench(mode);
+        }
+
+        function handleCreateSettlementMenu({ key }) {
+          requestOpenWorkbench(key);
+        }
+
+        function handleSaveAndProceed() {
+          showUnsavedAlertModal.value = false;
+          handleSaveStatement();
+        }
+
+        function openWorkbench(mode) {
+          workbenchMode.value = mode;
+          autoAllocAmount.value = null;
+          selectedWorkbenchFeeIds.value = [];
+          selectedWorkbenchInvoiceIds.value = [];
+          showWorkbenchDrawer.value = true;
+        }
+
+        function openAddFeeDrawer() {
+          if (hasUnsavedChanges.value) {
+            pendingActionAfterSave.value = () => openWorkbench('fee');
+            showUnsavedAlertModal.value = true;
+            return;
+          }
+          openWorkbench('fee');
+        }
+
+        function openEditSettlementDrawer(record) {
+          openWorkbench(record.type === 0 ? 'fee' : 'invoice');
+        }
+
+        // 批量删除费用确认
+        function openBatchDeleteFeeModal() {
+          if (selectedFeeCount.value === 0) return;
+          showBatchDeleteModal.value = true;
+        }
+
+        function handleConfirmBatchDelete() {
+          isBatchDeleting.value = true;
+          setTimeout(() => {
+            isBatchDeleting.value = false;
+            showBatchDeleteModal.value = false;
+
+            // 执行明细剔除
+            const map = {};
+            selectedFeeIds.value.forEach(key => {
+              const [settleId, feeId] = key.split('::');
+              if (!map[settleId]) map[settleId] = [];
+              map[settleId].push(feeId);
+            });
+
+            settlementList.value.forEach(st => {
+              if (map[st.id]) {
+                const toDelete = map[st.id];
+                st.items = st.items?.filter(f => !toDelete.includes(f.id));
+                st.itemCount = st.items?.length || 0;
+                // 重算该单 actualSettled
+                const sum = st.items?.reduce((s, f) => s + (Number(f.originalSettledAmount) || 0), 0) || 0;
+                st.actualSettled = sum;
+                st.originalSettledAmount = sum;
+              }
+            });
+
+            const deletedCount = selectedFeeCount.value;
+            selectedFeeIds.value = [];
+            antd.message.success(`成功删除 ${deletedCount} 条核销明细，流水剩余额度已恢复`);
+          }, 500);
+        }
+
+        // 删除整单确认
+        function confirmDeleteSelectedSettlement() {
+          if (!selectedSettlementRow.value) return;
+          showDeleteSettlementModal.value = true;
+        }
+
+        function handleConfirmDeleteSelectedSettlement() {
+          isDeletingSettlement.value = true;
+          setTimeout(() => {
+            isDeletingSettlement.value = false;
+            showDeleteSettlementModal.value = false;
+            const no = selectedSettlementRow.value.settlementNo;
+            settlementList.value = settlementList.value.filter(s => s.id !== selectedSettlementId.value);
+            selectedSettlementId.value = null;
+            antd.message.success(`核销单 ${no} 删除成功，额度已释放`);
+          }, 500);
+        }
+
+        // 附件上传与移除
+        function handleUploadAttachment(file) {
+          if (file.size > 10 * 1024 * 1024) {
+            antd.message.error('单个附件大小不能超过 10 MB');
+            return false;
+          }
+          isUploading.value = true;
+          setTimeout(() => {
+            isUploading.value = false;
+            currentStatement.attachments.push({
+              attachmentId: `ATT_${Date.now()}`,
+              friendlyFileName: file.name,
+              fileSize: `${(file.size / 1024).toFixed(1)} KB`
+            });
+            markFormDirty();
+            antd.message.success(`凭证上传成功，点击【保存流水】后正式关联入库`);
+          }, 600);
+          return false;
+        }
+
+        function removeAttachment(item) {
+          currentStatement.attachments = currentStatement.attachments.filter(a => a.attachmentId !== item.attachmentId);
+          markFormDirty();
+          antd.message.info('附件已从草稿中移除，点击【保存流水】后生效');
+        }
+
+        function previewAttachment(item) {
+          antd.message.info(`正在打开凭证预览：${item.friendlyFileName}`);
+        }
+
+        // --------------------------------------------------------------------
+        // 8. 抽屉内嵌待核销项目数据与交互 (选费 / 发票)
+        // --------------------------------------------------------------------
+        const workbenchTitle = computed(() => {
+          return workbenchMode.value === 'fee' ? '新建收费核销 · 按费用核销' : '新建收费核销 · 按发票核销';
+        });
+
+        const drawerRemaining = computed(() => {
+          return Number(savedSnapshot.amount) - currentSettledAmount.value;
+        });
+
+        const feeFilter = reactive({
+          clientName: '',
+          keyword: '',
+          etdRange: null,
+          paySide: 1
+        });
+
+        const selectableFeeList = ref([
+          { id: 'w_fee_1', orderNo: 'QD261025001', feeName: '海运整箱费', paySide: 1, feeCurrency: 'RMB', unsettledAmount: 3200.00, exchangeRate: 1.000000, thisSettled: 3200.00 },
+          { id: 'w_fee_2', orderNo: 'QD261025001', feeName: 'THC 码头操作费', paySide: 1, feeCurrency: 'RMB', unsettledAmount: 950.00, exchangeRate: 1.000000, thisSettled: 950.00 },
+          { id: 'w_fee_3', orderNo: 'QD261025002', feeName: '提单单证费', paySide: 1, feeCurrency: 'RMB', unsettledAmount: 450.00, exchangeRate: 1.000000, thisSettled: 450.00 },
+          { id: 'w_fee_4', orderNo: 'QD261025003', feeName: '集装箱查验费', paySide: 1, feeCurrency: 'RMB', unsettledAmount: 600.00, exchangeRate: 1.000000, thisSettled: 600.00 }
+        ]);
+
+        const selectableInvoiceList = ref([
+          { id: 'w_inv_1', issueNo: 'KP261027001', invoiceNo: '09182736', currencyCode: 'RMB', totalAmount: 4200.00, unsettledAmount: 4200.00, exchangeRate: 1.000000, thisSettled: 4200.00 },
+          { id: 'w_inv_2', issueNo: 'KP261027002', invoiceNo: '09182737', currencyCode: 'RMB', totalAmount: 1850.00, unsettledAmount: 1850.00, exchangeRate: 1.000000, thisSettled: 1850.00 }
+        ]);
+
+        const workbenchFeeColumns = [
+          { title: '委托编号', dataIndex: 'orderNo', key: 'orderNo', width: 140 },
+          { title: '费用名称', dataIndex: 'feeName', key: 'feeName', width: 150 },
+          { title: '方向', dataIndex: 'paySide', key: 'paySide', width: 70 },
+          { title: '币别', dataIndex: 'feeCurrency', key: 'feeCurrency', width: 70 },
+          { title: '未结算额', dataIndex: 'unsettledAmount', key: 'unsettledAmount', width: 120, align: 'right' },
+          { title: '结算汇率', dataIndex: 'exchangeRate', key: 'exchangeRate', width: 120 },
+          { title: '本次核销 (流水币)', dataIndex: 'thisSettled', key: 'thisSettled', width: 130 }
+        ];
+
+        const workbenchInvoiceColumns = [
+          { title: '开出单号', dataIndex: 'issueNo', key: 'issueNo', width: 160 },
+          { title: '发票号码', dataIndex: 'invoiceNo', key: 'invoiceNo', width: 140 },
+          { title: '币别', dataIndex: 'currencyCode', key: 'currencyCode', width: 80 },
+          { title: '发票开票总额', dataIndex: 'totalAmount', key: 'totalAmount', width: 130, align: 'right' },
+          { title: '未核销金额', dataIndex: 'unsettledAmount', key: 'unsettledAmount', width: 130, align: 'right' },
+          { title: '发票结算汇率', dataIndex: 'exchangeRate', key: 'exchangeRate', width: 120 },
+          { title: '本次结算 (流水币)', dataIndex: 'thisSettled', key: 'thisSettled', width: 130 }
+        ];
+
+        const workbenchFeeRowSelection = {
+          selectedRowKeys: selectedWorkbenchFeeIds,
+          onChange: (keys) => { selectedWorkbenchFeeIds.value = keys; }
+        };
+
+        const workbenchInvoiceRowSelection = {
+          selectedRowKeys: selectedWorkbenchInvoiceIds,
+          onChange: (keys) => { selectedWorkbenchInvoiceIds.value = keys; }
+        };
+
+        const selectedWorkbenchItemsCount = computed(() => {
+          return workbenchMode.value === 'fee' ? selectedWorkbenchFeeIds.value.length : selectedWorkbenchInvoiceIds.value.length;
+        });
+
+        const workbenchTotalSettled = computed(() => {
+          if (workbenchMode.value === 'fee') {
+            return selectableFeeList.value
+              .filter(f => selectedWorkbenchFeeIds.value.includes(f.id))
+              .reduce((sum, f) => sum + (Number(f.thisSettled) || 0), 0);
+          } else {
+            return selectableInvoiceList.value
+              .filter(i => selectedWorkbenchInvoiceIds.value.includes(i.id))
+              .reduce((sum, i) => sum + (Number(i.thisSettled) || 0), 0);
+          }
+        });
+
+        const workbenchRemainingAfterSubmit = computed(() => {
+          return drawerRemaining.value - workbenchTotalSettled.value;
+        });
+
+        function updateFeeConverted(fee) {
+          // 重新根据汇率折算
+        }
+
+        const inPlaceTotalSelectedAmount = computed(() => {
+          return selectableFeeList.value
+            .filter(f => selectedWorkbenchFeeIds.value.includes(f.id))
+            .reduce((sum, f) => sum + (Number(f.thisSettled) || 0), 0);
+        });
+
+        function handleInPlaceInstantMatch() {
+          if (hasUnsavedChanges.value) {
+            pendingActionAfterSave.value = () => handleInPlaceInstantMatch();
+            showUnsavedAlertModal.value = true;
+            return;
+          }
+          if (selectedWorkbenchFeeIds.value.length === 0) {
+            antd.message.warning('请先在待核销费用池中勾选费用');
+            return;
+          }
+          const takeTotal = inPlaceTotalSelectedAmount.value;
+          if (takeTotal <= 0) {
+            antd.message.warning('本次核销金额必须大于 0');
+            return;
+          }
+          if ((remainingAmount.value - takeTotal) < -0.005) {
+            antd.message.error('所选核销金额已超出流水剩余可用额度');
+            return;
+          }
+
+          const newNo = `HX${dayjs().format('YYMMDD')}${String(Math.floor(Math.random() * 900) + 100)}`;
+          const chosenFees = selectableFeeList.value.filter(f => selectedWorkbenchFeeIds.value.includes(f.id));
+          const newSettlement = {
+            id: `NEW_SETTLE_${Date.now()}`,
+            settlementNo: newNo,
+            type: 0,
+            status: 2,
+            actualSettled: takeTotal,
+            originalSettledAmount: takeTotal,
+            diffAmount: 0.00,
+            itemCount: chosenFees.length,
+            settlementTime: dayjs().format('YYYY-MM-DD HH:mm'),
+            creatorUserName: '当前经办人',
+            remark: '就地直核生成的收费核销单',
+            items: chosenFees.map(f => ({
+              id: f.id,
+              orderNo: f.orderNo,
+              masterBl: 'MSK' + Math.floor(100000 + Math.random() * 900000),
+              etd: dayjs().format('YYYY-MM-DD'),
+              pol: '青岛', pod: '长滩', container: '1*40HQ', carrier: 'MSK', opName: '孙立', saleName: '赵明',
+              feeName: f.feeName, paySide: f.paySide, feeCurrency: f.feeCurrency,
+              settledAmount: f.thisSettled, exchangeRate: f.exchangeRate, originalSettledAmount: f.thisSettled
+            })),
+            invoiceGroups: []
+          };
+
+          settlementList.value.unshift(newSettlement);
+          selectableFeeList.value = selectableFeeList.value.filter(f => !selectedWorkbenchFeeIds.value.includes(f.id));
+          selectedWorkbenchFeeIds.value = [];
+          activeCanvasTab.value = 'settlements';
+          selectedSettlementId.value = newSettlement.id;
+          expandedRowKeys.value = [newSettlement.id];
+          antd.message.success(`已成功就地生成核销单 ${newNo}，流水额度已即时划扣！`);
+        }
+
+        function executeAutoAlloc() {
+          if (!autoAllocAmount.value || autoAllocAmount.value <= 0) return;
+          let remainingAlloc = autoAllocAmount.value;
+          const chosen = [];
+          for (const fee of selectableFeeList.value) {
+            if (remainingAlloc <= 0) break;
+            chosen.push(fee.id);
+            const take = Math.min(fee.unsettledAmount, remainingAlloc);
+            fee.thisSettled = take;
+            remainingAlloc -= take;
+          }
+          selectedWorkbenchFeeIds.value = chosen;
+          antd.message.success(`已根据额度自动勾选并分配 ${chosen.length} 笔费用`);
+        }
+
+        function handleFilterFees() {
+          antd.message.loading({ content: '正在检索符合条件的费用...', key: 'fee_search' });
+          setTimeout(() => {
+            antd.message.success({ content: '检索完毕，已列出 4 笔待结费用', key: 'fee_search' });
+          }, 300);
+        }
+
+        function resetFeeFilter() {
+          feeFilter.clientName = '';
+          feeFilter.keyword = '';
+          feeFilter.etdRange = null;
+          feeFilter.paySide = 1;
+        }
+
+        function submitWorkbenchSettlement() {
+          if (workbenchRemainingAfterSubmit.value < -0.005) {
+            antd.message.error('本次核销金额已超出流水剩余可用额度');
+            return;
+          }
+
+          const newNo = `HX${dayjs().format('YYMMDD')}${String(Math.floor(Math.random() * 900) + 100)}`;
+          const newSettlement = {
+            id: `NEW_SETTLE_${Date.now()}`,
+            settlementNo: newNo,
+            type: workbenchMode.value === 'fee' ? 0 : 1,
+            status: 2,
+            actualSettled: workbenchTotalSettled.value,
+            originalSettledAmount: workbenchTotalSettled.value,
+            diffAmount: 0.00,
+            itemCount: selectedWorkbenchItemsCount.value,
+            settlementTime: dayjs().format('YYYY-MM-DD HH:mm'),
+            creatorUserName: '当前财务人员',
+            remark: workbenchMode.value === 'fee' ? '按费用新建核销' : '按发票新建核销',
+            items: selectableFeeList.value.filter(f => selectedWorkbenchFeeIds.value.includes(f.id)).map(f => ({
+              id: f.id,
+              orderNo: f.orderNo,
+              masterBl: 'MSK' + Math.floor(100000 + Math.random() * 900000),
+              etd: dayjs().format('YYYY-MM-DD'),
+              pol: '青岛', pod: '长滩', container: '1*40HQ', carrier: 'MSK', opName: '孙立', saleName: '赵明',
+              feeName: f.feeName, paySide: f.paySide, feeCurrency: f.feeCurrency,
+              settledAmount: f.thisSettled, exchangeRate: f.exchangeRate, originalSettledAmount: f.thisSettled
+            })),
+            invoiceGroups: []
+          };
+
+          settlementList.value.unshift(newSettlement);
+          showWorkbenchDrawer.value = false;
+          antd.message.success(`核销单 ${newNo} 创建成功，额度已即时生效`);
+        }
+
+        // --------------------------------------------------------------------
+        // 9. 预设沙盘切换响应
+        // --------------------------------------------------------------------
+        function onPresetChange(e) {
+          const val = e.target.value;
+          isPageLoading.value = false;
+          isPageError.value = false;
+
+          if (val === 'preset_loading_error') {
+            isPageLoading.value = true;
+            setTimeout(() => {
+              isPageLoading.value = false;
+              isPageError.value = true;
+            }, 500);
+            return;
+          }
+
+          const data = presetsData[val];
+          if (data) {
+            Object.assign(currentStatement, JSON.parse(JSON.stringify(data)));
+            currentStatement.statementTimeDayjs = dayjs(currentStatement.statementDate);
+            Object.assign(savedSnapshot, JSON.parse(JSON.stringify(data)));
+            settlementList.value = JSON.parse(JSON.stringify(data.settlements || []));
+            savedFingerprint.value = formFingerprint.value;
+            selectedSettlementId.value = null;
+            selectedFeeIds.value = [];
+            searchSettlementNo.value = '';
+            hoveredSettlementId.value = null;
+            expandedRowKeys.value = data.settlements?.length ? [data.settlements[0].id] : [];
+            activeCanvasTab.value = data.isCreate ? 'create_guide' : 'settlements';
+          }
+        }
+
+        function resetCurrentData() {
+          onPresetChange({ target: { value: currentPreset.value } });
+          antd.message.info('当前样本数据已恢复至初始态');
+        }
+
+        function handleRetryLoad() {
+          isPageError.value = false;
+          isPageLoading.value = true;
+          setTimeout(() => {
+            isPageLoading.value = false;
+            currentPreset.value = 'preset_done';
+            onPresetChange({ target: { value: 'preset_done' } });
+            antd.message.success('数据重新加载成功');
+          }, 600);
+        }
+
+        function handleBackToList() {
+          if (hasUnsavedChanges.value) {
+            antd.Modal.confirm({
+              title: '离开当前流水页？',
+              content: '流水信息仍有未保存的修改，离开后草稿将丢失。',
+              okText: '放弃修改并返回',
+              cancelText: '继续编辑',
+              okButtonProps: { danger: true },
+              onOk() {
+                antd.message.info('已安全返回银行流水列表');
+              }
+            });
+            return;
+          }
+          antd.message.info('返回银行流水列表');
+        }
+
+        function scrollToSettlementTable() {
+          settlementSectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 辅助格式化函数
+        function formatMoney(val) {
+          if (val === null || val === undefined || isNaN(val)) return '-';
+          const n = Number(val);
+          return `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function formatAmountPlain(val) {
+          if (val === null || val === undefined || isNaN(val)) return '-';
+          return Number(val).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function copyText(text, successMsg = '已复制') {
+          if (!text) return;
+          navigator.clipboard.writeText(String(text)).then(() => {
+            antd.message.success(successMsg);
+          }).catch(() => {
+            antd.message.success(successMsg);
+          });
+        }
+
+        const bodycellslot = 'bodyCell';
+        const expandrowslot = 'expandedRowRender';
+
+        return {
+          settledOriginalCurrencyTotals,
+          totalDiffAmount,
+          getSettlementOriginalCurrencies,
+          formatCurrencyAmount,
+          getCurrencySymbol,
+          isCreateMode,
+          handleQuickFillCreateSample,
+          handleSaveAndStartReconcile,
+          handleSaveAndInstantMatchFees,
+          bodycellslot,
+          activeCanvasTab,
+          inPlaceTotalSelectedAmount,
+          handleInPlaceInstantMatch,
+          expandrowslot,
+          currentPreset,
+          isPageLoading,
+          isPageError,
+          isSaving,
+          isUploading,
+          isBatchDeleting,
+          isDeletingSettlement,
+          showBatchDeleteModal,
+          showDeleteSettlementModal,
+          showUnsavedAlertModal,
+          showWorkbenchDrawer,
+          selectedSettlementId,
+          hoveredSettlementId,
+          expandedRowKeys,
+          selectedSettlementRow,
+          selectedSettlementTypeLabel,
+          selectedFeeCount,
+          searchSettlementNo,
+          settlementSectionRef,
+          totalFeeItemCount,
+          allocationSegments,
+          handleSegmentHover,
+          handleSegmentClick,
+          getSettlementRowClassName,
+          workbenchMode,
+          workbenchTitle,
+          autoAllocAmount,
+          selectedWorkbenchFeeIds,
+          selectedWorkbenchInvoiceIds,
+          payerOptions,
+          orgOptions,
+          currencyOptions,
+          myBankOptions,
+          clientBankOptions,
+          currentStatement,
+          savedSnapshot,
+          settlementList,
+          settlementListFiltered,
+          hasUnsavedChanges,
+          hasAmountDraftDifference,
+          currentSettledAmount,
+          remainingAmount,
+          isOverSettled,
+          isAmountInvalid,
+          progressPercent,
+          progressColor,
+          remainingClass,
+          writeOffStatusTag,
+          hasReceiveSettlements,
+          canEditCurrentAmount,
+          canEditCurrencyAndPayer,
+          canEditStatementFields,
+          canEditRemark,
+          canCreateNewSettlement,
+          canAddFeeToSelected,
+          canDeleteSelectedSettlement,
+          settlementRowSelection,
+          getFeeItemRowSelection,
+          batchDeleteSummary,
+          settlementColumns,
+          feeItemColumns,
+          invoiceFeeColumns,
+          drawerRemaining,
+          feeFilter,
+          selectableFeeList,
+          selectableInvoiceList,
+          workbenchFeeColumns,
+          workbenchInvoiceColumns,
+          workbenchFeeRowSelection,
+          workbenchInvoiceRowSelection,
+          selectedWorkbenchItemsCount,
+          workbenchTotalSettled,
+          workbenchRemainingAfterSubmit,
+          markFormDirty,
+          restoreSavedAmount,
+          handleSaveStatement,
+          onPayerChange,
+          requestOpenWorkbench,
+          handleCreateSettlementMenu,
+          handleSaveAndProceed,
+          openWorkbench,
+          openAddFeeDrawer,
+          openEditSettlementDrawer,
+          openBatchDeleteFeeModal,
+          handleConfirmBatchDelete,
+          confirmDeleteSelectedSettlement,
+          handleConfirmDeleteSelectedSettlement,
+          handleUploadAttachment,
+          removeAttachment,
+          previewAttachment,
+          updateFeeConverted,
+          executeAutoAlloc,
+          handleFilterFees,
+          resetFeeFilter,
+          submitWorkbenchSettlement,
+          onPresetChange,
+          resetCurrentData,
+          handleRetryLoad,
+          handleBackToList,
+          scrollToSettlementTable,
+          formatMoney,
+          formatAmountPlain,
+          copyText
+        };
+      }
+    });
+
+    app.use(antd);
+    app.mount('#app');
+  </script>
+</body>
+</html>

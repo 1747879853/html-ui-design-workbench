@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>复杂分组表单页模板 - Ant Design Vue 4.0 UI 优化</title>
+  
+  <!-- 本地极速资源：零延迟无代理依赖 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    .form-section-card {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #f0f0f0;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .form-section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2329;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #f5f5f5;
+      padding-bottom: 12px;
+    }
+    .form-section-title .title-bar {
+      width: 4px;
+      height: 16px;
+      background: #1677ff;
+      border-radius: 2px;
+    }
+    .grid-3-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px 32px;
+    }
+    .grid-2-col {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px 32px;
+    }
+    .grid-full-col {
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <a-config-provider :theme="themeConfig">
+      <div class="page-container" style="padding-bottom: 80px;">
+        
+        <!-- 面包屑与顶部标题 -->
+        <div class="page-header">
+          <a-breadcrumb style="margin-bottom: 12px;">
+            <a-breadcrumb-item><a href="javascript:;">业务中台</a></a-breadcrumb-item>
+            <a-breadcrumb-item><a href="javascript:;">大宗采购</a></a-breadcrumb-item>
+            <a-breadcrumb-item>新建框架采购协议</a-breadcrumb-item>
+          </a-breadcrumb>
+          <div class="header-content">
+            <div>
+              <div class="page-title">
+                <span>新建框架采购协议与审批</span>
+                <a-tag color="processing" bordered="false">表单优化范例</a-tag>
+              </div>
+              <div class="page-description">
+                将传统长表单通过卡片化逻辑分区、清晰对齐网格与底部吸底操作栏进行高效率重构。
+              </div>
+            </div>
+            <a-button @click="showAuditModal = true">
+              <template #icon><iconify-icon icon="ant-design:file-protect-outlined"></iconify-icon></template>
+              查看字段与布局核对表
+            </a-button>
+          </div>
+        </div>
+
+        <a-form
+          ref="formRef"
+          :model="formData"
+          :rules="rules"
+          layout="vertical"
+        >
+          <!-- 模块 1：基础协议信息 -->
+          <div class="form-section-card">
+            <div class="form-section-title">
+              <div class="title-bar"></div>
+              <span>一、基础协议信息</span>
+            </div>
+            <div class="grid-3-col">
+              <a-form-item label="协议编号" name="contractNo" tooltip="系统按编码规则自动生成，亦可手工指定自定义编号">
+                <a-input v-model:value="formData.contractNo" placeholder="系统自动生成" />
+              </a-form-item>
+
+              <a-form-item label="协议名称" name="contractName" required>
+                <a-input v-model:value="formData.contractName" placeholder="如：2026年度智能硬件芯片采购协议" allow-clear />
+              </a-form-item>
+
+              <a-form-item label="供应商主体" name="supplierId" required>
+                <a-select v-model:value="formData.supplierId" placeholder="请检索选择供应商" show-search :options="supplierOptions" />
+              </a-form-item>
+
+              <a-form-item label="协议签约类别" name="signType" required>
+                <a-select v-model:value="formData.signType" placeholder="请选择类别" :options="signTypeOptions" />
+              </a-form-item>
+
+              <a-form-item label="生效起止周期" name="validPeriod" required>
+                <a-range-picker v-model:value="formData.validPeriod" style="width: 100%;" />
+              </a-form-item>
+
+              <a-form-item label="主负责经办人" name="owner" required>
+                <a-select v-model:value="formData.owner" placeholder="请选择内部经办人" :options="userOptions" />
+              </a-form-item>
+            </div>
+          </div>
+
+          <!-- 模块 2：财务与商务条款 -->
+          <div class="form-section-card">
+            <div class="form-section-title">
+              <div class="title-bar"></div>
+              <span>二、财务结算与商务条款</span>
+            </div>
+            <div class="grid-3-col">
+              <a-form-item label="协议总预算额度 (元)" name="totalBudget" required>
+                <a-input-number
+                  v-model:value="formData.totalBudget"
+                  style="width: 100%;"
+                  :min="1"
+                  :formatter="value => `¥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                  :parser="value => value.replace(/\¥\s?|(,*)/g, '')"
+                  placeholder="请输入总预算额度"
+                />
+              </a-form-item>
+
+              <a-form-item label="结算币种" name="currency" required>
+                <a-select v-model:value="formData.currency" :options="currencyOptions" />
+              </a-form-item>
+
+              <a-form-item label="账期结算方式" name="settlementMethod" required>
+                <a-select v-model:value="formData.settlementMethod" :options="settlementOptions" />
+              </a-form-item>
+
+              <a-form-item label="发票开具类型" name="invoiceType" required>
+                <a-radio-group v-model:value="formData.invoiceType">
+                  <a-radio value="VAT_SPECIAL">增值税专用发票 (13%)</a-radio>
+                  <a-radio value="VAT_NORMAL">增值税普通发票</a-radio>
+                </a-radio-group>
+              </a-form-item>
+
+              <a-form-item label="质保保证金比例" name="depositRatio">
+                <a-input-number v-model:value="formData.depositRatio" style="width: 100%;" :min="0" :max="100" addon-after="%" />
+              </a-form-item>
+
+              <a-form-item label="违约滞纳费率" name="overdueRate">
+                <a-input-number v-model:value="formData.overdueRate" style="width: 100%;" :min="0" :max="1" :step="0.01" addon-after="‰ / 天" />
+              </a-form-item>
+            </div>
+          </div>
+
+          <!-- 模块 3：收货配送与联络档案 -->
+          <div class="form-section-card">
+            <div class="form-section-title">
+              <div class="title-bar"></div>
+              <span>三、履约仓储与送货指定</span>
+            </div>
+            <div class="grid-2-col">
+              <a-form-item label="指定交货园区/仓库" name="warehouse" required>
+                <a-select v-model:value="formData.warehouse" placeholder="请选择交付仓储点" :options="warehouseOptions" />
+              </a-form-item>
+
+              <a-form-item label="仓储联系负责人及电话" name="warehouseContact" required>
+                <a-input v-model:value="formData.warehouseContact" placeholder="如：李工 (13911223344)" />
+              </a-form-item>
+
+              <div class="grid-full-col">
+                <a-form-item label="收件精准详细地址" name="exactAddress" required>
+                  <a-input v-model:value="formData.exactAddress" placeholder="如：广东省东莞市松山湖高新技术产业开发区华为终端总部二号仓" />
+                </a-form-item>
+              </div>
+
+              <div class="grid-full-col">
+                <a-form-item label="补充特别约定事项 / 长文本说明" name="specialNotes">
+                  <a-textarea
+                    v-model:value="formData.specialNotes"
+                    placeholder="请输入需特别注明的履约细则、节假日配送时限要求或知识产权保护约定条款..."
+                    :rows="4"
+                    show-count
+                    :maxlength="500"
+                  />
+                </a-form-item>
+              </div>
+            </div>
+          </div>
+        </a-form>
+
+        <!-- 底部吸底固定操作栏 (Sticky Footer) -->
+        <div class="sticky-footer-bar">
+          <div>
+            <span class="text-secondary">表单完整度：</span>
+            <a-tag color="blue">必填项 10/10 已就绪</a-tag>
+          </div>
+          <a-space size="middle">
+            <a-button @click="handleCancel">取消并返回</a-button>
+            <a-button @click="handleSaveDraft">暂存草稿</a-button>
+            <a-button type="primary" :loading="submitting" @click="handleSubmit">
+              <template #icon><iconify-icon icon="ant-design:check-circle-outlined"></iconify-icon></template>
+              提交审批流
+            </a-button>
+          </a-space>
+        </div>
+
+        <!-- 核对清单弹窗 -->
+        <a-modal v-model:open="showAuditModal" title="表单字段与布局优化核对报告" width="760px" :footer="null">
+          <a-alert message="表单设计规范对齐" type="info" show-icon style="margin-bottom: 16px;"></a-alert>
+          <a-descriptions bordered size="small" :column="2">
+            <a-descriptions-item label="表单字段总数">14 项业务字段（全部与旧版对齐）</a-descriptions-item>
+            <a-descriptions-item label="必填标识">10 项红色必填星号</a-descriptions-item>
+            <a-descriptions-item label="视口网格布局">1920 宽度下 3 列等宽栅格排版</a-descriptions-item>
+            <a-descriptions-item label="吸底操作">底部固定操作栏，避免超长滚动无法保存</a-descriptions-item>
+          </a-descriptions>
+        </a-modal>
+
+      </div>
+    </a-config-provider>
+  </div>
+
+  <script>
+    const { createApp, ref, reactive } = Vue;
+
+    const app = createApp({
+      setup() {
+        const themeConfig = window.GlobalAntdConfig.theme;
+        const formRef = ref();
+        const submitting = ref(false);
+        const showAuditModal = ref(false);
+
+        const formData = reactive({
+          contractNo: 'CT-2026-HDW-0982',
+          contractName: '2026年度智能硬件主控芯片战略采购框架协议',
+          supplierId: 'SUP-001',
+          signType: 'ANNUAL_FRAMEWORK',
+          validPeriod: [],
+          owner: '张立民 (采购总监)',
+          totalBudget: 15800000,
+          currency: 'CNY',
+          settlementMethod: 'MONTHLY_90',
+          invoiceType: 'VAT_SPECIAL',
+          depositRatio: 5,
+          overdueRate: 0.05,
+          warehouse: 'WH-DG-01',
+          warehouseContact: '陈建国（仓储主管） 13800138000',
+          exactAddress: '广东省东莞市松山湖高新技术产业园区北部工业园8号智能供应链分拨总仓',
+          specialNotes: '每批次到货必须携带经 CNAS 认证的第三方检测机构出具的抽检合格报告。'
+        });
+
+        const rules = {
+          contractName: [{ required: true, message: '请输入协议名称', trigger: 'blur' }],
+          supplierId: [{ required: true, message: '请选择供应商主体', trigger: 'change' }]
+        };
+
+        const supplierOptions = [
+          { label: '上海微电子制造联合集团有限公司', value: 'SUP-001' },
+          { label: '深圳中科晶圆半导体科技有限公司', value: 'SUP-002' },
+          { label: '北京北方集成电路装备研究院', value: 'SUP-003' }
+        ];
+
+        const signTypeOptions = [
+          { label: '年度战略采购框架协议', value: 'ANNUAL_FRAMEWORK' },
+          { label: '单批次大宗直发协议', value: 'SINGLE_BATCH' },
+          { label: '寄售代销结算协议', value: 'CONSIGNMENT' }
+        ];
+
+        const userOptions = [
+          { label: '张立民 (采购总监)', value: '张立民 (采购总监)' },
+          { label: '李雨桐 (高级商务经理)', value: '李雨桐 (高级商务经理)' }
+        ];
+
+        const currencyOptions = [
+          { label: '人民币 (CNY ¥)', value: 'CNY' },
+          { label: '美元 (USD $)', value: 'USD' },
+          { label: '欧元 (EUR €)', value: 'EUR' }
+        ];
+
+        const settlementOptions = [
+          { label: '月结 90 天 (凭票对账后转账)', value: 'MONTHLY_90' },
+          { label: '月结 60 天', value: 'MONTHLY_60' },
+          { label: '现结款到发货', value: 'PREPAY' }
+        ];
+
+        const warehouseOptions = [
+          { label: '东莞松山湖智能一号总仓', value: 'WH-DG-01' },
+          { label: '无锡高新区华东二号分拨仓', value: 'WH-WX-02' },
+          { label: '天津自贸区北方保税保税仓', value: 'WH-TJ-03' }
+        ];
+
+        const handleSubmit = () => {
+          submitting.value = true;
+          setTimeout(() => {
+            submitting.value = false;
+            antd.message.success('已成功提交框架协议审批流！');
+          }, 600);
+        };
+
+        const handleSaveDraft = () => {
+          antd.message.info('协议草稿已暂存至本地');
+        };
+
+        const handleCancel = () => {
+          antd.message.warning('已取消表单操作');
+        };
+
+        return {
+          themeConfig,
+          formRef,
+          submitting,
+          showAuditModal,
+          formData,
+          rules,
+          supplierOptions,
+          signTypeOptions,
+          userOptions,
+          currencyOptions,
+          settlementOptions,
+          warehouseOptions,
+          handleSubmit,
+          handleSaveDraft,
+          handleCancel
+        };
+      }
+    });
+
+    app.use(antd).mount('#app');
+  </script>
+</body>
+</html>

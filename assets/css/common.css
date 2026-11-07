@@ -1,0 +1,275 @@
+/**
+ * ==============================================================================
+ * Ant Design Vue 4.0 UI 优化项目 - 通用样式与规范库
+ * 设计基准：1920 × 1080 CSS 视口
+ * 设计理念：
+ * 1. 优先使用 Ant Design Vue 原生 Token 与组件属性，严禁粗暴覆盖 AntD 内部核心样式。
+ * 2. 样式以模块化、高内聚组织，类名语义清晰，方便直接复制/迁移到 Vue 3 SFC 的 <style scoped> 中。
+ * 3. 严格遵循 8px 网格系统、信息层级区分、留白节奏与对比度规范。
+ * ==============================================================================
+ */
+
+:root {
+  /* 基础布局参数 */
+  --content-max-width: 1920px;
+  --header-height: 56px;
+  --bg-page: #f5f7fa;
+  --bg-container: #ffffff;
+  --border-color-split: #f0f0f0;
+  --border-color-base: #e5e7eb;
+  
+  /* 字体色彩层级 */
+  --text-title: #1f2329;
+  --text-primary: #1f2329;
+  --text-secondary: #646a73;
+  --text-tertiary: #8f959e;
+  --text-disabled: #bbbfc4;
+
+  /* 品牌色彩语义 */
+  --color-primary: #1677ff;
+  --color-success: #52c41a;
+  --color-warning: #faad14;
+  --color-error: #ff4d4f;
+  --color-info: #1677ff;
+
+  /* 阴影规范 */
+  --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  --shadow-card: 0 2px 8px 0 rgba(0, 0, 0, 0.04);
+  --shadow-sticky: 0 -4px 16px rgba(0, 0, 0, 0.06);
+
+  /* 圆角规范 */
+  --radius-sm: 4px;
+  --radius-base: 8px;
+  --radius-lg: 12px;
+}
+
+/* 全局重置与基础排版 */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5714285714285714;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 页面通用承载容器 (适配 1920×1080 视口) */
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-page);
+  padding: 16px 24px 24px;
+  box-sizing: border-box;
+}
+
+/* 页面顶部标题区 / 面包屑区 */
+.page-header {
+  margin-bottom: 16px;
+  background: transparent;
+}
+
+.page-header .header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.page-header .page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  color: var(--text-title);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-header .page-description {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* 卡片容器增强规范 */
+.custom-card {
+  border-radius: var(--radius-base);
+  border: 1px solid var(--border-color-split);
+  box-shadow: var(--shadow-subtle);
+  background: var(--bg-container);
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-card:hover {
+  box-shadow: var(--shadow-card);
+}
+
+/* 查询搜索栏卡片 */
+.search-card {
+  margin-bottom: 16px;
+  background: var(--bg-container);
+  border-radius: var(--radius-base);
+  padding: 18px 24px 4px;
+  border: 1px solid var(--border-color-split);
+  box-shadow: var(--shadow-subtle);
+}
+
+.search-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+/* 表格主体卡片与工具栏 */
+.table-card {
+  background: var(--bg-container);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--border-color-split);
+  box-shadow: var(--shadow-subtle);
+  padding: 16px 20px 20px;
+  flex: 1;
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.table-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.table-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 统计卡片栅格 */
+.stat-card-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: var(--bg-container);
+  border-radius: var(--radius-base);
+  padding: 16px 20px;
+  border: 1px solid var(--border-color-split);
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-card-info .stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.stat-card-info .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* 底部吸底固定操作栏 (用于长表单/审核流) */
+.sticky-footer-bar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  padding: 12px 32px;
+  border-top: 1px solid var(--border-color-split);
+  box-shadow: var(--shadow-sticky);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 99;
+  border-radius: var(--radius-base) var(--radius-base) 0 0;
+  margin: 16px -24px -24px;
+}
+
+/* 业务文本层级与溢出省略工具类 */
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.text-number {
+  font-variant-numeric: tabular-nums;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.text-empty {
+  color: var(--text-disabled);
+  font-style: normal;
+}
+
+/* Iconify 图标尺寸统一对齐 */
+iconify-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: -0.125em;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.icon-18 { font-size: 18px; }
+.icon-20 { font-size: 20px; }
+.icon-24 { font-size: 24px; }
+.icon-32 { font-size: 32px; }
+
+/* 页面右上角核对清单快捷悬浮指示器 */
+.audit-badge-btn {
+  position: fixed;
+  right: 24px;
+  top: 16px;
+  z-index: 1000;
+  box-shadow: 0 4px 16px rgba(22, 119, 255, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

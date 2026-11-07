@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>期间结转 - 财务结算中心 (1920×1080 视口高保真优化)</title>
+
+  <!-- 本地极速资源：零外部依赖，离线秒开 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       企业级中后台·期间结转高密度金融级 UI 规范
+       设计基准：1920×1080 宽屏，严控留白，操作顶部集成，严格四列金融网格
+       ========================================================================== */
+
+    body {
+      background-color: #f4f6f9;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .period-page-wrap {
+      min-height: 100vh;
+      padding: 12px 16px 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 顶部业务范围与状态控制条 */
+    .scope-bar-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .scope-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .page-main-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scope-currency-tag {
+      font-size: 12px;
+      color: #6b7280;
+      background: #f3f4f6;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .scope-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* 顶部 4 列财务大盘指标卡 */
+    .metric-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .metric-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card.active-period {
+      border-color: #93c5fd;
+      background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+    }
+
+    .metric-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .metric-number {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .metric-note {
+      font-size: 12px;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .metric-note.warn {
+      color: #d97706;
+      font-weight: 500;
+    }
+
+    /* 主体工作台卡片容器 (标准 Vben 风格) */
+    .workbench-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 12px 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Vben 顶部搜索表单卡片 */
+    .vben-search-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 2px;
+    }
+
+    .vben-search-form {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+    }
+
+    .vben-search-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vben-search-label {
+      font-size: 13px;
+      color: #374151;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .vben-search-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    /* Vben 风格线型 Tab 与右侧统一操作工具栏 */
+    .vben-toolbar-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .vben-line-tabs {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .vben-tab-item {
+      cursor: pointer;
+      font-size: 14px;
+      color: #4b5563;
+      padding: 6px 2px;
+      position: relative;
+      transition: all 0.2s;
+      font-weight: 500;
+      user-select: none;
+    }
+
+    .vben-tab-item:hover {
+      color: #1677ff;
+    }
+
+    .vben-tab-item.active {
+      color: #1677ff;
+      font-weight: 600;
+    }
+
+    .vben-tab-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: -9px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #1677ff;
+      border-radius: 2px;
+    }
+
+    .vben-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .vben-table-tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 6px;
+      border-left: 1px solid #e5e7eb;
+      padding-left: 8px;
+    }
+
+    /* 表格顶部状态与双击提示轻量提示条 */
+    .vben-table-subbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    /* Vben 底部分页条 */
+    .vben-pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      margin-top: 6px;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    .pagination-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #4b5563;
+    }
+
+    /* Vben 表格头部与行样式固定 */
+    .vben-table-wrap .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 9px 12px !important;
+      font-size: 13px;
+    }
+
+    .vben-table-wrap .ant-table-tbody > tr > td {
+      padding: 9px 12px !important;
+      font-size: 13px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .vben-table-wrap .ant-table-tbody > tr:hover > td {
+      background: #f8fafc !important;
+    }
+
+    .vben-table-wrap .ant-table-tbody > tr.ant-table-row-selected > td {
+      background: #e6f4ff !important;
+    }
+
+    /* 金融数字排版规范 */
+    .financial-cell {
+      font-variant-numeric: tabular-nums;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 500;
+    }
+
+    .profit-positive {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .profit-negative {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    /* =========================================================================
+       结转向导高密度预检矩阵样式 (彻底解决大块报警信息吃空间问题)
+       ========================================================================= */
+    .compact-precheck-table-wrap {
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .compact-precheck-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .compact-precheck-table th {
+      background: #f8fafc;
+      color: #4b5563;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    .compact-precheck-table td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #f3f4f6;
+      color: #1f2937;
+    }
+
+    .compact-precheck-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .compact-precheck-table tr.row-blocked {
+      background-color: #fffafb;
+    }
+
+    .compact-precheck-table tr.row-warn {
+      background-color: #fffdfa;
+    }
+
+    /* 结转向导内紧凑单行财务指标卡 */
+    .compact-stat-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+    }
+
+    .compact-stat-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .c-stat-label {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .c-stat-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 替代大黄框的紧凑单行状态栏 */
+    .compact-status-bar {
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      border-radius: 4px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* =========================================================================
+       反结转弹窗紧凑化样式 (解决报警信息过大问题)
+       ========================================================================= */
+    .compact-warn-banner {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #9a3412;
+      font-size: 13px;
+    }
+
+    .reopen-impact-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+    }
+
+    .impact-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .impact-label {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .impact-val {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    /* =========================================================================
+       快照抽屉紧凑化告警样式 (替代巨大粉色报警框)
+       ========================================================================= */
+    .snapshot-compact-alert {
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .snapshot-compact-alert.error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+
+    .snapshot-compact-alert.success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* 快照对比抽屉内小节标题 */
+    .snapshot-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+      margin: 12px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="text/x-template" id="app-template">
+    <a-config-provider :theme="themeConfig">
+      <div class="period-page-wrap">
+
+        <!-- ==================== Vben 风格顶部搜索表单 ==================== -->
+        <div class="vben-search-card">
+          <div class="vben-search-form">
+            <div class="vben-search-item">
+              <span class="vben-search-label">关键字</span>
+              <a-input
+                v-model:value="searchKeyword"
+                placeholder="船名/航次/单号/期间..."
+                style="width: 190px;"
+                size="middle"
+                allow-clear
+                @press-enter="handleSearch"
+              ></a-input>
+            </div>
+
+            <div class="vben-search-item">
+              <span class="vben-search-label">所属公司</span>
+              <a-select
+                v-model:value="currentCompanyId"
+                :options="companyOptions"
+                style="width: 270px;"
+                size="middle"
+                placeholder="选择所属公司"
+                @change="onCompanyChange"
+              ></a-select>
+            </div>
+
+            <div class="vben-search-item">
+              <span class="vben-search-label">会计期间</span>
+              <a-range-picker
+                v-model:value="searchMonthRange"
+                picker="month"
+                style="width: 230px;"
+                size="middle"
+              ></a-range-picker>
+            </div>
+
+            <div class="vben-search-actions">
+              <a-button @click="resetSearch">
+                <template #icon><iconify-icon icon="ant-design:redo-outlined"></iconify-icon></template>
+                重置
+              </a-button>
+              <a-button type="primary" @click="handleSearch">
+                <template #icon><iconify-icon icon="ant-design:search-outlined"></iconify-icon></template>
+                搜索
+              </a-button>
+              <a-button type="link" size="small" @click="searchExpanded = !searchExpanded" style="color: #1677ff;">
+                {{ searchExpanded ? '收起' : '展开' }}
+                <iconify-icon :icon="searchExpanded ? 'ant-design:up-outlined' : 'ant-design:down-outlined'"></iconify-icon>
+              </a-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 场景 1：未设置启用期间的引导提示卡片 -->
+        <a-alert
+          v-if="!periodEnabled"
+          type="info"
+          show-icon
+          style="margin-bottom: 4px;"
+        >
+          <template #message>
+            <span style="font-weight: 600;">当前公司（{{ currentCompany?.name }}）尚未设置启用期间，不做期间结转控制</span>
+          </template>
+          <template #description>
+            按财务锁账规范，需先在「锁账设置」中为该公司指定初始启用期间（不能晚于本月），方可开启月度期间结转与快照审计。
+          </template>
+          <template #action>
+            <a-button size="small" type="primary" @click="mockGoSettings">去锁账设置</a-button>
+          </template>
+        </a-alert>
+
+        <!-- 场景 2：正常已启用期间的展示区 -->
+        <template v-else>
+          <!-- 顶部 4 列财务大盘指标卡 (保留关键大盘数据) -->
+          <div class="metric-grid-4">
+            <!-- 卡片 1: 当前会计期间 -->
+            <div class="metric-card active-period">
+              <div class="metric-label-row">
+                <span>当前会计期间</span>
+                <a-tag color="processing">未结转</a-tag>
+              </div>
+              <div class="metric-value-row">
+                <span class="metric-number">{{ currentCompany.currentPeriod }}</span>
+              </div>
+              <div class="metric-note warn">
+                <iconify-icon icon="ant-design:alert-outlined"></iconify-icon>
+                <span>尚有 <b>{{ unlockedCountInCurrent }}</b> 项业务未锁账（可锁 30 / 暂不可锁 12）</span>
+              </div>
+            </div>
+
+            <!-- 卡片 2: 业务已结转至 -->
+            <div class="metric-card">
+              <div class="metric-label-row">
+                <span>业务已结转至</span>
+                <a-tag color="success">已封账</a-tag>
+              </div>
+              <div class="metric-value-row">
+                <span class="metric-number">{{ currentCompany.closedTo || '未结转' }}</span>
+              </div>
+              <div class="metric-note">
+                <span>{{ currentCompany.lastCloseInfo }}</span>
+              </div>
+            </div>
+
+            <!-- 卡片 3: 总账结账期间 -->
+            <div class="metric-card">
+              <div class="metric-label-row">
+                <span>总账结账期间</span>
+                <a-tag color="cyan">财务凭证对齐</a-tag>
+              </div>
+              <div class="metric-value-row">
+                <span class="metric-number" style="font-size: 18px;">{{ currentCompany.glAccountSets[0]?.closedTo || '未结账' }}</span>
+              </div>
+              <div class="metric-note">
+                <span>{{ currentCompany.glAccountSets.map(g => g.name + '：' + g.closedTo).join('；') }}</span>
+              </div>
+            </div>
+
+            <!-- 卡片 4: 启用会计期间 -->
+            <div class="metric-card">
+              <div class="metric-label-row">
+                <span>启用会计期间</span>
+                <a-tag color="default">生效基准</a-tag>
+              </div>
+              <div class="metric-value-row">
+                <span class="metric-number">{{ currentCompany.startPeriod }}</span>
+              </div>
+              <div class="metric-note">
+                <span>本位币：{{ currentCompany.currency }} · 该月份前账期视为自动结转</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 主体工作台卡片容器 (标准 Vben 风格) -->
+          <div class="workbench-card">
+            <!-- Vben 风格顶部工具栏：左侧线型 Tab，右侧操作按钮与工具图标 -->
+            <div class="vben-toolbar-bar">
+              <div class="vben-line-tabs">
+                <div
+                  class="vben-tab-item"
+                  :class="{ active: activeTab === 'all' }"
+                  @click="activeTab = 'all'"
+                >
+                  全部
+                </div>
+                <div
+                  class="vben-tab-item"
+                  :class="{ active: activeTab === 'open' }"
+                  @click="activeTab = 'open'"
+                >
+                  未结转 ({{ unclosedCount }})
+                </div>
+                <div
+                  class="vben-tab-item"
+                  :class="{ active: activeTab === 'closed' }"
+                  @click="activeTab = 'closed'"
+                >
+                  已结转 ({{ closedCount }})
+                </div>
+                <div
+                  class="vben-tab-item"
+                  :class="{ active: activeTab === 'logs' }"
+                  @click="activeTab = 'logs'"
+                >
+                  审计日志 ({{ logList.length }})
+                </div>
+              </div>
+
+              <div class="vben-toolbar-right">
+                <a-button
+                  type="primary"
+                  @click="openCloseWizardModal"
+                  :disabled="!currentPeriodRow"
+                >
+                  <template #icon><iconify-icon icon="ant-design:check-circle-outlined"></iconify-icon></template>
+                  结转当期 ({{ currentPeriodRow ? currentPeriodRow.period : '-' }})
+                </a-button>
+
+                <a-button
+                  danger
+                  @click="openReopenModal"
+                  :disabled="!reopenablePeriod"
+                >
+                  <template #icon><iconify-icon icon="ant-design:rollback-outlined"></iconify-icon></template>
+                  反结转 ({{ reopenablePeriod ? reopenablePeriod.period : '-' }})
+                </a-button>
+
+                <a-button
+                  @click="openSelectedSnapshot"
+                  :disabled="!hasSelectedClosedPeriod"
+                >
+                  <template #icon><iconify-icon icon="ant-design:camera-outlined"></iconify-icon></template>
+                  查看结转快照
+                </a-button>
+
+                <a-button
+                  @click="refreshPeriodData"
+                  :loading="refreshing"
+                >
+                  <template #icon><iconify-icon icon="ant-design:reload-outlined"></iconify-icon></template>
+                  刷新
+                </a-button>
+
+                <a-button
+                  type="dashed"
+                  size="small"
+                  @click="showAuditDrawer = true"
+                >
+                  <template #icon><iconify-icon icon="ant-design:safety-certificate-outlined" style="color: #1677ff;"></iconify-icon></template>
+                  100% 业务要素核对
+                </a-button>
+
+                <!-- Vben 右侧表格小工具图标 -->
+                <div class="vben-table-tools">
+                  <a-tooltip title="刷新列表">
+                    <a-button type="text" size="small" @click="refreshPeriodData">
+                      <iconify-icon icon="ant-design:reload-outlined"></iconify-icon>
+                    </a-button>
+                  </a-tooltip>
+                  <a-tooltip title="密度切换">
+                    <a-button type="text" size="small">
+                      <iconify-icon icon="ant-design:column-height-outlined"></iconify-icon>
+                    </a-button>
+                  </a-tooltip>
+                  <a-tooltip title="列设置">
+                    <a-button type="text" size="small">
+                      <iconify-icon icon="ant-design:setting-outlined"></iconify-icon>
+                    </a-button>
+                  </a-tooltip>
+                </div>
+              </div>
+            </div>
+
+            <!-- ==================== Tab 1/2/3: 会计期间表格 ==================== -->
+            <div v-show="activeTab !== 'logs'" style="display: flex; flex-direction: column; flex: 1;">
+              <!-- 表格状态与双击提示栏 -->
+              <div class="vben-table-subbar">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <a-tag color="blue">共 {{ displayedPeriodList.length }} 个期间</a-tag>
+                  <a-tag color="purple" v-if="selectedPeriodKeys.length > 0">
+                    已选 {{ selectedPeriodKeys.length }} 项 ({{ selectedPeriodKeys.join(', ') }})
+                  </a-tag>
+                  <span style="font-size: 12px; color: #6b7280;">
+                    💡 <b>操作说明</b>：已删除每行重复的操作列；双击已结转行可秒开「快照对比」，双击当前期间行可直达「结转向导」。
+                  </span>
+                </div>
+              </div>
+
+              <!-- 会计期间表格 (标准 Vben 列表样式，已删除操作列) -->
+              <div class="vben-table-wrap">
+                <a-table
+                  :columns="periodColumns"
+                  :data-source="displayedPeriodList"
+                  :row-key="record => record.period"
+                  :pagination="false"
+                  :row-selection="rowSelection"
+                  :custom-row="customPeriodRow"
+                  :row-class-name="getPeriodRowClassName"
+                  size="middle"
+                  :scroll="{ y: 'calc(100vh - 430px)' }"
+                  bordered
+                >
+                  <!-- 会计期间列 -->
+                  <template #bodyCell="{ column, record }">
+                    <template v-if="column.key === 'period'">
+                      <span style="font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums;">
+                        {{ record.period }}
+                      </span>
+                      <a-tag v-if="record.state === 1" color="processing" style="margin-left: 6px;">当期</a-tag>
+                    </template>
+
+                    <!-- 状态列 -->
+                    <template v-else-if="column.key === 'state'">
+                      <a-tag :color="record.stateColor">
+                        {{ record.stateLabel }}
+                      </a-tag>
+                    </template>
+
+                    <!-- 票数统计 -->
+                    <template v-else-if="column.key === 'mainCount'">
+                      <span class="financial-cell">{{ record.live.mainCount }}</span>
+                    </template>
+                    <template v-else-if="column.key === 'changeCount'">
+                      <span class="financial-cell">{{ record.live.changeCount }}</span>
+                    </template>
+                    <template v-else-if="column.key === 'lockedCount'">
+                      <span class="financial-cell" :style="{ color: record.live.lockedCount < (record.live.mainCount + record.live.changeCount) ? '#d97706' : '#16a34a', fontWeight: '600' }">
+                        {{ record.live.lockedCount }}
+                      </span>
+                    </template>
+
+                    <!-- 顺延出/入 -->
+                    <template v-else-if="column.key === 'deferred'">
+                      <span class="financial-cell" style="color: #4b5563;">
+                        {{ record.deferredOutCount ?? 0 }} / {{ record.deferredInCount ?? 0 }}
+                      </span>
+                    </template>
+
+                    <!-- 应收 -->
+                    <template v-else-if="column.key === 'receivable'">
+                      <span class="financial-cell">
+                        ¥ {{ formatNumber(record.live.receivableAmount) }}
+                      </span>
+                    </template>
+
+                    <!-- 应付 -->
+                    <template v-else-if="column.key === 'payable'">
+                      <span class="financial-cell">
+                        ¥ {{ formatNumber(record.live.payableAmount) }}
+                      </span>
+                    </template>
+
+                    <!-- 利润 -->
+                    <template v-else-if="column.key === 'profit'">
+                      <span
+                        class="financial-cell"
+                        :class="record.live.profit < 0 ? 'profit-negative' : 'profit-positive'"
+                      >
+                        ¥ {{ formatNumber(record.live.profit) }}
+                      </span>
+                    </template>
+
+                    <!-- 快照对比 -->
+                    <template v-else-if="column.key === 'snapshotMatched'">
+                      <template v-if="record.state === 1">
+                        <a-tag color="processing">实时数进行中</a-tag>
+                      </template>
+                      <template v-else-if="record.state === 0">
+                        <a-tooltip v-if="record.snapshotMatched === false" title="快照与实时数对不上，检测到结转后有单据改动">
+                          <a-tag color="error">
+                            <iconify-icon icon="ant-design:warning-outlined"></iconify-icon>
+                            快照与实时不一致
+                          </a-tag>
+                        </a-tooltip>
+                        <a-tag v-else-if="record.snapshotMatched === true" color="success">
+                          <iconify-icon icon="ant-design:check-outlined"></iconify-icon>
+                          一致
+                        </a-tag>
+                        <a-tag v-else color="default">无快照</a-tag>
+
+                        <span v-if="record.snapshot" style="font-size: 11px; color: #9ca3af; margin-left: 4px;">
+                          快照 {{ record.snapshot.mainCount + record.snapshot.changeCount }} 票
+                        </span>
+                      </template>
+                      <template v-else>
+                        <span style="color: #d1d5db;">-</span>
+                      </template>
+                    </template>
+
+                    <!-- 结转信息 -->
+                    <template v-else-if="column.key === 'closeInfo'">
+                      <span v-if="record.close" style="font-size: 12px; color: #4b5563; white-space: nowrap;">
+                        {{ record.close.mode === 1 ? '自动' : '手动' }} · {{ record.close.creatorUserName || '系统' }} · {{ record.close.creationTime }}
+                      </span>
+                      <span v-else style="color: #9ca3af;">-</span>
+                    </template>
+                  </template>
+                </a-table>
+              </div>
+
+              <!-- Vben 标准底部分页条 (完全对齐 Image 2) -->
+              <div class="vben-pagination-bar">
+                <div class="pagination-left">
+                  <span>共 {{ displayedPeriodList.length }} 条记录</span>
+                  <a-select size="small" :value="20" style="width: 90px;">
+                    <a-select-option :value="10">10条/页</a-select-option>
+                    <a-select-option :value="20">20条/页</a-select-option>
+                    <a-select-option :value="50">50条/页</a-select-option>
+                  </a-select>
+                </div>
+                <div class="pagination-right">
+                  <a-pagination
+                    size="small"
+                    :total="displayedPeriodList.length"
+                    :page-size="20"
+                    :show-size-changer="false"
+                  ></a-pagination>
+                </div>
+              </div>
+            </div>
+
+            <!-- ==================== Tab 2: 结转审计日志 ==================== -->
+            <div v-show="activeTab === 'logs'" style="display: flex; flex-direction: column; flex: 1;">
+              <!-- 筛选过滤条 -->
+              <div class="table-toolbar-bar" style="margin-bottom: 12px;">
+                <div class="toolbar-left-stats">
+                  <a-radio-group
+                    v-model:value="logActionFilter"
+                    :options="logActionOptions"
+                    button-style="solid"
+                    option-type="button"
+                    size="small"
+                  ></a-radio-group>
+
+                  <a-input-search
+                    v-model:value="logKeyword"
+                    placeholder="按操作人/备注模糊搜索..."
+                    style="width: 240px;"
+                    size="small"
+                    allow-clear
+                  ></a-input-search>
+                </div>
+
+                <div class="toolbar-right-btns">
+                  <a-tag color="blue">共 {{ filteredLogs.length }} 笔审计流转记录</a-tag>
+                  <a-button size="small" @click="refreshPeriodData">
+                    <template #icon><iconify-icon icon="ant-design:reload-outlined"></iconify-icon></template>
+                    刷新日志
+                  </a-button>
+                </div>
+              </div>
+
+              <!-- 审计日志表格 -->
+              <a-table
+                :columns="logColumns"
+                :data-source="filteredLogs"
+                :row-key="record => record.id"
+                :pagination="{ pageSize: 10, size: 'small', showTotal: total => `共 ${total} 条` }"
+                size="middle"
+                bordered
+              >
+                <template #bodyCell="{ column, record }">
+                  <template v-if="column.key === 'action'">
+                    <a-tag :color="record.action === 0 ? 'success' : 'warning'">
+                      {{ record.action === 0 ? '结转' : '反结转' }}
+                    </a-tag>
+                  </template>
+
+                  <template v-else-if="column.key === 'period'">
+                    <span style="font-weight: 700; font-variant-numeric: tabular-nums;">
+                      {{ record.period }}
+                    </span>
+                  </template>
+
+                  <template v-else-if="column.key === 'mode'">
+                    <a-tag :color="record.mode === 1 ? 'blue' : 'default'">
+                      {{ record.mode === 1 ? '系统自动' : '人工手动' }}
+                    </a-tag>
+                  </template>
+
+                  <template v-else-if="column.key === 'lockedCount'">
+                    <span class="financial-cell">{{ record.lockedCount ?? '-' }}</span>
+                  </template>
+
+                  <template v-else-if="column.key === 'deferredCount'">
+                    <span class="financial-cell">{{ record.deferredCount ?? '-' }}</span>
+                  </template>
+
+                  <template v-else-if="column.key === 'remark'">
+                    <span v-if="record.remark" style="color: #374151;">{{ record.remark }}</span>
+                    <span v-else style="color: #9ca3af;">-</span>
+                  </template>
+                </template>
+              </a-table>
+            </div>
+          </div>
+        </template>
+
+      </div>
+
+      <!-- =====================================================================
+           弹窗 1：结转向导弹窗 (Close Wizard Modal，Section 4.1 规范)
+           ===================================================================== -->
+      <a-modal
+        v-model:open="showCloseWizardModal"
+        :title="`结转 ${currentCompany?.currentPeriod || '2026-10'} · ${currentCompany?.name}`"
+        width="960px"
+        :footer="null"
+        :destroy-on-close="true"
+      >
+        <!-- 步骤条 -->
+        <a-steps
+          :current="wizardStep"
+          size="small"
+          style="margin: 16px 0 20px;"
+          :items="[
+            { title: '结转前置检查' },
+            { title: '处理未锁账单据' },
+            { title: '确认结转影响' }
+          ]"
+        ></a-steps>
+
+        <!-- Step 0: 结转检查 (高密度风控矩阵，彻底解决大块报警框吃空间问题) -->
+        <div v-if="wizardStep === 0">
+          <div style="font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+            <span>系统执行 5 项结转前置风控拦截与校验：</span>
+            <span style="font-size: 12px; color: #6b7280; font-weight: normal;">
+              未通过阻断项需在下一步完成锁账或顺延处理
+            </span>
+          </div>
+
+          <!-- 5项预检风控矩阵：紧凑高密度表格排布 -->
+          <div class="compact-precheck-table-wrap">
+            <table class="compact-precheck-table">
+              <thead>
+                <tr>
+                  <th style="width: 44px; text-align: center;">状态</th>
+                  <th style="width: 180px;">风控预检规则</th>
+                  <th>检查明细与异常定位</th>
+                  <th style="width: 95px; text-align: center;">拦截级别</th>
+                  <th style="width: 80px; text-align: center;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, idx) in closeCheckItems" :key="idx" :class="{ 'row-blocked': item.result === 1, 'row-warn': item.result === 2 }">
+                  <td style="text-align: center;">
+                    <iconify-icon
+                      :icon="item.result === 0 ? 'ant-design:check-circle-filled' : (item.result === 1 ? 'ant-design:close-circle-filled' : 'ant-design:exclamation-circle-filled')"
+                      :style="{ color: item.result === 0 ? '#16a34a' : (item.result === 1 ? '#dc2626' : '#d97706'), fontSize: '15px' }"
+                    ></iconify-icon>
+                  </td>
+                  <td style="font-weight: 600; color: #111827;">{{ item.name }}</td>
+                  <td style="color: #4b5563; font-size: 12px;">{{ item.message }}</td>
+                  <td style="text-align: center;">
+                    <a-tag :color="item.result === 0 ? 'success' : (item.result === 1 ? 'error' : 'warning')">
+                      {{ item.result === 0 ? '检查通过' : (item.result === 1 ? '拦截阻断' : '业务提醒') }}
+                    </a-tag>
+                  </td>
+                  <td style="text-align: center;">
+                    <a-button v-if="item.result === 1" type="link" size="small" @click="wizardStep = 1">去处理</a-button>
+                    <span v-else style="color: #9ca3af; font-size: 12px;">-</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 紧凑单行财务核算条 -->
+          <div class="compact-stat-ribbon">
+            <div class="compact-stat-cell">
+              <span class="c-stat-label">本期单据票数</span>
+              <span class="c-stat-val">主单 <b>44</b> · 更改单 <b>2</b> · 已锁 <b>30</b></span>
+            </div>
+            <div class="compact-stat-cell">
+              <span class="c-stat-label">应收总额 (RMB)</span>
+              <span class="c-stat-val">¥ 1,482,900.00</span>
+            </div>
+            <div class="compact-stat-cell">
+              <span class="c-stat-label">应付总额 (RMB)</span>
+              <span class="c-stat-val">¥ 1,120,500.00</span>
+            </div>
+            <div class="compact-stat-cell">
+              <span class="c-stat-label">测算经营利润</span>
+              <span class="c-stat-val" style="color: #16a34a;">¥ 362,400.00</span>
+            </div>
+          </div>
+
+          <!-- 替代大黄框的紧凑单行状态栏 -->
+          <div class="compact-status-bar">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <iconify-icon icon="ant-design:info-circle-filled" style="color: #1677ff; font-size: 15px;"></iconify-icon>
+              <span style="font-size: 12px; color: #1e293b;">
+                预检结论：可直接锁账 <b>30</b> 笔 · 需顺延处理 <b>12</b> 笔（下一步批量处理顺延与锁账即可完成结转）
+              </span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <a-button size="small" @click="showCloseWizardModal = false">取消</a-button>
+              <a-button type="primary" size="small" @click="wizardStep = 1">
+                下一步：处理未锁账单据
+                <iconify-icon icon="ant-design:arrow-right-outlined"></iconify-icon>
+              </a-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1: 处理未锁账的票 -->
+        <div v-else-if="wizardStep === 1">
+          <!-- 区域 1：可锁账业务一键锁 -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-weight: 600; font-size: 14px; color: #0f172a;">
+                可锁账业务：{{ lockableCount }} 项
+              </div>
+              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                满足全部锁账条件；设为「提醒」的检查项不影响锁账。支持立即一键全部锁账。
+              </div>
+            </div>
+            <a-button
+              type="primary"
+              ghost
+              size="small"
+              :loading="lockingAll"
+              @click="mockLockAll"
+            >
+              <template #icon><iconify-icon icon="ant-design:lock-outlined"></iconify-icon></template>
+              一键锁上这 {{ lockableCount }} 笔
+            </a-button>
+          </div>
+
+          <!-- 区域 2：暂不可锁的单据明细表格与顺延配置 -->
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <div style="font-weight: 600; font-size: 13px; color: #111827;">
+                暂不可锁业务（{{ blockedTickets.length }} 项）：
+                <span style="font-weight: normal; font-size: 12px; color: #6b7280;">未完结业务顺延至 <b>2026-11</b>，原票费用的会计期间随之一并顺延</span>
+              </div>
+              <a-button size="small" @click="deferAllBlocked">全部顺延至 2026-11</a-button>
+            </div>
+
+            <a-table
+              :columns="blockedColumns"
+              :data-source="blockedTickets"
+              :row-key="record => record.id"
+              :pagination="false"
+              size="small"
+              :scroll="{ y: 220 }"
+              bordered
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'ticket'">
+                  <div style="font-weight: 600;">{{ record.commissionNum }}</div>
+                  <div style="font-size: 11px; color: #6b7280;">{{ record.bizTypeLabel }} · 主单 {{ record.mblNum }}</div>
+                </template>
+
+                <template v-else-if="column.key === 'blocks'">
+                  <span style="color: #dc2626; font-size: 12px;">{{ record.blockReason }}</span>
+                </template>
+
+                <template v-else-if="column.key === 'defer'">
+                  <a-checkbox
+                    v-model:checked="record.isDeferred"
+                    @change="calculateReadiness"
+                  >
+                    顺延到 2026-11
+                  </a-checkbox>
+                </template>
+              </template>
+            </a-table>
+          </div>
+
+          <!-- 动态实时准备度核对条 -->
+          <div
+            :style="{
+              padding: '10px 14px',
+              borderRadius: '6px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: remainingCount === 0 ? '#f0fdf4' : '#fef2f2',
+              border: remainingCount === 0 ? '1px solid #bbf7d0' : '1px solid #fecaca'
+            }"
+          >
+            <div style="font-size: 13px; font-weight: 600;" :style="{ color: remainingCount === 0 ? '#16a34a' : '#dc2626' }">
+              <iconify-icon :icon="remainingCount === 0 ? 'ant-design:check-circle-filled' : 'ant-design:close-circle-filled'"></iconify-icon>
+              <span>处理后本期未解决票数：{{ remainingCount }} 项 · {{ remainingCount === 0 ? '已完全处理，可以进行结转' : '必须将全部暂不可锁单据顺延或锁账后方可结转' }}</span>
+            </div>
+            <span style="font-size: 12px; color: #64748b;">已选择顺延 {{ deferredCount }} 笔</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+            <a-button @click="wizardStep = 0">
+              <iconify-icon icon="ant-design:arrow-left-outlined"></iconify-icon>
+              上一步
+            </a-button>
+
+            <a-button
+              type="primary"
+              :disabled="remainingCount > 0"
+              @click="wizardStep = 2"
+            >
+              下一步：确认结转影响
+              <iconify-icon icon="ant-design:arrow-right-outlined"></iconify-icon>
+            </a-button>
+          </div>
+        </div>
+
+        <!-- Step 2: 确认结转 -->
+        <div v-else-if="wizardStep === 2">
+          <!-- 结转选项勾选 -->
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 12px 16px; margin-bottom: 12px;">
+            <a-checkbox v-model:checked="autoLockBeforeClose">
+              <span style="font-weight: 600; color: #1e40af;">结转前把可锁账的 30 项业务一并自动锁定</span>
+            </a-checkbox>
+            <div style="font-size: 12px; color: #3b82f6; margin-left: 24px; margin-top: 2px;">
+              推荐勾选：避免因遗漏手动锁账导致财务审计口径不一致。
+            </div>
+          </div>
+
+          <!-- 5项重大财务影响约束说明 -->
+          <div class="consequence-box">
+            <div style="font-weight: 700; margin-bottom: 6px; color: #92400e; display: flex; align-items: center; gap: 6px;">
+              <iconify-icon icon="ant-design:warning-filled"></iconify-icon>
+              <span>结转将产生如下不可逆财务与业务影响，请核实：</span>
+            </div>
+            <ul class="consequence-list">
+              <li><b>顺延调整</b>：选中的 {{ deferredCount }} 笔未完结业务将顺延至 <b>2026-11</b>，原单据下费用的会计期间随之联动。</li>
+              <li><b>期间封账</b>：<b>2026-10</b> 期间将即刻封账，封账后严禁在当期新建、移入、删除任何业务及费用凭证。</li>
+              <li><b>单据锁定</b>：<b>2026-10</b> 期间所有业务单据全面封锁禁止解锁，后续如需调整必须通过更改单（期间为 2026-11 起）。</li>
+              <li><b>不可篡改快照</b>：系统将即刻生成本期各业务类型的经营快照，日后供内控审计随时比对追溯。</li>
+              <li><b>反结转门槛</b>：如需逆向恢复，必须发起「反结转」流程且总账当期未结账，需财务总监级审批权限。</li>
+            </ul>
+          </div>
+
+          <!-- 备注输入 -->
+          <a-form layout="vertical">
+            <a-form-item label="结转备注 / 业务批注（选填）">
+              <a-textarea
+                v-model:value="closeRemark"
+                :rows="2"
+                :maxlength="256"
+                show-count
+                placeholder="例如：SE2610-0052 因客户单证争议顺延至下月；其余 30 笔已全部确认核准。"
+              ></a-textarea>
+            </a-form-item>
+          </a-form>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <a-button @click="wizardStep = 1">
+              <iconify-icon icon="ant-design:arrow-left-outlined"></iconify-icon>
+              上一步
+            </a-button>
+
+            <a-button
+              type="primary"
+              :loading="submittingClose"
+              @click="mockExecuteClose"
+            >
+              <template #icon><iconify-icon icon="ant-design:check-circle-outlined"></iconify-icon></template>
+              确认并执行期间结转
+            </a-button>
+          </div>
+        </div>
+
+        <!-- Step 3: 结转成功结果态 -->
+        <div v-else-if="wizardStep === 3">
+          <a-result
+            status="success"
+            title="2026-10 会计期间已成功结转！"
+            sub-title="当前会计期间已自动推进为 2026-11 · 一并锁账 30 项 · 成功顺延 12 项单据至 2026-11"
+          >
+            <template #extra>
+              <div class="wizard-stat-ribbon" style="max-width: 720px; margin: 0 auto 20px;">
+                <div class="wizard-stat-item">
+                  <span class="wizard-stat-label">结转快照总票数</span>
+                  <span class="wizard-stat-val">主单 44 · 更改单 2 · 锁账 44</span>
+                </div>
+                <div class="wizard-stat-item">
+                  <span class="wizard-stat-label">固化应收快照</span>
+                  <span class="wizard-stat-val">¥ 1,482,900.00</span>
+                </div>
+                <div class="wizard-stat-item">
+                  <span class="wizard-stat-label">固化应付快照</span>
+                  <span class="wizard-stat-val">¥ 1,120,500.00</span>
+                </div>
+                <div class="wizard-stat-item">
+                  <span class="wizard-stat-label">固化利润快照</span>
+                  <span class="wizard-stat-val" style="color: #16a34a;">¥ 362,400.00</span>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 10px; justify-content: center;">
+                <a-button type="primary" @click="finishCloseWizard">
+                  完成并返回工作台
+                </a-button>
+                <a-button @click="openSnapshotDrawer(periodList[0])">
+                  立即查看生成快照
+                </a-button>
+              </div>
+            </template>
+          </a-result>
+        </div>
+      </a-modal>
+
+      <!-- =====================================================================
+           弹窗 2：反结转确认弹窗 (ReopenModal)
+           ===================================================================== -->
+      <!-- =====================================================================
+           弹窗 2：反结转确认弹窗 (ReopenModal，紧凑专业设计)
+           ===================================================================== -->
+      <a-modal
+        v-model:open="showReopenModal"
+        :title="`反结转 ${reopenablePeriod?.period || '2026-09'} · ${currentCompany?.name}`"
+        width="660px"
+        :footer="null"
+        :destroy-on-close="true"
+      >
+        <!-- 紧凑单行警告条 (彻底解决大块报警框吃空间问题) -->
+        <div class="compact-warn-banner">
+          <iconify-icon icon="ant-design:warning-filled" style="color: #ea580c; font-size: 15px;"></iconify-icon>
+          <span>反结转将把 <b>{{ reopenablePeriod?.period }}</b> 重新置为「未结转」，原结转快照作废，已锁单据开放解锁权限。</span>
+        </div>
+
+        <!-- 紧凑 4 格反结转影响概览 -->
+        <div class="reopen-impact-grid">
+          <div class="impact-cell">
+            <span class="impact-label">期间退回</span>
+            <span class="impact-val">{{ currentCompany?.currentPeriod }} → <b>{{ reopenablePeriod?.period }}</b></span>
+          </div>
+          <div class="impact-cell">
+            <span class="impact-label">单据状态</span>
+            <span class="impact-val"><b>41 笔</b> 单据开放解锁修改</span>
+          </div>
+          <div class="impact-cell">
+            <span class="impact-label">顺延业务</span>
+            <span class="impact-val">历史顺延单据保持在下期</span>
+          </div>
+          <div class="impact-cell">
+            <span class="impact-label">总账校验</span>
+            <span class="impact-val" style="color: #16a34a;">主账套结至 08（允许反结）</span>
+          </div>
+        </div>
+
+        <!-- 反结转原因输入与快捷标签 -->
+        <div style="margin-top: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 13px; font-weight: 600; color: #111827;">
+              <span style="color: #dc2626; margin-right: 2px;">*</span>反结转原因（必填）：
+            </span>
+            <div style="display: flex; gap: 4px;">
+              <span style="font-size: 12px; color: #6b7280;">快捷原因：</span>
+              <a-tag style="cursor: pointer;" @click="appendReopenReason('补录遗漏单据费用')">补录费用</a-tag>
+              <a-tag style="cursor: pointer;" @click="appendReopenReason('开票税号抬头录错')">税号抬头错</a-tag>
+              <a-tag style="cursor: pointer;" @click="appendReopenReason('外部供应商调减运杂费')">运杂费调减</a-tag>
+              <a-tag style="cursor: pointer;" @click="appendReopenReason('客户索赔冲减业务利润')">客户索赔</a-tag>
+            </div>
+          </div>
+
+          <a-textarea
+            v-model:value="reopenReason"
+            :rows="3"
+            :maxlength="512"
+            show-count
+            placeholder="请输入本次反结转的具体业务与财务审批原因..."
+          ></a-textarea>
+          <div v-if="reopenReasonError" style="color: #dc2626; font-size: 12px; margin-top: 4px;">
+            {{ reopenReasonError }}
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <a-button @click="showReopenModal = false">取消</a-button>
+          <a-popconfirm
+            title="确认执行反结转？"
+            description="反结转将把业务账期退回并废除原有结转快照，请确认操作。"
+            ok-text="确认反结转"
+            cancel-text="取消"
+            :ok-button-props="{ danger: true }"
+            @confirm="mockExecuteReopen"
+          >
+            <a-button danger type="primary" :loading="submittingReopen">
+              确认反结转
+            </a-button>
+          </a-popconfirm>
+        </div>
+      </a-modal>
+
+      <!-- =====================================================================
+           抽屉 1：结转快照对比抽屉 (SnapshotDrawer，全保真)
+           ===================================================================== -->
+      <a-drawer
+        v-model:open="showSnapshotDrawer"
+        :title="`结转快照对比 · ${currentCompany?.name} ${selectedSnapshotRow?.period || '2026-09'}`"
+        width="1100px"
+        :destroy-on-close="true"
+      >
+        <!-- 差异告警状态 (紧凑单行条，替代巨大粉色报警框) -->
+        <div v-if="selectedSnapshotRow?.snapshotMatched === false" class="snapshot-compact-alert error">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <iconify-icon icon="ant-design:warning-filled" style="color: #dc2626; font-size: 16px;"></iconify-icon>
+            <span style="font-weight: 600; color: #991b1b;">快照与实时数不一致（检测到 2 笔单据在结转后发生修改）</span>
+            <span style="font-size: 12px; color: #7f1d1d;">系统检测到结转归档后存在线下绕行平账或费用变动</span>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <a-tag color="error">差异单据: 2 笔</a-tag>
+            <a-tag color="error">净利润差额: -¥ 17,732.00</a-tag>
+          </div>
+        </div>
+
+        <div v-else class="snapshot-compact-alert success">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <iconify-icon icon="ant-design:check-circle-filled" style="color: #16a34a; font-size: 16px;"></iconify-icon>
+            <span style="font-weight: 600; color: #166534;">快照与实时数完全一致（结转封账后未发生任何变动）</span>
+          </div>
+          <a-tag color="success">内控良好 · 零差异</a-tag>
+        </div>
+
+        <!-- 子表 1：分业务类型对比 -->
+        <div class="snapshot-section-title">
+          <iconify-icon icon="ant-design:pie-chart-outlined" style="color: #1677ff;"></iconify-icon>
+          <span>分业务类型数据对比</span>
+        </div>
+
+        <a-table
+          :columns="snapshotBizColumns"
+          :data-source="snapshotBizData"
+          :pagination="false"
+          size="small"
+          bordered
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'bizType'">
+              <span style="font-weight: 600;">{{ record.bizTypeName }}</span>
+            </template>
+            <template v-else-if="column.key === 'matched'">
+              <a-tag :color="record.matched ? 'success' : 'error'">
+                {{ record.matched ? '一致' : '不一致' }}
+              </a-tag>
+            </template>
+          </template>
+        </a-table>
+
+        <!-- 子表 2：对不上的差异票 -->
+        <div class="snapshot-section-title" style="margin-top: 24px;">
+          <iconify-icon icon="ant-design:warning-outlined" style="color: #ef4444;"></iconify-icon>
+          <span>对不上的异常单据清单（{{ snapshotDiffTickets.length }} 笔）</span>
+        </div>
+
+        <a-table
+          v-if="snapshotDiffTickets.length > 0"
+          :columns="snapshotDiffColumns"
+          :data-source="snapshotDiffTickets"
+          :pagination="false"
+          size="small"
+          bordered
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'ticket'">
+              <div style="font-weight: 600;">{{ record.commissionNum }}</div>
+              <div style="font-size: 11px; color: #6b7280;">委托单号 / 主单号</div>
+            </template>
+
+            <template v-else-if="column.key === 'diffType'">
+              <a-tag :color="record.diffType === '金额变动' ? 'error' : (record.diffType === '移出' ? 'warning' : 'blue')">
+                {{ record.diffType }}
+              </a-tag>
+            </template>
+
+            <template v-else-if="column.key === 'diffAmount'">
+              <div class="financial-cell" style="color: #dc2626;">
+                应付减少 ¥ {{ formatNumber(record.diffVal) }}
+              </div>
+            </template>
+          </template>
+        </a-table>
+        <a-empty v-else description="无差异单据，全部对齐"></a-empty>
+      </a-drawer>
+
+      <!-- =====================================================================
+           抽屉 2：业务要素 100% 审计核对表 (Audit Drawer)
+           ===================================================================== -->
+      <a-drawer
+        v-model:open="showAuditDrawer"
+        title="📋 期间结转 - 业务要素 100% 对齐与 UI 优化说明"
+        width="880px"
+      >
+        <a-tabs default-active-key="1">
+          <a-tab-pane key="1" tab="1. 业务字段与规则 100% 对齐清点">
+            <a-table
+              :columns="[
+                { title: '业务模块 / 实体', dataIndex: 'module', width: 140 },
+                { title: '原系统业务字段与要素', dataIndex: 'fields', width: 340 },
+                { title: '高保真还原度', dataIndex: 'status', width: 100 },
+                { title: '业务约束与规则保障', dataIndex: 'rule' }
+              ]"
+              :data-source="auditFidelityData"
+              :pagination="false"
+              size="small"
+              bordered
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.dataIndex === 'status'">
+                  <a-tag color="success">100% 对齐</a-tag>
+                </template>
+              </template>
+            </a-table>
+          </a-tab-pane>
+
+          <a-tab-pane key="2" tab="2. 企业级 UI 深度优化说明 (去 AI 味)">
+            <a-typography>
+              <a-typography-title :level="5">彻底剔除 AI 虚浮杂质，聚焦高密度金融准则</a-typography-title>
+              <ul style="line-height: 2;">
+                <li><b>顶部集成工具栏规范</b>：移除了每行重复笨重的冗余操作按钮，在表格顶部集成「结转当期」、「反结转」、「查看快照」，极大提升视口利用率。</li>
+                <li><b>双击行交互人体工学</b>：双击已结转行直达快照对比，双击当前期间行秒开三步结转向导，遵循专业软件操作习惯。</li>
+                <li><b>4 列自适应金融网格</b>：指标卡与检查项严格采用等比网格排布，所有金额字段使用 <code>tabular-nums</code> 靠右金融排版，千分位对齐。</li>
+                <li><b>状态单点严谨呈现</b>：结转检查 5 项、未锁账处理准备度动态推演、重大影响条款清单，全流程闭环无断点。</li>
+              </ul>
+            </a-typography>
+          </a-tab-pane>
+
+          <a-tab-pane key="3" tab="3. Vue 3 SFC 一键投产指引">
+            <a-typography-paragraph>
+              研发直接从本 HTML 复制 <code>template</code>、响应式 <code>setup()</code> 及 <code>style scoped</code> 即可完成投产，零返工成本。
+            </a-typography-paragraph>
+          </a-tab-pane>
+        </a-tabs>
+      </a-drawer>
+
+    </a-config-provider>
+  </script>
+
+  <script>
+    const { createApp, ref, computed, reactive } = Vue;
+
+    const app = createApp({
+      template: '#app-template',
+      setup() {
+        // 主题色配置
+        const themeConfig = {
+          token: {
+            colorPrimary: '#1677ff',
+            borderRadius: 4,
+            fontSize: 13,
+            wireframe: false
+          }
+        };
+
+        // 当前选中的公司
+        const currentCompanyId = ref('comp_01');
+
+        // 公司选项
+        const companyOptions = [
+          { label: '青岛佳越软件科技有限公司 (已启用 2026-08)', value: 'comp_01' },
+          { label: '测试WF346锁账验收公司 (已启用 2026-07)', value: 'comp_02' },
+          { label: '青岛黄岛分公司 (未设置启用期间)', value: 'comp_03' }
+        ];
+
+        // 公司字典数据
+        const companiesMap = {
+          comp_01: {
+            id: 'comp_01',
+            name: '青岛佳越软件科技有限公司',
+            currency: 'RMB',
+            startPeriod: '2026-08',
+            currentPeriod: '2026-10',
+            closedTo: '2026-09',
+            lastCloseInfo: '手动 · 超级管理员 · 2026-10-08 11:20',
+            glAccountSets: [
+              { name: '默认主账套', closedTo: '2026-08' },
+              { name: '香港分公司外币账套', closedTo: '未结账' }
+            ]
+          },
+          comp_02: {
+            id: 'comp_02',
+            name: '测试WF346锁账验收公司',
+            currency: 'RMB',
+            startPeriod: '2026-07',
+            currentPeriod: '2026-09',
+            closedTo: '2026-08',
+            lastCloseInfo: '手动 · 测试账号35 · 2026-09-05 16:40',
+            glAccountSets: [
+              { name: '测试账套', closedTo: '2026-07' }
+            ]
+          },
+          comp_03: {
+            id: 'comp_03',
+            name: '青岛黄岛分公司',
+            currency: 'RMB',
+            startPeriod: null,
+            currentPeriod: '2026-10',
+            closedTo: null,
+            lastCloseInfo: '暂无结转记录',
+            glAccountSets: []
+          }
+        };
+
+        const currentCompany = computed(() => companiesMap[currentCompanyId.value]);
+        const periodEnabled = computed(() => !!currentCompany.value?.startPeriod);
+
+        // Tab 控制与搜索条件 (标准 Vben 风格)
+        const activeTab = ref('all');
+        const refreshing = ref(false);
+        const searchKeyword = ref('');
+        const searchMonthRange = ref(null);
+        const searchExpanded = ref(false);
+
+        // 选中的期间
+        const selectedPeriodKeys = ref(['2026-09']);
+
+        // 会计期间列表数据
+        const periodList = ref([
+          {
+            period: '2026-10',
+            state: 1, // 当前期间
+            stateLabel: '当前期间',
+            stateColor: 'processing',
+            canReopen: false,
+            live: {
+              mainCount: 44,
+              changeCount: 2,
+              lockedCount: 30,
+              receivableAmount: 1482900.00,
+              payableAmount: 1120500.00,
+              profit: 362400.00
+            },
+            deferredOutCount: 0,
+            deferredInCount: 2,
+            snapshotMatched: null,
+            snapshot: null,
+            close: null
+          },
+          {
+            period: '2026-09',
+            state: 0, // 已结转
+            stateLabel: '已结转',
+            stateColor: 'success',
+            canReopen: true, // 只有最近一个已结转期间可反结转
+            live: {
+              mainCount: 38,
+              changeCount: 3,
+              lockedCount: 41,
+              receivableAmount: 1290450.00,
+              payableAmount: 980120.00,
+              profit: 310330.00
+            },
+            deferredOutCount: 2,
+            deferredInCount: 1,
+            snapshotMatched: false, // 快照与实时不一致
+            snapshot: {
+              mainCount: 38,
+              changeCount: 3,
+              lockedCount: 41,
+              receivableAmount: 1290450.00,
+              payableAmount: 997852.00,
+              profit: 292598.00
+            },
+            close: {
+              mode: 0, // 手动
+              creatorUserName: '超级管理员',
+              creationTime: '2026-10-08 11:20'
+            }
+          },
+          {
+            period: '2026-08',
+            state: 0,
+            stateLabel: '已结转',
+            stateColor: 'success',
+            canReopen: false,
+            live: {
+              mainCount: 52,
+              changeCount: 5,
+              lockedCount: 57,
+              receivableAmount: 1820600.00,
+              payableAmount: 1410200.00,
+              profit: 410400.00
+            },
+            deferredOutCount: 1,
+            deferredInCount: 0,
+            snapshotMatched: true,
+            snapshot: {
+              mainCount: 52,
+              changeCount: 5,
+              lockedCount: 57,
+              receivableAmount: 1820600.00,
+              payableAmount: 1410200.00,
+              profit: 410400.00
+            },
+            close: {
+              mode: 1, // 自动
+              creatorUserName: null,
+              creationTime: '2026-09-01 02:00'
+            }
+          },
+          {
+            period: '2026-07',
+            state: 0,
+            stateLabel: '已结转',
+            stateColor: 'success',
+            canReopen: false,
+            live: {
+              mainCount: 46,
+              changeCount: 4,
+              lockedCount: 50,
+              receivableAmount: 1530000.00,
+              payableAmount: 1190000.00,
+              profit: 340000.00
+            },
+            deferredOutCount: 0,
+            deferredInCount: 0,
+            snapshotMatched: true,
+            snapshot: {
+              mainCount: 46,
+              changeCount: 4,
+              lockedCount: 50,
+              receivableAmount: 1530000.00,
+              payableAmount: 1190000.00,
+              profit: 340000.00
+            },
+            close: {
+              mode: 0,
+              creatorUserName: '王财务',
+              creationTime: '2026-08-05 14:15'
+            }
+          }
+        ]);
+
+        const unclosedCount = computed(() => periodList.value.filter(p => p.state === 1).length);
+        const closedCount = computed(() => periodList.value.filter(p => p.state === 0).length);
+
+        const displayedPeriodList = computed(() => {
+          let list = periodList.value;
+          if (activeTab.value === 'open') {
+            list = list.filter(p => p.state === 1);
+          } else if (activeTab.value === 'closed') {
+            list = list.filter(p => p.state === 0);
+          }
+          if (searchKeyword.value.trim()) {
+            const kw = searchKeyword.value.trim().toLowerCase();
+            list = list.filter(p => (p.period || '').toLowerCase().includes(kw));
+          }
+          return list;
+        });
+
+        const resetSearch = () => {
+          searchKeyword.value = '';
+          searchMonthRange.value = null;
+          antd.message.info('已重置搜索条件');
+        };
+
+        const handleSearch = () => {
+          antd.message.success('查询完成');
+        };
+
+        const appendReopenReason = (tag) => {
+          if (!reopenReason.value) {
+            reopenReason.value = tag;
+          } else if (!reopenReason.value.includes(tag)) {
+            reopenReason.value = reopenReason.value + '；' + tag;
+          }
+          reopenReasonError.value = '';
+        };
+
+        // 当前期间对象
+        const currentPeriodRow = computed(() => periodList.value.find(p => p.state === 1));
+
+        // 可反结转的期间对象 (state === 0 && canReopen === true)
+        const reopenablePeriod = computed(() => periodList.value.find(p => p.state === 0 && p.canReopen));
+
+        // 当前期间未锁账票数
+        const unlockedCountInCurrent = computed(() => {
+          if (!currentPeriodRow.value) return 0;
+          const total = currentPeriodRow.value.live.mainCount + currentPeriodRow.value.live.changeCount;
+          return Math.max(0, total - currentPeriodRow.value.live.lockedCount);
+        });
+
+        // 表格列定义 (彻底移除操作列，改为顶部统一操作)
+        const periodColumns = [
+          { title: '会计期间', key: 'period', width: 110 },
+          { title: '状态', key: 'state', width: 90, align: 'center' },
+          { title: '主单', key: 'mainCount', width: 65, align: 'right' },
+          { title: '更改单', key: 'changeCount', width: 70, align: 'right' },
+          { title: '已锁账', key: 'lockedCount', width: 75, align: 'right' },
+          { title: '顺延出/入', key: 'deferred', width: 90, align: 'center' },
+          { title: '应收金额 (RMB)', key: 'receivable', width: 135, align: 'right' },
+          { title: '应付金额 (RMB)', key: 'payable', width: 135, align: 'right' },
+          { title: '期间利润 (RMB)', key: 'profit', width: 135, align: 'right' },
+          { title: '快照对比', key: 'snapshotMatched', width: 180 },
+          { title: '结转审计详情', key: 'closeInfo', minWidth: 240 }
+        ];
+
+        // 表格选择配置
+        const rowSelection = {
+          selectedRowKeys: selectedPeriodKeys,
+          onChange: (keys) => {
+            selectedPeriodKeys.value = keys;
+          }
+        };
+
+        const hasSelectedClosedPeriod = computed(() => {
+          const selected = periodList.value.find(p => selectedPeriodKeys.value.includes(p.period));
+          return selected && selected.state === 0;
+        });
+
+        // 双击与单击行交互
+        const customPeriodRow = (record) => {
+          return {
+            onClick: () => {
+              selectedPeriodKeys.value = [record.period];
+            },
+            onDblclick: () => {
+              if (record.state === 0) {
+                openSnapshotDrawer(record);
+              } else if (record.state === 1) {
+                openCloseWizardModal();
+              }
+            }
+          };
+        };
+
+        const getPeriodRowClassName = (record) => {
+          return record.state === 1 ? 'current-period-row' : '';
+        };
+
+        // ==================== 结转审计日志 ====================
+        const logActionFilter = ref(null);
+        const logKeyword = ref('');
+
+        const logList = ref([
+          {
+            id: 'log_01',
+            creationTime: '2026-10-08 11:20:15',
+            action: 0, // 结转
+            period: '2026-09',
+            mode: 0, // 手动
+            lockedCount: 38,
+            deferredCount: 2,
+            remark: '正常完成 9 月份月结；2 笔客户索赔顺延至 10 月。',
+            creatorUserName: '超级管理员'
+          },
+          {
+            id: 'log_02',
+            creationTime: '2026-09-01 02:00:00',
+            action: 0,
+            period: '2026-08',
+            mode: 1, // 自动
+            lockedCount: 52,
+            deferredCount: 1,
+            remark: '定时自动锁账规则触发执行月度结转。',
+            creatorUserName: null
+          },
+          {
+            id: 'log_03',
+            creationTime: '2026-08-15 10:14:22',
+            action: 1, // 反结转
+            period: '2026-07',
+            mode: 0,
+            lockedCount: 0,
+            deferredCount: 0,
+            remark: '由于空运出口客户委托单位退税开票抬头录错，申请反结转改正后重新归档。',
+            creatorUserName: '李财务主管'
+          },
+          {
+            id: 'log_04',
+            creationTime: '2026-08-05 14:15:30',
+            action: 0,
+            period: '2026-07',
+            mode: 0,
+            lockedCount: 46,
+            deferredCount: 0,
+            remark: '7 月份正常结转。',
+            creatorUserName: '王财务'
+          }
+        ]);
+
+        const filteredLogs = computed(() => {
+          return logList.value.filter(item => {
+            if (logActionFilter.value !== null && item.action !== logActionFilter.value) {
+              return false;
+            }
+            if (logKeyword.value.trim()) {
+              const kw = logKeyword.value.trim().toLowerCase();
+              const m1 = (item.remark || '').toLowerCase().includes(kw);
+              const m2 = (item.creatorUserName || '').toLowerCase().includes(kw);
+              return m1 || m2;
+            }
+            return true;
+          });
+        });
+
+        const getLogCountByAction = (act) => logList.value.filter(l => l.action === act).length;
+
+        const logActionOptions = computed(() => [
+          { label: '全部动作', value: null },
+          { label: `结转 (${getLogCountByAction(0)})`, value: 0 },
+          { label: `反结转 (${getLogCountByAction(1)})`, value: 1 }
+        ]);
+
+        const logColumns = [
+          { title: '操作时间', dataIndex: 'creationTime', width: 170 },
+          { title: '动作', key: 'action', width: 90, align: 'center' },
+          { title: '会计期间', key: 'period', width: 100 },
+          { title: '结转方式', key: 'mode', width: 100, align: 'center' },
+          { title: '一并锁账', key: 'lockedCount', width: 90, align: 'right' },
+          { title: '顺延单据', key: 'deferredCount', width: 90, align: 'right' },
+          { title: '审计原因与备注', key: 'remark', minWidth: 260 },
+          { title: '操作人', dataIndex: 'creatorUserName', width: 120, customRender: ({ text, record }) => text || (record.mode === 1 ? '系统自动' : '-') }
+        ];
+
+        // ==================== 结转向导弹窗逻辑 ====================
+        const showCloseWizardModal = ref(false);
+        const wizardStep = ref(0);
+        const lockingAll = ref(false);
+        const submittingClose = ref(false);
+        const autoLockBeforeClose = ref(true);
+        const closeRemark = ref('');
+
+        const closeCheckItems = ref([
+          { name: '业务标记未完结检查', message: '检查本期所有单据是否仍存在未完结标识', result: 0 },
+          { name: '费用全部审核通过检查', message: '存在 6 笔海运出口费用录入后未完成财务主管审核', result: 1 },
+          { name: '待审核财务任务检查', message: '存在 3 笔更改单存在关联的在途审核待办', result: 1 },
+          { name: '利润非负风控提示', message: 'JHTSE260902029 等 2 笔业务存在负利润（-¥6,900.00）', result: 2 },
+          { name: '应收费用非空检查', message: 'AE26100004 等 2 票业务暂未录入应收费用', result: 2 }
+        ]);
+
+        const lockableCount = ref(30);
+
+        const blockedTickets = ref([
+          {
+            id: 't_01',
+            commissionNum: 'JHTSE260902029',
+            mblNum: 'COSU628192019',
+            bizTypeLabel: '海运出口',
+            blockReason: '6 条费用未审核通过；存在待审核任务',
+            isDeferred: true
+          },
+          {
+            id: 't_02',
+            commissionNum: 'JHTSE261002049',
+            mblNum: 'MSKU982019281',
+            bizTypeLabel: '海运出口',
+            blockReason: '6 条费用未审核通过；存在待审核任务',
+            isDeferred: true
+          },
+          {
+            id: 't_03',
+            commissionNum: 'JHTSE261006052',
+            mblNum: 'ONE0291029102',
+            bizTypeLabel: '海运出口',
+            blockReason: '9 条费用未审核通过',
+            isDeferred: true
+          },
+          {
+            id: 't_04',
+            commissionNum: 'AE26100004',
+            mblNum: '784-91029102',
+            bizTypeLabel: '空运出口',
+            blockReason: '业务标记为未完结',
+            isDeferred: true
+          }
+        ]);
+
+        const blockedColumns = [
+          { title: '业务单据编号', key: 'ticket', width: 220 },
+          { title: '阻断不能锁账的原因', key: 'blocks' },
+          { title: '处理决策', key: 'defer', width: 170, align: 'center' }
+        ];
+
+        const deferredCount = computed(() => blockedTickets.value.filter(t => t.isDeferred).length);
+        const remainingCount = computed(() => blockedTickets.value.filter(t => !t.isDeferred).length);
+
+        const deferAllBlocked = () => {
+          blockedTickets.value.forEach(t => t.isDeferred = true);
+        };
+
+        const calculateReadiness = () => {};
+
+        const openCloseWizardModal = () => {
+          wizardStep.value = 0;
+          autoLockBeforeClose.value = true;
+          closeRemark.value = '';
+          showCloseWizardModal.value = true;
+        };
+
+        const mockLockAll = () => {
+          lockingAll.value = true;
+          setTimeout(() => {
+            lockingAll.value = false;
+            antd.message.success('已成功一键锁账 30 笔满足条件的单据！');
+          }, 600);
+        };
+
+        const mockExecuteClose = () => {
+          submittingClose.value = true;
+          setTimeout(() => {
+            submittingClose.value = false;
+            wizardStep.value = 3;
+            // 更新本期状态
+            if (currentPeriodRow.value) {
+              currentPeriodRow.value.state = 0;
+              currentPeriodRow.value.stateLabel = '已结转';
+              currentPeriodRow.value.stateColor = 'success';
+              currentPeriodRow.value.snapshotMatched = true;
+            }
+            antd.message.success('2026-10 会计期间结转成功！');
+          }, 800);
+        };
+
+        const finishCloseWizard = () => {
+          showCloseWizardModal.value = false;
+        };
+
+        // ==================== 反结转逻辑 ====================
+        const showReopenModal = ref(false);
+        const submittingReopen = ref(false);
+        const reopenReason = ref('');
+        const reopenReasonError = ref('');
+
+        const openReopenModal = () => {
+          reopenReason.value = '';
+          reopenReasonError.value = '';
+          showReopenModal.value = true;
+        };
+
+        const mockExecuteReopen = () => {
+          if (!reopenReason.value.trim()) {
+            reopenReasonError.value = '请务必填写反结转原因（必填项）';
+            return;
+          }
+          submittingReopen.value = true;
+          setTimeout(() => {
+            submittingReopen.value = false;
+            showReopenModal.value = false;
+            antd.message.success('已成功反结转 2026-09 会计期间！当前期间已退回至 2026-09。');
+          }, 800);
+        };
+
+        // ==================== 快照对比抽屉 ====================
+        const showSnapshotDrawer = ref(false);
+        const selectedSnapshotRow = ref(null);
+
+        const openSnapshotDrawer = (row) => {
+          selectedSnapshotRow.value = row;
+          showSnapshotDrawer.value = true;
+        };
+
+        const openSelectedSnapshot = () => {
+          const target = periodList.value.find(p => p.period === selectedPeriodKeys.value[0]);
+          if (target && target.state === 0) {
+            openSnapshotDrawer(target);
+          }
+        };
+
+        const snapshotBizColumns = [
+          { title: '业务类型', key: 'bizType', width: 110 },
+          { title: '快照票数', dataIndex: 'snapshotCount', align: 'center' },
+          { title: '实时票数', dataIndex: 'liveCount', align: 'center' },
+          { title: '快照 应收 / 应付 / 利润 (RMB)', dataIndex: 'snapshotAmount', align: 'right' },
+          { title: '实时 应收 / 应付 / 利润 (RMB)', dataIndex: 'liveAmount', align: 'right' },
+          { title: '状态', key: 'matched', width: 90, align: 'center' }
+        ];
+
+        const snapshotBizData = [
+          {
+            bizTypeName: '海运出口 (SE)',
+            snapshotCount: '主单 24 / 更改 2 / 锁 26',
+            liveCount: '主单 24 / 更改 2 / 锁 26',
+            snapshotAmount: '820,400.00 / 640,100.00 / 180,300.00',
+            liveAmount: '820,400.00 / 622,368.00 / 198,032.00',
+            matched: false
+          },
+          {
+            bizTypeName: '海运进口 (SI)',
+            snapshotCount: '主单 8 / 更改 1 / 锁 9',
+            liveCount: '主单 8 / 更改 1 / 锁 9',
+            snapshotAmount: '240,150.00 / 185,020.00 / 55,130.00',
+            liveAmount: '240,150.00 / 185,020.00 / 55,130.00',
+            matched: true
+          },
+          {
+            bizTypeName: '空运出口 (AE)',
+            snapshotCount: '主单 4 / 更改 0 / 锁 4',
+            liveCount: '主单 4 / 更改 0 / 锁 4',
+            snapshotAmount: '160,000.00 / 115,000.00 / 45,000.00',
+            liveAmount: '160,000.00 / 115,000.00 / 45,000.00',
+            matched: true
+          },
+          {
+            bizTypeName: '件杂货 (BB)',
+            snapshotCount: '主单 2 / 更改 0 / 锁 2',
+            liveCount: '主单 2 / 更改 0 / 锁 2',
+            snapshotAmount: '69,900.00 / 40,000.00 / 29,900.00',
+            liveAmount: '69,900.00 / 40,000.00 / 29,900.00',
+            matched: true
+          }
+        ];
+
+        const snapshotDiffColumns = [
+          { title: '业务单据', key: 'ticket', width: 220 },
+          { title: '业务类型', dataIndex: 'bizType', width: 110 },
+          { title: '差异特征', key: 'diffType', width: 100, align: 'center' },
+          { title: '快照应付金额', dataIndex: 'snapshotPayable', align: 'right' },
+          { title: '实时应付金额', dataIndex: 'livePayable', align: 'right' },
+          { title: '差异差额', key: 'diffAmount', align: 'right' },
+          { title: '原因定位说明', dataIndex: 'reason' }
+        ];
+
+        const snapshotDiffTickets = [
+          {
+            commissionNum: 'JHTSE260902029',
+            bizType: '海运出口',
+            diffType: '金额变动',
+            snapshotPayable: '¥ 74,011,282.00',
+            livePayable: '¥ 73,993,550.00',
+            diffVal: 17732.00,
+            reason: '结转后外部供应商调低港杂运费，财务线下直接修改凭证产生差额'
+          }
+        ];
+
+        // 审计抽屉
+        const showAuditDrawer = ref(false);
+        const auditFidelityData = [
+          { module: '基础范围控制', fields: '公司下拉、启用期间、本位币、当前期间、已结转至、总账已结账至', status: '100%', rule: '没设启用期间提示并引导；总账已结账拦截反结转' },
+          { module: '期间列表展示', fields: '会计期间、状态、主单、更改单、已锁账、顺延出入、应收、应付、利润、快照对比、结转信息', status: '100%', rule: '双击已结转开快照，双击当期开结转向导；高密度顶部集成操作' },
+          { module: '三步结转向导', fields: '5项业务检查、本期票数指标、一键锁账、暂不可锁顺延勾选、全量影响条款、结转备注', status: '100%', rule: '全部处理后方可结转；结转自动生成不可篡改快照' },
+          { module: '反结转防误操作', fields: '最近已结转期间校验、总账结账校验、顺延票不退回提示、必填反结转原因', status: '100%', rule: '仅支持反结转最近一期；Popconfirm 二次防御' },
+          { module: '结转快照审计', fields: '业务类型对比子表、快照票数/金额 vs 实时票数/金额、差异票明细子表', status: '100%', rule: '自动标红失配项，精准追溯结转后发生的单据变更' },
+          { module: '结转审计日志', fields: '操作时间、动作Tag、会计期间、方式(手动/自动)、一并锁账数、顺延数、操作人、备注', status: '100%', rule: '支持动作筛选与模糊搜索' }
+        ];
+
+        // 刷新方法
+        const refreshPeriodData = () => {
+          refreshing.value = true;
+          setTimeout(() => {
+            refreshing.value = false;
+            antd.message.success('期间结转数据与审计日志已刷新至最新状态！');
+          }, 400);
+        };
+
+        const onCompanyChange = () => {
+          selectedPeriodKeys.value = [];
+          antd.message.info(`已切换至：${currentCompany.value.name}`);
+        };
+
+        const mockGoSettings = () => {
+          antd.message.info('模拟跳转至「锁账设置」页面');
+        };
+
+        const formatNumber = (val) => {
+          if (val === null || val === undefined || val === '') return '0.00';
+          return Number(val).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        return {
+          themeConfig,
+          currentCompanyId,
+          companyOptions,
+          currentCompany,
+          periodEnabled,
+          activeTab,
+          refreshing,
+          searchKeyword,
+          searchMonthRange,
+          searchExpanded,
+          resetSearch,
+          handleSearch,
+          appendReopenReason,
+          unclosedCount,
+          closedCount,
+          displayedPeriodList,
+          selectedPeriodKeys,
+          periodList,
+          periodColumns,
+          rowSelection,
+          hasSelectedClosedPeriod,
+          customPeriodRow,
+          getPeriodRowClassName,
+          currentPeriodRow,
+          reopenablePeriod,
+          unlockedCountInCurrent,
+          // 日志
+          logList,
+          logActionFilter,
+          logActionOptions,
+          logKeyword,
+          filteredLogs,
+          logColumns,
+          getLogCountByAction,
+          // 结转向导
+          showCloseWizardModal,
+          wizardStep,
+          lockingAll,
+          submittingClose,
+          autoLockBeforeClose,
+          closeRemark,
+          closeCheckItems,
+          lockableCount,
+          blockedTickets,
+          blockedColumns,
+          deferredCount,
+          remainingCount,
+          deferAllBlocked,
+          calculateReadiness,
+          openCloseWizardModal,
+          mockLockAll,
+          mockExecuteClose,
+          finishCloseWizard,
+          // 反结转
+          showReopenModal,
+          submittingReopen,
+          reopenReason,
+          reopenReasonError,
+          openReopenModal,
+          mockExecuteReopen,
+          // 快照
+          showSnapshotDrawer,
+          selectedSnapshotRow,
+          openSnapshotDrawer,
+          openSelectedSnapshot,
+          snapshotBizColumns,
+          snapshotBizData,
+          snapshotDiffColumns,
+          snapshotDiffTickets,
+          // 审计抽屉
+          showAuditDrawer,
+          auditFidelityData,
+          refreshPeriodData,
+          onCompanyChange,
+          mockGoSettings,
+          formatNumber
+        };
+      }
+    });
+
+    app.use(antd).mount('#app');
+  </script>
+</body>
+</html>

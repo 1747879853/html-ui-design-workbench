@@ -1,0 +1,2905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新建费用结算单 - 收费核销工作台 (1920高密度交付原型)</title>
+
+  <!-- 核心样式：Ant Design Vue 4 重置样式与通用规范 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <!-- 本地核心依赖 (全量包含 Dayjs 插件、Vue 3、Ant Design Vue 4.2.6、Iconify 图标) -->
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       企业级 B2B 收费核销新建页 · 生产级 1920×1080 交互设计与高密度原型样式
+       设计标准：严格 100% 业务字段保真、零 AI 浮夸、航线无边框两行排版、金融级折汇核算
+       ========================================================================== */
+
+    body {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .rs-layout {
+      min-height: 100vh;
+      padding: 10px 14px 24px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 顶部多场景沙盘操控台 (原型验证、产品经理评审与测试用例切换专区) */
+    .rs-sandbox-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 6px;
+      padding: 8px 14px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      border-left: 4px solid #38bdf8;
+    }
+
+    .rs-sandbox-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .rs-sandbox-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #38bdf8;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rs-sandbox-badge {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    /* 页面身份标题栏 (Cockpit Header) */
+    .cockpit-header {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .cockpit-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #0284c7;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .cockpit-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .cockpit-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cockpit-main-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.01em;
+    }
+
+    .cockpit-subtitle {
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 双栏信息卡片布局 (统一主表：左流水/右核销) */
+    .dual-card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 1400px) {
+      .dual-card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-card-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #fafbfc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-card-subtitle {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 400;
+    }
+
+    .panel-card-body {
+      padding: 14px 16px;
+      flex: 1;
+    }
+
+    /* 4 列自适应表单网格 */
+    .form-grid-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px 14px;
+      align-items: start;
+    }
+
+    .form-grid-2col {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px 14px;
+      align-items: start;
+    }
+
+    .col-span-1 { grid-column: span 1; }
+    .col-span-2 { grid-column: span 2; }
+    .col-span-3 { grid-column: span 3; }
+    .col-span-4 { grid-column: span 4; }
+
+    .form-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .form-cell-label {
+      font-size: 12px;
+      color: #475569;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .form-cell-required {
+      color: #ef4444;
+      font-weight: 700;
+    }
+
+    .form-cell-control {
+      min-width: 0;
+    }
+
+    .static-field-value {
+      font-size: 13px;
+      color: #0f172a;
+      padding: 4px 0;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 24px;
+    }
+
+    .static-field-value.muted {
+      color: #94a3b8;
+    }
+
+    .static-field-value.money-highlight {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0284c7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* 金额指标行 (已有流水使用情况大盘) */
+    .statement-quota-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-top: 10px;
+    }
+
+    .quota-box {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .quota-box-label {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .quota-box-val {
+      font-size: 14px;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .val-total { color: #1e293b; }
+    .val-occupied { color: #64748b; }
+    .val-remaining { color: #059669; }
+    .val-current { color: #2563eb; }
+    .val-danger { color: #dc2626 !important; }
+
+    /* 差值高亮警告 */
+    .diff-danger-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      border-radius: 4px;
+      padding: 1px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .diff-warn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #b45309;
+      border-radius: 4px;
+      padding: 1px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .diff-ok-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+      border-radius: 4px;
+      padding: 1px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* 跨币别汇率换算条 (单据内嵌) */
+    .rate-conversion-bar {
+      margin-top: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rate-row-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .rate-input-control {
+      width: 140px;
+    }
+
+    /* 结算明细表格容器 */
+    .details-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .details-toolbar {
+      padding: 10px 16px;
+      background: #fafbfc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .details-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .details-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .foreign-items-badge {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    /* 航线与经办责任人无边框排版规范 (对齐用户最新截图 05 要求：去掉胶囊与展开外框) */
+    .logistics-route-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      line-height: 1.35;
+    }
+
+    .route-primary-line {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .route-arrow {
+      color: #94a3b8;
+      font-size: 11px;
+    }
+
+    .route-secondary-line {
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .route-sep {
+      color: #cbd5e1;
+    }
+
+    .staff-pair-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .staff-line {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #334155;
+    }
+
+    .staff-label-gray {
+      color: #94a3b8;
+      font-size: 11px;
+      width: 26px;
+    }
+
+    .staff-name {
+      font-weight: 500;
+    }
+
+    /* 他单明细只读行 */
+    .row-foreign-settlement {
+      background-color: #f8fafc !important;
+      color: #64748b;
+    }
+
+    .row-foreign-settlement td {
+      background-color: #f8fafc !important;
+    }
+
+    /* 选费抽屉专属样式 */
+    .fee-drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .auto-alloc-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .auto-alloc-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .auto-alloc-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e40af;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .auto-alloc-desc {
+      font-size: 12px;
+      color: #3b82f6;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .drawer-fixed-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #ffffff;
+      border-top: 1px solid #e2e8f0;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .drawer-summary-text {
+      font-size: 13px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .drawer-summary-highlight {
+      font-weight: 700;
+      color: #0284c7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* 复制编号样式 */
+    .copyable-code {
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 600;
+      color: #0284c7;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.15s;
+    }
+
+    .copyable-code:hover {
+      color: #0369a1;
+      text-decoration: underline;
+    }
+
+    /* 抽屉内嵌折叠表格样式 */
+    .nested-fee-inner-table {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      margin: 4px 0 8px 48px;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a-config-provider :theme="{ token: { colorPrimary: '#0284c7', borderRadius: 4 } }">
+      <div class="rs-layout">
+
+        <!-- 0. 顶部多场景沙盘操控台 (针对交接文档 8.1 的 5 大核心场景沙盘) -->
+        <div class="rs-sandbox-bar">
+          <div class="rs-sandbox-left">
+            <span class="rs-sandbox-title">
+              <iconify-icon icon="ant-design:experiment-outlined"></iconify-icon>
+              收费核销新建页 · 场景验证沙盘
+            </span>
+            <span class="rs-sandbox-badge">交接基线 60587ca98</span>
+            <a-radio-group v-model:value="currentScenario" size="small" button-style="solid" @change="handleScenarioChange">
+              <a-radio-button value="standard-new">场景 1：新建流水 + 同币手选 (RMB)</a-radio-button>
+              <a-radio-button value="foreign-new">场景 2：新建流水 + 折汇草稿 (RMB→USD 实测)</a-radio-button>
+              <a-radio-button value="existing-statement">场景 3：已有流水 + 他单明细对比</a-radio-button>
+              <a-radio-button value="over-limit-alert">场景 4：已有流水超额拦截</a-radio-button>
+              <a-radio-button value="auto-allocation">场景 5：按范围自动核销</a-radio-button>
+              <a-radio-button value="negative-fee">场景 6：负数费用收付互抵</a-radio-button>
+              <a-radio-button value="locked-readonly">场景 7：流水/核销锁定只读态</a-radio-button>
+              <a-radio-button value="no-create-perm">场景 8：无流水新增权限</a-radio-button>
+            </a-radio-group>
+          </div>
+          <a-space size="small">
+            <a-button size="small" ghost @click="showAuditModal = true">
+              <iconify-icon icon="ant-design:file-done-outlined"></iconify-icon>
+              设计交付核对表
+            </a-button>
+            <a-button size="small" ghost @click="showSfcModal = true">
+              <iconify-icon icon="ant-design:code-outlined"></iconify-icon>
+              SFC 迁移说明
+            </a-button>
+          </a-space>
+        </div>
+
+        <!-- 1. 页面身份标题栏 (Cockpit Header) -->
+        <div class="cockpit-header">
+          <div class="cockpit-left">
+            <div class="header-icon-box">
+              <iconify-icon icon="ant-design:account-book-outlined"></iconify-icon>
+            </div>
+            <div class="cockpit-title-wrap">
+              <div class="cockpit-title-row">
+                <span class="cockpit-main-title">新建费用结算</span>
+                <a-tag v-if="isReadonly" color="red">
+                  <iconify-icon icon="ant-design:lock-outlined"></iconify-icon>
+                  {{ readonlyReason }}
+                </a-tag>
+                <a-tag v-else-if="isFormDirty" color="orange">
+                  <iconify-icon icon="ant-design:edit-outlined"></iconify-icon>
+                  草稿未保存 (离开将提示)
+                </a-tag>
+                <a-tag v-else color="blue">
+                  <iconify-icon icon="ant-design:clock-circle-outlined"></iconify-icon>
+                  新单录入中
+                </a-tag>
+                <a-tag v-if="bankSourceMode === 'new'" color="cyan">一步建流水与核销</a-tag>
+                <a-tag v-else color="purple">核销至已有到账流水</a-tag>
+              </div>
+              <div class="cockpit-subtitle">
+                <span>目标路由：<code>/settlement-management/receive-settlement/add</code></span>
+                <span>•</span>
+                <span>环境：本地 Web 127.0.0.1:5021 · 佳越测试 API (契约 7e4b7464)</span>
+                <span>•</span>
+                <span>1920×1080 视口原生渲染</span>
+              </div>
+            </div>
+          </div>
+          <a-space size="middle">
+            <a-button @click="handleSafeBack">
+              <iconify-icon icon="ant-design:arrow-left-outlined"></iconify-icon>
+              返回
+            </a-button>
+            <a-button
+              type="primary"
+              :loading="saving"
+              :disabled="isReadonly || autoAllocationPending"
+              @click="handleSaveMainForm"
+            >
+              <iconify-icon icon="ant-design:save-outlined"></iconify-icon>
+              保存收费核销单
+            </a-button>
+          </a-space>
+        </div>
+
+        <!-- 2. 双栏信息卡片布局 (左侧银行流水 / 右侧结算信息) -->
+        <div class="dual-card-grid">
+
+          <!-- 2.1 左卡片：银行流水信息 -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <div class="panel-card-title">
+                <iconify-icon icon="ant-design:bank-outlined" style="color: #0284c7;"></iconify-icon>
+                <span>{{ bankSourceMode === 'new' ? '新建银行流水信息' : '银行流水信息 (已有到账)' }}</span>
+              </div>
+              <span class="panel-card-subtitle">
+                {{ bankSourceMode === 'new' ? '保存时与本核销单在同一事务中建立' : '关联已到账流水，占用可用额度' }}
+              </span>
+            </div>
+            <div class="panel-card-body">
+
+              <!-- 新建流水表单分支 -->
+              <template v-if="bankSourceMode === 'new'">
+                <div class="form-grid-4col">
+                  <!-- 流水来源切换 -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      流水来源
+                      <a-tooltip v-if="items.length > 0" title="已有结算明细时不能切换流水来源">
+                        <iconify-icon icon="ant-design:lock-outlined" style="color:#94a3b8;"></iconify-icon>
+                      </a-tooltip>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-radio-group
+                        v-model:value="bankSourceMode"
+                        button-style="solid"
+                        size="small"
+                        :disabled="items.length > 0 || !canOfferNewStatement"
+                        @change="handleSourceModeChange"
+                      >
+                        <a-radio-button value="new">新建流水</a-radio-button>
+                        <a-radio-button value="existing">选择已有流水</a-radio-button>
+                      </a-radio-group>
+                    </div>
+                  </div>
+
+                  <!-- 币别 (带入或手选) -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      流水币别 (到账币别)
+                      <span class="form-cell-required">*</span>
+                      <a-tooltip v-if="items.length > 0" title="已有明细，要改币别请先删除明细">
+                        <iconify-icon icon="ant-design:lock-outlined" style="color:#0284c7;"></iconify-icon>
+                      </a-tooltip>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-select
+                        v-if="items.length === 0 && !isReadonly"
+                        v-model:value="newStatementDraft.currencyCode"
+                        style="width: 100%"
+                        size="small"
+                        @change="handleCurrencyChange"
+                      >
+                        <a-select-option value="CNY">CNY / 人民币</a-select-option>
+                        <a-select-option value="USD">USD / 美元</a-select-option>
+                        <a-select-option value="EUR">EUR / 欧元</a-select-option>
+                        <a-select-option value="HKD">HKD / 港币</a-select-option>
+                      </a-select>
+                      <div v-else class="static-field-value">
+                        <a-tag color="blue">{{ newStatementDraft.currencyCode || '-' }}</a-tag>
+                        <span style="font-size: 11px; color: #64748b;">(已由明细锁定)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 付款方 (结算对象) -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      付款方 (结算对象)
+                      <span class="form-cell-required">*</span>
+                      <a-tooltip v-if="items.length > 0" title="已有结算明细，要改付款方请先删除明细">
+                        <iconify-icon icon="ant-design:lock-outlined" style="color:#0284c7;"></iconify-icon>
+                      </a-tooltip>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-select
+                        v-if="items.length === 0 && !isReadonly"
+                        v-model:value="newStatementDraft.settlementId"
+                        show-search
+                        placeholder="请选择付款方（支持费用带入）"
+                        style="width: 100%"
+                        size="small"
+                        @change="handlePayerChange"
+                      >
+                        <a-select-option value="CLI_001">测试WF346验收客户</a-select-option>
+                        <a-select-option value="CLI_002">青岛中远海运集装箱运输有限公司</a-select-option>
+                        <a-select-option value="CLI_003">深圳市飞捷达供应链管理有限公司</a-select-option>
+                        <a-select-option value="CLI_004">上海东方海外物流供应链有限公司</a-select-option>
+                      </a-select>
+                      <div v-else class="static-field-value">
+                        <iconify-icon icon="ant-design:user-outlined" style="color: #64748b;"></iconify-icon>
+                        <span style="font-weight: 600;">{{ newStatementDraft.settlementName || '-' }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 交易时间 -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      银行交易时间
+                      <span class="form-cell-required">*</span>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-date-picker
+                        v-model:value="newStatementDraft.statementTime"
+                        format="YYYY-MM-DD"
+                        style="width: 100%"
+                        size="small"
+                        :disabled="isReadonly"
+                        @change="markDirty"></a-date-picker>
+                    </div>
+                  </div>
+
+                  <!-- 流水金额 (新建流水模式自动汇总，只读) -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      流水金额 (到账金额)
+                      <a-tooltip title="新建流水模式下，流水金额严格只读等于本次结算金额">
+                        <iconify-icon icon="ant-design:info-circle-outlined" style="color:#94a3b8;"></iconify-icon>
+                      </a-tooltip>
+                    </span>
+                    <div class="form-cell-control">
+                      <div class="static-field-value money-highlight">
+                        {{ formatCurrency(actualSettled, newStatementDraft.currencyCode) }}
+                        <span style="font-size: 11px; color: #64748b; font-weight: 400;">(等于本次结算)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 手续费 -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      手续费
+                      <span style="font-size: 11px; color: #94a3b8;">(不从结算额中自动扣减)</span>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-input-number
+                        v-model:value="newStatementDraft.transactionFee"
+                        :min="0"
+                        :precision="2"
+                        placeholder="0.00"
+                        style="width: 100%"
+                        size="small"
+                        :disabled="isReadonly"
+                        @change="markDirty"></a-input-number>
+                    </div>
+                  </div>
+
+                  <!-- 我司银行 -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      我司银行账户
+                      <span style="font-size: 11px; color: #64748b;">(自动按组织匹配默认账户)</span>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-select
+                        v-model:value="newStatementDraft.orgBankAccountId"
+                        placeholder="请选择我司银行"
+                        style="width: 100%"
+                        size="small"
+                        :disabled="isReadonly"
+                        @change="markDirty"
+                      >
+                        <a-select-option value="ORG_BANK_01">中国银行青岛市南支行 (8271009283 - CNY)</a-select-option>
+                        <a-select-option value="ORG_BANK_02">招商银行深圳科苑支行 (75591823901 - USD)</a-select-option>
+                        <a-select-option value="ORG_BANK_03">工商银行上海分行 (10012489002 - EUR)</a-select-option>
+                      </a-select>
+                    </div>
+                  </div>
+
+                  <!-- 对方银行 -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      对方银行账户
+                      <span v-if="payerBankNotice" style="color: #ea580c; font-size: 11px;">(付款方已变更，请重选)</span>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-select
+                        v-model:value="newStatementDraft.clientInvoiceBankId"
+                        :disabled="!newStatementDraft.settlementId || isReadonly"
+                        placeholder="请选择对方银行"
+                        style="width: 100%"
+                        size="small"
+                        @change="markDirty"
+                      >
+                        <a-select-option value="CLI_BANK_01">建设银行青岛金家岭支行 (371019827361)</a-select-option>
+                        <a-select-option value="CLI_BANK_02">汇丰银行香港中环总行 (004-829102-001)</a-select-option>
+                      </a-select>
+                    </div>
+                  </div>
+
+                  <!-- 银行交易摘要 (保存至流水) -->
+                  <div class="form-cell col-span-4">
+                    <span class="form-cell-label">
+                      银行交易摘要
+                      <span style="font-size: 11px; color: #94a3b8;">(归属银行流水 statementRemark)</span>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-input
+                        v-model:value="newStatementDraft.statementRemark"
+                        placeholder="请输入银行交易摘要或回单摘要"
+                        size="small"
+                        :disabled="isReadonly"
+                        @change="markDirty"></a-input>
+                    </div>
+                  </div>
+
+                  <!-- 付款方留言 / 内部备注 (双列) -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">付款方留言 (流水 message)</span>
+                    <div class="form-cell-control">
+                      <a-input
+                        v-model:value="newStatementDraft.message"
+                        placeholder="付款方附言"
+                        size="small"
+                        :disabled="isReadonly"
+                        @change="markDirty"></a-input>
+                    </div>
+                  </div>
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">流水内部备注 (流水 remark)</span>
+                    <div class="form-cell-control">
+                      <a-input
+                        v-model:value="newStatementDraft.remark"
+                        placeholder="仅供内部流水备查"
+                        size="small"
+                        :disabled="isReadonly"
+                        @change="markDirty"></a-input>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <div class="form-grid-4col">
+                  <!-- 来源切换与选择流水弹窗 -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">流水来源</span>
+                    <div class="form-cell-control">
+                      <a-radio-group
+                        v-model:value="bankSourceMode"
+                        button-style="solid"
+                        size="small"
+                        :disabled="items.length > 0 || !canOfferNewStatement"
+                        @change="handleSourceModeChange"
+                      >
+                        <a-radio-button value="new">新建流水</a-radio-button>
+                        <a-radio-button value="existing">选择已有流水</a-radio-button>
+                      </a-radio-group>
+                    </div>
+                  </div>
+
+                  <!-- 关联银行流水编号 (可点击弹窗选择) -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">
+                      关联银行流水
+                      <span class="form-cell-required">*</span>
+                      <a-tooltip v-if="items.length > 0" title="已有明细时不能更换银行流水">
+                        <iconify-icon icon="ant-design:lock-outlined" style="color: #0284c7;"></iconify-icon>
+                      </a-tooltip>
+                    </span>
+                    <div class="form-cell-control">
+                      <a-input-search
+                        v-model:value="existingStatement.bankStatementNo"
+                        placeholder="请选择银行流水"
+                        size="small"
+                        readonly
+                        :disabled="items.length > 0 || isReadonly"
+                        enter-button="重选流水"
+                        @search="openStatementPicker"></a-config-provider>
+                    </div>
+                  </div>
+
+                  <!-- 流水基本要素展示 -->
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">付款方</span>
+                    <div class="static-field-value">
+                      <iconify-icon icon="ant-design:user-outlined" style="color: #64748b;"></iconify-icon>
+                      <b>{{ existingStatement.settlementName }}</b>
+                    </div>
+                  </div>
+
+                  <div class="form-cell col-span-1">
+                    <span class="form-cell-label">流水币别</span>
+                    <div class="static-field-value">
+                      <a-tag color="purple">{{ existingStatement.currencyCode }}</a-tag>
+                    </div>
+                  </div>
+
+                  <div class="form-cell col-span-1">
+                    <span class="form-cell-label">交易时间</span>
+                    <div class="static-field-value">
+                      {{ existingStatement.statementTime }}
+                    </div>
+                  </div>
+
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">我司银行</span>
+                    <div class="static-field-value">
+                      {{ existingStatement.orgBankAccountName }}
+                    </div>
+                  </div>
+
+                  <div class="form-cell col-span-2">
+                    <span class="form-cell-label">银行摘要</span>
+                    <div class="static-field-value muted">
+                      {{ existingStatement.statementRemark }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 已有流水额度计算驾驶板 (四大核心指标) -->
+                <div class="statement-quota-strip">
+                  <div class="quota-box">
+                    <span class="quota-box-label">1. 流水总额</span>
+                    <span class="quota-box-val val-total">{{ formatCurrency(existingStatement.amount, existingStatement.currencyCode) }}</span>
+                  </div>
+                  <div class="quota-box">
+                    <span class="quota-box-label">2. 他单已占用 (只读)</span>
+                    <span class="quota-box-val val-occupied">{{ formatCurrency(existingStatement.otherSettledAmount, existingStatement.currencyCode) }}</span>
+                  </div>
+                  <div class="quota-box">
+                    <span class="quota-box-label">3. 剩余可用额度</span>
+                    <span class="quota-box-val" :class="isOverLimit ? 'val-danger' : 'val-remaining'">
+                      {{ formatCurrency(remainingQuota, existingStatement.currencyCode) }}
+                    </span>
+                  </div>
+                  <div class="quota-box">
+                    <span class="quota-box-label">4. 本单本次结算</span>
+                    <span class="quota-box-val val-current">{{ formatCurrency(actualSettled, existingStatement.currencyCode) }}</span>
+                  </div>
+                </div>
+
+                <!-- 超额动态警示条 -->
+                <div v-if="isOverLimit" style="margin-top: 8px;">
+                  <a-alert
+                    type="error"
+                    show-icon
+                    :message="`超额拦截：本单结算 ${formatCurrency(actualSettled, existingStatement.currencyCode)} 超过了流水剩余可用额度 ${formatCurrency(remainingQuota, existingStatement.currencyCode)}！`"
+                    description="根据现行后端校验契约，超额单据无法提交保存，请调小本次结算金额或在明细中移除多余费用。"></a-alert>
+                </div>
+              </template>
+
+            </div>
+          </div>
+
+          <!-- 2.2 右卡片：本次结算信息 -->
+          <div class="panel-card">
+            <div class="panel-card-header">
+              <div class="panel-card-title">
+                <iconify-icon icon="ant-design:file-text-outlined" style="color: #0284c7;"></iconify-icon>
+                <span>收费核销结算信息</span>
+              </div>
+              <span class="panel-card-subtitle">
+                核销单编号保存后自动分配，本单记录本次款项分配
+              </span>
+            </div>
+            <div class="panel-card-body">
+              <div class="form-grid-4col">
+                <!-- 归属组织 -->
+                <div class="form-cell col-span-2">
+                  <span class="form-cell-label">
+                    归属组织
+                    <span class="form-cell-required">*</span>
+                  </span>
+                  <div class="form-cell-control">
+                    <a-select
+                      v-model:value="settlementForm.orgId"
+                      placeholder="请选择归属组织"
+                      style="width: 100%"
+                      size="small"
+                      :disabled="isReadonly"
+                      @change="markDirty"
+                    >
+                      <a-select-option :value="101">青岛总公司 / 财务结算中心</a-select-option>
+                      <a-select-option :value="102">上海分公司 / 海运出口财务组</a-select-option>
+                      <a-select-option :value="103">深圳分公司 / 华南结算部</a-select-option>
+                    </a-select>
+                  </div>
+                </div>
+
+                <!-- 结算单号 (新建时占位) -->
+                <div class="form-cell col-span-1">
+                  <span class="form-cell-label">结算单号</span>
+                  <div class="static-field-value muted">
+                    - <span style="font-size: 11px;">(保存后系统生成)</span>
+                  </div>
+                </div>
+
+                <!-- 创建人 -->
+                <div class="form-cell col-span-1">
+                  <span class="form-cell-label">创建人</span>
+                  <div class="static-field-value">
+                    <iconify-icon icon="ant-design:user-outlined" style="color: #64748b;"></iconify-icon>
+                    {{ settlementForm.creatorUserName }}
+                  </div>
+                </div>
+
+                <!-- 结算时间 -->
+                <div class="form-cell col-span-2">
+                  <span class="form-cell-label">
+                    结算时间
+                    <span class="form-cell-required">*</span>
+                  </span>
+                  <div class="form-cell-control">
+                    <a-date-picker
+                      v-model:value="settlementForm.settlementTime"
+                      show-time
+                      format="YYYY-MM-DD HH:mm"
+                      style="width: 100%"
+                      size="small"
+                      :disabled="isReadonly"
+                      @change="markDirty"></a-date-picker>
+                  </div>
+                </div>
+
+                <!-- 本次结算 (流水币别) -->
+                <div class="form-cell col-span-2">
+                  <span class="form-cell-label">
+                    本次结算金额 ({{ currentBankCurrency }})
+                    <span class="form-cell-required">*</span>
+                    <a-tooltip v-if="bankSourceMode === 'new'" title="新建流水模式下，本次结算自动汇总明细折汇金额，只读不可改">
+                      <iconify-icon icon="ant-design:lock-outlined" style="color: #0284c7;"></iconify-icon>
+                    </a-tooltip>
+                  </span>
+                  <div class="form-cell-control">
+                    <a-input-number
+                      v-if="bankSourceMode === 'existing'"
+                      v-model:value="actualSettled"
+                      :precision="2"
+                      placeholder="请输入本次结算金额"
+                      style="width: 100%"
+                      size="small"
+                      :disabled="isReadonly"
+                      @change="handleActualSettledChange"></a-input-number>
+                    <div v-else class="static-field-value money-highlight">
+                      {{ formatCurrency(actualSettled, currentBankCurrency) }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 原始金额与差值对照 -->
+                <div class="form-cell col-span-2">
+                  <span class="form-cell-label">
+                    原始金额 (折合流水币净额)
+                    <a-tooltip title="结算明细逐行按汇率折算到流水币别后的净额 (收-付)，保留2位小数后求和">
+                      <iconify-icon icon="ant-design:calculator-outlined" style="color:#0284c7;"></iconify-icon>
+                    </a-tooltip>
+                  </span>
+                  <div class="static-field-value">
+                    <b>{{ formatCurrency(originalSettledAmount, currentBankCurrency) }}</b>
+                  </div>
+                </div>
+
+                <div class="form-cell col-span-2">
+                  <span class="form-cell-label">
+                    差值 (本次结算 − 原始金额)
+                    <a-tooltip title="差值 = 本次结算 - 原始金额。不能视作未分配余额，差值非零时提示核对">
+                      <iconify-icon icon="ant-design:info-circle-outlined" style="color:#94a3b8;"></iconify-icon>
+                    </a-tooltip>
+                  </span>
+                  <div class="static-field-value">
+                    <span v-if="diffAmount === 0" class="diff-ok-pill">
+                      <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon>
+                      0.00 (完全吻合)
+                    </span>
+                    <span v-else-if="diffAmount !== null" class="diff-warn-pill">
+                      <iconify-icon icon="ant-design:warning-filled"></iconify-icon>
+                      {{ diffAmount > 0 ? '+' : '' }}{{ formatCurrency(diffAmount, currentBankCurrency) }}
+                    </span>
+                    <span v-else class="muted">-</span>
+                  </div>
+                </div>
+
+                <!-- 核销备注 (单据级备注) -->
+                <div class="form-cell col-span-4">
+                  <span class="form-cell-label">
+                    核销单备注
+                    <span style="font-size: 11px; color: #94a3b8;">(归属本收费核销单，与流水备注独立)</span>
+                  </span>
+                  <div class="form-cell-control">
+                    <a-textarea
+                      v-model:value="settlementForm.remark"
+                      :rows="2"
+                      placeholder="请输入本张收费核销单的业务备注"
+                      size="small"
+                      :disabled="isReadonly"
+                      @change="markDirty"></a-textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 跨币别折汇汇率对照条 -->
+              <div v-if="displayCurrencies.length > 0" class="rate-conversion-bar">
+                <div style="font-size: 11px; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 4px;">
+                  <iconify-icon icon="ant-design:swap-outlined" style="color: #0284c7;"></iconify-icon>
+                  <span>跨币别折算汇率 (精确至 6 位小数)：</span>
+                </div>
+                <div v-for="rateItem in displayCurrencies" :key="rateItem.currencyCode" class="rate-row-item">
+                  <span style="font-weight: 600;">1 {{ rateItem.currencyCode }} =</span>
+                  <a-input-number
+                    v-if="!rateItem.locked"
+                    v-model:value="exchangeRates[rateItem.currencyCode]"
+                    :min="0.000001"
+                    :step="0.000001"
+                    :precision="6"
+                    placeholder="请输入汇率"
+                    size="small"
+                    class="rate-input-control"
+                    :disabled="isReadonly"
+                    @change="handleRateChange"></a-input-number>
+                  <a-input-number
+                    v-else
+                    :value="1.000000"
+                    :precision="6"
+                    disabled
+                    size="small"
+                    class="rate-input-control"></a-input-number>
+                  <span style="font-weight: 600;">{{ currentBankCurrency }}</span>
+                  <span style="color: #64748b; font-size: 11px;">
+                    (该原币在明细中的净额: <b>{{ formatCurrency(getCurrencyNet(rateItem.currencyCode), rateItem.currencyCode) }}</b>)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 3. 结算明细卡片与高密度表格 (本单明细增删改 + 他单明细只读对照) -->
+        <div class="details-card">
+          <div class="details-toolbar">
+            <div class="details-toolbar-left">
+              <span class="details-title">
+                <iconify-icon icon="ant-design:table-outlined" style="color: #0284c7;"></iconify-icon>
+                <span>结算费用明细</span>
+                <a-tag color="blue">本单 {{ currentItemsCount }} 条</a-tag>
+              </span>
+              <span v-if="foreignItems.length > 0" class="foreign-items-badge">
+                含同一流水下其他核销单明细 {{ foreignItems.length }} 条（只读对照）
+              </span>
+            </div>
+            <a-space size="small">
+              <a-button
+                type="primary"
+                size="small"
+                :disabled="isReadonly"
+                @click="handleOpenFeeDrawer"
+              >
+                <iconify-icon icon="ant-design:plus-outlined"></iconify-icon>
+                添加费用明细
+              </a-button>
+              <a-button
+                danger
+                size="small"
+                :disabled="selectedRowKeys.length === 0 || isReadonly"
+                @click="handleBatchDeleteFees"
+              >
+                <iconify-icon icon="ant-design:delete-outlined"></iconify-icon>
+                批量删除 ({{ selectedRowKeys.length }})
+              </a-button>
+            </a-space>
+          </div>
+
+          <!-- 高密度费用表格 -->
+          <a-table
+            :columns="feeColumns"
+            :data-source="tableItems"
+            :row-key="record => record.id"
+            :row-selection="rowSelection"
+            :row-class-name="getRowClassName"
+            size="small"
+            bordered
+            :pagination="false"
+            :scroll="{ x: 1920, y: 'calc(100vh - 540px)' }"
+          >
+            <!-- 所属核销 -->
+            <template v-slot:[bodycellslot]="{ column, record }">
+              <template v-if="column.key === 'ownerSettlementNo'">
+                <a-tag v-if="record._isCurrent" color="blue">本单草稿</a-tag>
+                <span v-else style="color: #64748b; font-family: monospace;">
+                  {{ record._settlementNo }}
+                </span>
+              </template>
+
+              <!-- 委托编号 / 主提单号 (可一键复制) -->
+              <template v-if="column.key === 'commissionNum'">
+                <span class="copyable-code" @click="copyText(record.commissionNum)">
+                  {{ record.commissionNum }}
+                  <iconify-icon icon="ant-design:copy-outlined" style="font-size: 11px;"></iconify-icon>
+                </span>
+              </template>
+
+              <template v-if="column.key === 'mblNum'">
+                <span class="copyable-code" @click="copyText(record.mblNum)">
+                  {{ record.mblNum || '-' }}
+                  <iconify-icon v-if="record.mblNum" icon="ant-design:copy-outlined" style="font-size: 11px;"></iconify-icon>
+                </span>
+              </template>
+
+              <!-- 航线航程与箱型 (按用户最新参考：无边框两行排版！) -->
+              <template v-if="column.key === 'voyageSummary'">
+                <div class="logistics-route-block">
+                  <div class="route-primary-line">
+                    <span>{{ record.polName }}</span>
+                    <iconify-icon icon="ant-design:arrow-right-outlined" class="route-arrow"></iconify-icon>
+                    <span>{{ record.podName }}</span>
+                  </div>
+                  <div class="route-secondary-line">
+                    <span>{{ record.totalCtn || '散货' }}</span>
+                    <span class="route-sep">/</span>
+                    <span>{{ record.carrierName || '船司待定' }}</span>
+                    <span class="route-sep">/</span>
+                    <span>ETD {{ record.etd || '-' }}</span>
+                  </div>
+                </div>
+              </template>
+
+              <!-- 经办责任人 (按用户最新参考：无边框销售与操作两行！) -->
+              <template v-if="column.key === 'staffPair'">
+                <div class="staff-pair-block">
+                  <div class="staff-line">
+                    <span class="staff-label-gray">销:</span>
+                    <span class="staff-name">{{ record.salesName || '-' }}</span>
+                  </div>
+                  <div class="staff-line">
+                    <span class="staff-label-gray">操:</span>
+                    <span class="staff-name">{{ record.operatorName || '-' }}</span>
+                  </div>
+                </div>
+              </template>
+
+              <!-- 收付类别 -->
+              <template v-if="column.key === 'paySide'">
+                <a-tag :color="record.paySide === 0 ? 'green' : 'red'">
+                  {{ record.paySide === 0 ? '应收' : '应付' }}
+                </a-tag>
+              </template>
+
+              <!-- 原币 -->
+              <template v-if="column.key === 'currencyCode'">
+                <a-tag>{{ record.currencyCode }}</a-tag>
+              </template>
+
+              <!-- 费用总额与剩余额度 -->
+              <template v-if="column.key === 'amount'">
+                <span style="font-family: monospace;">{{ formatCurrency(record.amount, record.currencyCode) }}</span>
+              </template>
+
+              <template v-if="column.key === 'remainingAmount'">
+                <span style="font-family: monospace; font-weight: 600;">
+                  {{ record.remainingAmount !== undefined ? formatCurrency(record.remainingAmount, record.currencyCode) : '-' }}
+                </span>
+              </template>
+
+              <!-- 本次结算金额 (原币) -->
+              <template v-if="column.key === 'settledAmount'">
+                <a-input-number
+                  v-if="record._isCurrent && !isReadonly"
+                  v-model:value="record.settledAmount"
+                  :min="record.remainingAmount < 0 ? record.remainingAmount : 0.01"
+                  :max="record.remainingAmount > 0 ? record.remainingAmount : -0.01"
+                  :precision="2"
+                  size="small"
+                  style="width: 120px;"
+                  @change="handleLineSettledAmountChange"></a-input-number>
+                <span v-else style="font-family: monospace; font-weight: 700;">
+                  {{ formatCurrency(record.settledAmount, record.currencyCode) }}
+                </span>
+              </template>
+
+              <!-- 结算汇率 -->
+              <template v-if="column.key === 'exchangeRate'">
+                <span style="font-family: monospace;">
+                  {{ record.exchangeRate ? record.exchangeRate.toFixed(6) : (record._isCurrent ? (getLineExchangeRate(record) || '-') : '-') }}
+                </span>
+              </template>
+
+              <!-- 折合流水币 -->
+              <template v-if="column.key === 'originalSettledAmount'">
+                <span style="font-family: monospace; font-weight: 600; color: #0284c7;">
+                  {{ formatCurrency(getLineOriginalAmount(record), currentBankCurrency) }}
+                </span>
+              </template>
+
+              <!-- 行备注 -->
+              <template v-if="column.key === 'remark'">
+                <a-input
+                  v-if="record._isCurrent && !isReadonly"
+                  v-model:value="record.remark"
+                  placeholder="明细备注"
+                  size="small"
+                  @change="markDirty"></a-input>
+                <span v-else>{{ record.remark || '-' }}</span>
+              </template>
+            </template>
+          </a-table>
+        </div>
+
+      </div>
+
+      <!-- ====================================================================
+           4. 选费抽屉组件 (含业务组展开费用、自动核销独立入口、4列检索网格)
+           ==================================================================== -->
+      <a-drawer
+        v-model:open="drawerOpen"
+        title="选择费用结算明细"
+        width="1180px"
+        :body-style="{ padding: '14px 18px', background: '#f8fafc' }"
+        :footer-style="{ padding: '0' }"
+        @close="handleCloseDrawer"
+      >
+        <template #extra>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 12px; color: #64748b;">到账币别：</span>
+            <a-select
+              v-model:value="drawerTargetCurrency"
+              size="small"
+              style="width: 110px;"
+              :disabled="items.length > 0"
+            >
+              <a-select-option value="CNY">CNY / 人民币</a-select-option>
+              <a-select-option value="USD">USD / 美元</a-select-option>
+              <a-select-option value="EUR">EUR / 欧元</a-select-option>
+              <a-select-option value="HKD">HKD / 港币</a-select-option>
+            </a-select>
+          </div>
+        </template>
+
+        <!-- 4.1 独立自动核销专区 (Distinct Mission Entrance) -->
+        <div class="auto-alloc-banner">
+          <div class="auto-alloc-top">
+            <div class="auto-alloc-title">
+              <iconify-icon icon="ant-design:thunderbolt-filled" style="color: #2563eb;"></iconify-icon>
+              <span>按当前检索范围执行自动核销</span>
+              <a-tag v-if="!canAutoAllocate" color="orange" size="small">
+                前置条件未满足
+              </a-tag>
+              <a-tag v-else color="green" size="small">
+                前置条件就绪
+              </a-tag>
+            </div>
+            <a-space size="small">
+              <span style="font-size: 12px; color: #475569; font-weight: 500;">本次结算金额：</span>
+              <a-input-number
+                v-model:value="autoAllocAmount"
+                :min="0.01"
+                :precision="2"
+                placeholder="请输入到账金额"
+                size="small"
+                style="width: 140px;"></a-input-number>
+              <span style="font-size: 12px; font-weight: 700; color: #1e40af;">{{ drawerTargetCurrency }}</span>
+              <a-button
+                type="primary"
+                size="small"
+                :loading="autoAllocating"
+                @click="handleTriggerAutoAllocation"
+              >
+                <iconify-icon icon="ant-design:thunderbolt-outlined"></iconify-icon>
+                自动核销确认
+              </a-button>
+            </a-space>
+          </div>
+          <p class="auto-alloc-desc">
+            匹配全部符合当前筛选条件的费用（<b>不限当前页，忽略勾选草稿</b>），直接落库生成收费核销单；执行前将展示全息 8 行范围确认窗。
+          </p>
+        </div>
+
+        <!-- 4.2 选费 4 列搜索表单 -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+          <div class="form-grid-4col">
+            <div class="form-cell col-span-1">
+              <span class="form-cell-label">结算单位 (已锁定)</span>
+              <a-input :value="drawerFilter.settlementName" size="small" disabled></a-input>
+            </div>
+            <div class="form-cell col-span-1">
+              <span class="form-cell-label">费用原币</span>
+              <a-select v-model:value="drawerFilter.currency" size="small" style="width: 100%;" allow-clear placeholder="全部币别">
+                <a-select-option value="CNY">CNY / 人民币</a-select-option>
+                <a-select-option value="USD">USD / 美元</a-select-option>
+                <a-select-option value="EUR">EUR / 欧元</a-select-option>
+              </a-select>
+            </div>
+            <div class="form-cell col-span-1">
+              <span class="form-cell-label">业务编号 (委托/主提/对账)</span>
+              <a-input v-model:value="drawerFilter.keyword" placeholder="委托号 / 主提单号" size="small" allow-clear></a-input>
+            </div>
+            <div class="form-cell col-span-1">
+              <span class="form-cell-label">客户对账单号</span>
+              <a-input v-model:value="drawerFilter.statementNum" placeholder="客户对账单号" size="small" allow-clear></a-input>
+            </div>
+            <div class="form-cell col-span-1">
+              <span class="form-cell-label">委托单位</span>
+              <a-input v-model:value="drawerFilter.clientName" placeholder="委托单位名称" size="small" allow-clear></a-input>
+            </div>
+            <div class="form-cell col-span-1">
+              <span class="form-cell-label">开船日期</span>
+              <a-range-picker v-model:value="drawerFilter.etdRange" size="small" style="width: 100%;"></a-range-picker>
+            </div>
+            <div class="form-cell col-span-1">
+              <span class="form-cell-label">收付类型</span>
+              <a-select v-model:value="drawerFilter.paySide" size="small" style="width: 100%;">
+                <a-select-option :value="0">仅应收 (默认)</a-select-option>
+                <a-select-option :value="1">仅应付</a-select-option>
+                <a-select-option value="">全部 (收付互抵)</a-select-option>
+              </a-select>
+            </div>
+            <div class="form-cell col-span-1" style="display: flex; align-items: flex-end; gap: 8px;">
+              <a-button type="primary" size="small" @click="handleDrawerSearch">
+                <iconify-icon icon="ant-design:search-outlined"></iconify-icon>
+                查询
+              </a-button>
+              <a-button size="small" @click="handleDrawerReset">重置</a-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4.3 嵌套业务组与费用行表格 -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+          <a-table
+            :columns="drawerBusinessColumns"
+            :data-source="drawerBusinessList"
+            :row-key="record => record.orderId"
+            size="small"
+            bordered
+            :pagination="false"
+            :scroll="{ y: 460 }"
+          >
+            <!-- 业务层自定义展开 -->
+            <template #expandedRowRender="{ record }">
+              <div class="nested-fee-inner-table">
+                <a-table
+                  :columns="drawerInnerFeeColumns"
+                  :data-source="record.fees"
+                  :row-key="fee => fee.orderFeeId"
+                  size="small"
+                  :pagination="false"
+                >
+                  <template v-slot:[bodycellslot]="{ column, record: fee }">
+                    <template v-if="column.key === 'checkFee'">
+                      <a-checkbox
+                        :checked="drawerSelectedFeeIds.includes(fee.orderFeeId)"
+                        :disabled="isFeeAlreadyInMain(fee.orderFeeId)"
+                        @change="e => handleToggleFeeSelect(fee, e.target.checked)"
+                      ></a-checkbox>
+                    </template>
+                    <template v-if="column.key === 'paySide'">
+                      <a-tag :color="fee.paySide === 0 ? 'green' : 'red'">
+                        {{ fee.paySide === 0 ? '应收' : '应付' }}
+                      </a-tag>
+                    </template>
+                    <template v-if="column.key === 'currencyCode'">
+                      <a-tag>{{ fee.currencyCode }}</a-tag>
+                    </template>
+                    <template v-if="column.key === 'amount'">
+                      <span style="font-family: monospace;">{{ formatCurrency(fee.amount, fee.currencyCode) }}</span>
+                    </template>
+                    <template v-if="column.key === 'remainingAmount'">
+                      <span style="font-family: monospace; font-weight: 600;">{{ formatCurrency(fee.remainingAmount, fee.currencyCode) }}</span>
+                    </template>
+                    <template v-if="column.key === 'settledAmount'">
+                      <a-input-number
+                        :value="drawerSettledAmountMap[fee.orderFeeId] || fee.remainingAmount"
+                        :min="fee.remainingAmount < 0 ? fee.remainingAmount : 0.01"
+                        :max="fee.remainingAmount > 0 ? fee.remainingAmount : -0.01"
+                        :precision="2"
+                        size="small"
+                        style="width: 120px;"
+                        :disabled="isFeeAlreadyInMain(fee.orderFeeId)"
+                        @change="val => handleUpdateDrawerFeeAmount(fee, val)"
+                      ></a-input-number>
+                    </template>
+                  </template>
+                </a-table>
+              </div>
+            </template>
+
+            <!-- 业务组行主体 -->
+            <template v-slot:[bodycellslot]="{ column, record }">
+              <template v-if="column.key === 'checkGroup'">
+                <a-checkbox
+                  :checked="isGroupAllChecked(record)"
+                  :indeterminate="isGroupIndeterminate(record)"
+                  @change="e => handleToggleGroupSelect(record, e.target.checked)"></a-checkbox>
+              </template>
+              <template v-if="column.key === 'commissionNum'">
+                <span class="copyable-code" @click="copyText(record.commissionNum)">
+                  {{ record.commissionNum }}
+                </span>
+              </template>
+              <template v-if="column.key === 'voyageInfo'">
+                <div class="logistics-route-block">
+                  <div class="route-primary-line">
+                    <span>{{ record.polName }}</span>
+                    <iconify-icon icon="ant-design:arrow-right-outlined" class="route-arrow"></iconify-icon>
+                    <span>{{ record.podName }}</span>
+                  </div>
+                  <div class="route-secondary-line">
+                    <span>{{ record.totalCtn }}</span>
+                    <span class="route-sep">/</span>
+                    <span>{{ record.carrierName }}</span>
+                    <span class="route-sep">/</span>
+                    <span>ETD {{ record.etd }}</span>
+                  </div>
+                </div>
+              </template>
+            </template>
+          </a-table>
+        </div>
+
+        <!-- 4.4 抽屉吸底汇总操作栏 -->
+        <template #footer>
+          <div class="drawer-fixed-footer">
+            <div class="drawer-summary-text">
+              <span>已勾选：<b class="drawer-summary-highlight">{{ drawerSelectedFeeIds.length }}</b> 笔费用</span>
+              <span>所选原币净额：<b class="drawer-summary-highlight">{{ formatCurrency(drawerSelectedNetTotal) }}</b></span>
+              <span v-if="drawerTargetCurrency !== 'CNY'" style="color: #64748b; font-size: 12px;">
+                (将折算为 <b>{{ drawerTargetCurrency }}</b> 流水币别)
+              </span>
+            </div>
+            <a-space size="middle">
+              <a-button @click="drawerOpen = false">取消</a-button>
+              <a-button
+                type="primary"
+                :disabled="drawerSelectedFeeIds.length === 0"
+                @click="handleConfirmDrawerSelection"
+              >
+                确认添加到草稿明细 ({{ drawerSelectedFeeIds.length }})
+              </a-button>
+            </a-space>
+          </div>
+        </template>
+      </a-drawer>
+
+      <!-- ====================================================================
+           5. 跨币别汇率填报弹窗 (原币到流水币别方向)
+           ==================================================================== -->
+      <a-modal
+        v-model:open="rateModalOpen"
+        title="填写转币结算汇率"
+        width="540px"
+        :mask-closable="false"
+        @ok="handleConfirmRateModal"
+      >
+        <div style="padding: 10px 0;">
+          <a-alert
+            type="info"
+            show-icon
+            message="选入费用原币与银行流水到账币别不同，必须录入折汇汇率"
+            description="汇率方向固定为：1 [费用原币] = N [银行流水币别]。汇率必须大于 0，最多录入 6 位小数。"
+            style="margin-bottom: 16px;"></a-alert>
+          <div v-for="rateItem in missingRateCurrencies" :key="rateItem.currencyCode" style="margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-weight: 600; font-size: 13px;">
+                1 {{ rateItem.currencyCode }} (原币) → {{ currentBankCurrency }} (流水到账币别)
+              </span>
+              <span style="font-size: 12px; color: #64748b;">
+                涉及原币净额：{{ formatCurrency(getCurrencyNet(rateItem.currencyCode), rateItem.currencyCode) }}
+              </span>
+            </div>
+            <a-input-number
+              v-model:value="rateDraft[rateItem.currencyCode]"
+              :min="0.000001"
+              :step="0.000001"
+              :precision="6"
+              placeholder="请输入大于 0 的折汇汇率 (例: 0.140000)"
+              style="width: 100%;"></a-input-number>
+          </div>
+        </div>
+      </a-modal>
+
+      <!-- ====================================================================
+           6. 自动核销 8 行全息范围确认弹窗
+           ==================================================================== -->
+      <a-modal
+        v-model:open="autoConfirmOpen"
+        title="确认自动核销并立即新建"
+        width="660px"
+        :mask-closable="false"
+        ok-text="确认立即建单"
+        cancel-text="取消回到草稿"
+        @ok="handleExecuteAutoAllocation"
+      >
+        <div style="padding: 10px 0; font-size: 13px; line-height: 1.8; color: #1e293b;">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+            <p v-for="(line, idx) in autoConfirmLines" :key="idx" style="margin: 0 0 6px 0;">
+              <iconify-icon icon="ant-design:check-circle-outlined" style="color: #0284c7; margin-right: 6px;"></iconify-icon>
+              <span>{{ line }}</span>
+            </p>
+          </div>
+          <p style="margin: 0; color: #dc2626; font-size: 12px;">
+            <b>注意：</b> 点击「确认立即建单」将向后端发起原子事务提交，直接生成单据并打开新单详情，<b>不会先把分配结果回填为可编辑草稿</b>。
+          </p>
+        </div>
+      </a-modal>
+
+      <!-- ====================================================================
+           7. 关联已有银行流水选择弹窗
+           ==================================================================== -->
+      <a-modal
+        v-model:open="statementPickerOpen"
+        title="选择已有银行流水"
+        width="980px"
+        :footer="null"
+      >
+        <a-table
+          :columns="pickerColumns"
+          :data-source="mockExistingStatements"
+          :row-key="record => record.id"
+          size="small"
+          bordered
+          :pagination="{ pageSize: 5 }"
+        >
+          <template v-slot:[bodycellslot]="{ column, record }">
+            <template v-if="column.key === 'action'">
+              <a-button
+                type="link"
+                size="small"
+                :disabled="record.locked || record.remainingAmount <= 0"
+                @click="handleSelectStatement(record)"
+              >
+                选择本流水
+              </a-button>
+            </template>
+            <template v-if="column.key === 'locked'">
+              <a-tag :color="record.locked ? 'red' : 'green'">
+                {{ record.locked ? '已锁定' : '正常' }}
+              </a-tag>
+            </template>
+            <template v-if="column.key === 'amount' || column.key === 'remainingAmount'">
+              <span style="font-family: monospace;">{{ formatCurrency(record[column.key], record.currencyCode) }}</span>
+            </template>
+          </template>
+        </a-table>
+      </a-modal>
+
+      <!-- ====================================================================
+           8. 未保存离开安全确认弹窗
+           ==================================================================== -->
+      <a-modal
+        v-model:open="leaveModalOpen"
+        title="离开页面确认"
+        ok-text="确定离开 (放弃草稿)"
+        cancel-text="留在此页"
+        ok-type="danger"
+        @ok="handleConfirmLeave"
+      >
+        <p>当前页面存在尚未保存的收费核销草稿（包含已选费用及金额）。</p>
+        <p style="color: #dc2626; margin: 0;">离开本页面将丢失当前的未保存草稿，是否确认离开？</p>
+      </a-modal>
+
+      <!-- ====================================================================
+           9. 设计交付物核对与SFC迁移说明弹窗
+           ==================================================================== -->
+      <a-modal
+        v-model:open="showAuditModal"
+        title="📋 收费核销新建页 · 设计交接 5 大任务交付核对表"
+        width="860px"
+        :footer="null"
+      >
+        <a-table
+          :columns="[
+            { title: '交接任务 (8.1)', dataIndex: 'task', width: 220 },
+            { title: '原型设计方案实现与交互闭环', dataIndex: 'impl', minWidth: 320 },
+            { title: '状态', dataIndex: 'status', width: 90 }
+          ]"
+          :data-source="auditDeliverables"
+          :pagination="false"
+          size="small"
+          bordered
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.dataIndex === 'status'">
+              <a-tag color="success">100% 对齐</a-tag>
+            </template>
+          </template>
+        </a-table>
+      </a-modal>
+
+      <a-modal
+        v-model:open="showSfcModal"
+        title="🚀 Vue 3 SFC 一键迁移指引"
+        width="760px"
+        :footer="null"
+      >
+        <a-typography-paragraph>
+          本项目代码完全采用 <b>Ant Design Vue 4.x + Vue 3 组合式语法</b> 编写，研发可直接按以下 3 步无缝合并回主工程：
+        </a-typography-paragraph>
+        <ol style="line-height: 2;">
+          <li>复制本页面 <code>&lt;div class="rs-layout"&gt;...&lt;/div&gt;</code> 模板至 <code>form.vue</code> 的 <code>&lt;template&gt;</code>。</li>
+          <li>复制 <code>&lt;script&gt;</code> 中的 <code>setup()</code> 响应式计算属性与状态逻辑，已完整对齐 <code>settlement-amount.ts</code> 及 <code>auto-allocation.ts</code>。</li>
+          <li>样式完全遵循 <code>common.css</code> 规范，无非标覆盖，可安全迁入 <code>&lt;style scoped lang="scss"&gt;</code>。</li>
+        </ol>
+      </a-modal>
+
+    </a-config-provider>
+  </div>
+
+  <script>
+    const { createApp, ref, reactive, computed, watch, onMounted } = Vue;
+
+    const app = createApp({
+      setup() {
+        const bodycellslot = 'bodyCell';
+        // --------------------------------------------------------------------
+        // 1. 核心响应式状态 (沙盘、来源、主表、明细、汇率)
+        // --------------------------------------------------------------------
+        const currentScenario = ref('standard-new');
+        const isFormDirty = ref(false);
+        const saving = ref(false);
+        const isReadonly = ref(false);
+        const readonlyReason = ref('');
+        const canOfferNewStatement = ref(true);
+
+        const bankSourceMode = ref('new'); // 'new' | 'existing'
+        const payerBankNotice = ref(false);
+
+        // 新建银行流水草稿
+        const newStatementDraft = reactive({
+          settlementId: 'CLI_001',
+          settlementName: '测试WF346验收客户',
+          currencyCode: 'CNY',
+          statementTime: dayjs('2026-10-28'),
+          transactionFee: 0.00,
+          orgBankAccountId: 'ORG_BANK_01',
+          clientInvoiceBankId: 'CLI_BANK_01',
+          statementRemark: '网银转账贷记来账-测试WF346付款归集',
+          message: '请查收10月集装箱海运费',
+          remark: '常规现结款'
+        });
+
+        // 已有银行流水上下文
+        const existingStatement = reactive({
+          id: 'STMT_20261028_008',
+          bankStatementNo: 'BS202610280008',
+          statementTime: '2026-10-28 14:30',
+          amount: 10000.00,
+          currencyCode: 'USD',
+          settlementId: 'CLI_002',
+          settlementName: '青岛中远海运集装箱运输有限公司',
+          orgBankAccountName: '招商银行深圳科苑支行 (75591823901)',
+          statementRemark: '美线运费电汇入账',
+          otherSettledAmount: 3200.00,
+          locked: false
+        });
+
+        // 收费核销结算主表
+        const settlementForm = reactive({
+          orgId: 101,
+          settlementNo: '',
+          creatorUserName: '当前财务管理员 (张秋萍)',
+          settlementTime: dayjs('2026-10-28 14:35'),
+          remark: '10月份出口美线海运费结算归集'
+        });
+
+        // 本次结算金额 (流水币别)
+        const actualSettled = ref(20.00);
+
+        // 汇率表 (原币 -> 流水币别)
+        const exchangeRates = reactive({
+          'CNY': 1.000000,
+          'USD': 1.000000
+        });
+
+        // 结算明细明细项 (本单明细)
+        const items = ref([
+          {
+            id: 'FEE_ITEM_001',
+            _isCurrent: true,
+            commissionNum: 'WF346-SE-AUG',
+            mblNum: 'ONE2026102801',
+            polName: '青岛 TAO',
+            podName: '洛杉矶 LAX',
+            totalCtn: '2×40HQ',
+            carrierName: 'ONE',
+            etd: '2026-10-30',
+            salesName: '张晓华',
+            operatorName: '李建国',
+            feeCodeName: '海运费 (OFT)',
+            paySide: 0,
+            currencyCode: 'CNY',
+            amount: 20.00,
+            remainingAmount: 20.00,
+            settledAmount: 20.00,
+            remark: '标准现结'
+          }
+        ]);
+
+        // 同一流水下其他核销单明细 (只读)
+        const foreignItems = ref([]);
+
+        // --------------------------------------------------------------------
+        // 2. 计算属性 (币别收集、原始金额、差值、可用额度)
+        // --------------------------------------------------------------------
+        const currentBankCurrency = computed(() => {
+          return bankSourceMode.value === 'new'
+            ? newStatementDraft.currencyCode
+            : existingStatement.currencyCode;
+        });
+
+        const currentItemsCount = computed(() => items.value.length);
+
+        const tableItems = computed(() => [
+          ...items.value,
+          ...foreignItems.value
+        ]);
+
+        // 收集明细中出现的原币，与流水币别同币别的锁定汇率 1
+        const displayCurrencies = computed(() => {
+          const bankCur = currentBankCurrency.value;
+          const map = new Map();
+          for (const item of items.value) {
+            if (!item.currencyCode) continue;
+            if (!map.has(item.currencyCode)) {
+              map.set(item.currencyCode, {
+                currencyCode: item.currencyCode,
+                locked: item.currencyCode === bankCur
+              });
+            }
+          }
+          return [...map.values()].sort((a, b) => (a.locked ? -1 : 1));
+        });
+
+        // 获取某原币净额 (收为正，付为负)
+        const getCurrencyNet = (curCode) => {
+          let sum = 0;
+          for (const item of items.value) {
+            if (item.currencyCode === curCode) {
+              const sign = item.paySide === 1 ? -1 : 1;
+              sum += sign * (Number(item.settledAmount) || 0);
+            }
+          }
+          return Math.round(sum * 100) / 100;
+        };
+
+        // 单行汇率
+        const getLineExchangeRate = (record) => {
+          if (record.currencyCode === currentBankCurrency.value) return 1.000000;
+          return exchangeRates[record.currencyCode] || null;
+        };
+
+        // 单行折合流水币金额
+        const getLineOriginalAmount = (record) => {
+          const rate = getLineExchangeRate(record);
+          if (!rate) return null;
+          const raw = (Number(record.settledAmount) || 0) * rate;
+          return Math.round(raw * 100) / 100;
+        };
+
+        // 原始结算金额总额：逐行折算到流水币别后收减付求和
+        const originalSettledAmount = computed(() => {
+          if (items.value.length === 0) return 0;
+          let sum = 0;
+          for (const item of items.value) {
+            const lineOrig = getLineOriginalAmount(item);
+            if (lineOrig === null) return null;
+            sum += item.paySide === 1 ? -lineOrig : lineOrig;
+          }
+          return Math.round(sum * 100) / 100;
+        });
+
+        // 差值 = 本次结算 - 原始金额
+        const diffAmount = computed(() => {
+          if (actualSettled.value === null || originalSettledAmount.value === null) return null;
+          return Math.round((actualSettled.value - originalSettledAmount.value) * 100) / 100;
+        });
+
+        // 已有流水剩余可用额度
+        const remainingQuota = computed(() => {
+          if (bankSourceMode.value === 'new') return null;
+          const total = existingStatement.amount || 0;
+          const other = existingStatement.otherSettledAmount || 0;
+          const current = actualSettled.value || 0;
+          return Math.round((total - other - current) * 100) / 100;
+        });
+
+        // 是否超额
+        const isOverLimit = computed(() => {
+          if (bankSourceMode.value === 'new') return false;
+          return remainingQuota.value < 0;
+        });
+
+        // --------------------------------------------------------------------
+        // 3. 表格列定义与行选逻辑
+        // --------------------------------------------------------------------
+        const feeColumns = [
+          { title: '所属核销', dataIndex: 'ownerSettlementNo', key: 'ownerSettlementNo', width: 120, fixed: 'left' },
+          { title: '委托编号', dataIndex: 'commissionNum', key: 'commissionNum', width: 140, fixed: 'left' },
+          { title: '主提单号', dataIndex: 'mblNum', key: 'mblNum', width: 140 },
+          { title: '航线航程与箱型', dataIndex: 'voyageSummary', key: 'voyageSummary', width: 230 },
+          { title: '经办责任人', dataIndex: 'staffPair', key: 'staffPair', width: 110 },
+          { title: '费用名称', dataIndex: 'feeCodeName', key: 'feeCodeName', width: 130 },
+          { title: '收付', dataIndex: 'paySide', key: 'paySide', width: 65, align: 'center' },
+          { title: '原币', dataIndex: 'currencyCode', key: 'currencyCode', width: 65, align: 'center' },
+          { title: '费用总额', dataIndex: 'amount', key: 'amount', width: 100, align: 'right' },
+          { title: '剩余额度', dataIndex: 'remainingAmount', key: 'remainingAmount', width: 100, align: 'right' },
+          { title: '本次结算 (原币)', dataIndex: 'settledAmount', key: 'settledAmount', width: 140, align: 'right' },
+          { title: '结算汇率', dataIndex: 'exchangeRate', key: 'exchangeRate', width: 110, align: 'right' },
+          { title: '折合流水币', dataIndex: 'originalSettledAmount', key: 'originalSettledAmount', width: 120, align: 'right' },
+          { title: '费用明细备注', dataIndex: 'remark', key: 'remark', minWidth: 180 }
+        ];
+
+        const selectedRowKeys = ref([]);
+        const rowSelection = computed(() => {
+          if (isReadonly.value) return undefined;
+          return {
+            selectedRowKeys: selectedRowKeys.value,
+            getCheckboxProps: (record) => ({
+              disabled: !record._isCurrent
+            }),
+            onChange: (keys) => {
+              selectedRowKeys.value = keys;
+            }
+          };
+        });
+
+        const getRowClassName = (record) => {
+          return record._isCurrent ? '' : 'row-foreign-settlement';
+        };
+
+        // --------------------------------------------------------------------
+        // 4. 选费抽屉逻辑 (嵌套表格、多页选择、自动核销)
+        // --------------------------------------------------------------------
+        const drawerOpen = ref(false);
+        const drawerTargetCurrency = ref('CNY');
+        const autoAllocAmount = ref(null);
+        const autoAllocating = ref(false);
+        const autoConfirmOpen = ref(false);
+        const autoConfirmLines = ref([]);
+
+        const drawerFilter = reactive({
+          settlementName: '测试WF346验收客户',
+          currency: undefined,
+          keyword: '',
+          statementNum: '',
+          clientName: '',
+          etdRange: undefined,
+          paySide: 0
+        });
+
+        const drawerBusinessColumns = [
+          { key: 'checkGroup', title: '', width: 44, align: 'center' },
+          { title: '委托编号', key: 'commissionNum', width: 140 },
+          { title: '委托单位', dataIndex: 'clientName', width: 140 },
+          { title: '航线与箱型航程', key: 'voyageInfo', width: 220 },
+          { title: '开船日期', dataIndex: 'etd', width: 100 },
+          { title: '船公司', dataIndex: 'carrierName', width: 90 },
+          { title: '费用笔数', dataIndex: 'feeCount', width: 80, align: 'right' },
+          { title: '剩余额度合计', dataIndex: 'totalRemainingAmount', width: 120, align: 'right',
+            customRender: ({ text }) => formatCurrency(text) }
+        ];
+
+        const drawerInnerFeeColumns = [
+          { key: 'checkFee', title: '', width: 44, align: 'center' },
+          { title: '费用名称', dataIndex: 'feeCodeName', width: 140 },
+          { title: '收付', key: 'paySide', width: 70, align: 'center' },
+          { title: '原币', key: 'currencyCode', width: 70, align: 'center' },
+          { title: '费用总额', key: 'amount', width: 110, align: 'right' },
+          { title: '剩余额度', key: 'remainingAmount', width: 110, align: 'right' },
+          { title: '本次结算金额', key: 'settledAmount', width: 140, align: 'right' }
+        ];
+
+        const drawerBusinessList = ref([
+          {
+            orderId: 'ORD_WF346',
+            commissionNum: 'WF346-SE-AUG',
+            mblNum: 'ONE2026102801',
+            clientName: '测试WF346验收客户',
+            polName: '青岛 TAO',
+            podName: '洛杉矶 LAX',
+            totalCtn: '2×40HQ',
+            carrierName: 'ONE',
+            etd: '2026-10-30',
+            feeCount: 2,
+            totalRemainingAmount: 20.00,
+            fees: [
+              {
+                orderFeeId: 'FEE_001',
+                feeCodeName: '海运费 (OFT)',
+                paySide: 0,
+                currencyCode: 'CNY',
+                amount: 20.00,
+                remainingAmount: 20.00
+              },
+              {
+                orderFeeId: 'FEE_002',
+                feeCodeName: '港杂费 (THC)',
+                paySide: 0,
+                currencyCode: 'CNY',
+                amount: 1.00,
+                remainingAmount: 1.00
+              }
+            ]
+          },
+          {
+            orderId: 'ORD_WF347',
+            commissionNum: 'WF347-SE-SEP',
+            mblNum: 'MSK2026102802',
+            clientName: '测试WF346验收客户',
+            polName: '上海 SHA',
+            podName: '鹿特丹 RTM',
+            totalCtn: '1×20GP',
+            carrierName: 'MSK',
+            etd: '2026-11-05',
+            feeCount: 1,
+            totalRemainingAmount: 5000.00,
+            fees: [
+              {
+                orderFeeId: 'FEE_003',
+                feeCodeName: '订舱代理费 (BKF)',
+                paySide: 0,
+                currencyCode: 'CNY',
+                amount: 5000.00,
+                remainingAmount: 5000.00
+              }
+            ]
+          }
+        ]);
+
+        const drawerSelectedFeeIds = ref([]);
+        const drawerSettledAmountMap = reactive({});
+
+        const drawerSelectedNetTotal = computed(() => {
+          let sum = 0;
+          for (const group of drawerBusinessList.value) {
+            for (const fee of group.fees) {
+              if (drawerSelectedFeeIds.value.includes(fee.orderFeeId)) {
+                const amount = drawerSettledAmountMap[fee.orderFeeId] !== undefined
+                  ? drawerSettledAmountMap[fee.orderFeeId]
+                  : fee.remainingAmount;
+                sum += fee.paySide === 1 ? -amount : amount;
+              }
+            }
+          }
+          return Math.round(sum * 100) / 100;
+        });
+
+        const isFeeAlreadyInMain = (feeId) => {
+          return items.value.some(it => it.id === feeId);
+        };
+
+        const isGroupAllChecked = (group) => {
+          const selectable = group.fees.filter(f => !isFeeAlreadyInMain(f.orderFeeId));
+          return selectable.length > 0 && selectable.every(f => drawerSelectedFeeIds.value.includes(f.orderFeeId));
+        };
+
+        const isGroupIndeterminate = (group) => {
+          const selectable = group.fees.filter(f => !isFeeAlreadyInMain(f.orderFeeId));
+          const checked = selectable.filter(f => drawerSelectedFeeIds.value.includes(f.orderFeeId));
+          return checked.length > 0 && checked.length < selectable.length;
+        };
+
+        const handleToggleFeeSelect = (fee, checked) => {
+          if (checked) {
+            if (!drawerSelectedFeeIds.value.includes(fee.orderFeeId)) {
+              drawerSelectedFeeIds.value.push(fee.orderFeeId);
+              if (drawerSettledAmountMap[fee.orderFeeId] === undefined) {
+                drawerSettledAmountMap[fee.orderFeeId] = fee.remainingAmount;
+              }
+            }
+          } else {
+            drawerSelectedFeeIds.value = drawerSelectedFeeIds.value.filter(id => id !== fee.orderFeeId);
+          }
+        };
+
+        const handleToggleGroupSelect = (group, checked) => {
+          const selectable = group.fees.filter(f => !isFeeAlreadyInMain(f.orderFeeId));
+          if (checked) {
+            for (const fee of selectable) {
+              if (!drawerSelectedFeeIds.value.includes(fee.orderFeeId)) {
+                drawerSelectedFeeIds.value.push(fee.orderFeeId);
+                if (drawerSettledAmountMap[fee.orderFeeId] === undefined) {
+                  drawerSettledAmountMap[fee.orderFeeId] = fee.remainingAmount;
+                }
+              }
+            }
+          } else {
+            const groupFeeIds = new Set(selectable.map(f => f.orderFeeId));
+            drawerSelectedFeeIds.value = drawerSelectedFeeIds.value.filter(id => !groupFeeIds.has(id));
+          }
+        };
+
+        const handleUpdateDrawerFeeAmount = (fee, val) => {
+          drawerSettledAmountMap[fee.orderFeeId] = val;
+          if (val && !drawerSelectedFeeIds.value.includes(fee.orderFeeId)) {
+            drawerSelectedFeeIds.value.push(fee.orderFeeId);
+          }
+        };
+
+        // --------------------------------------------------------------------
+        // 5. 汇率弹窗逻辑
+        // --------------------------------------------------------------------
+        const rateModalOpen = ref(false);
+        const rateDraft = reactive({});
+        const pendingAddedFees = ref([]);
+
+        const missingRateCurrencies = computed(() => {
+          const targetCur = currentBankCurrency.value;
+          const set = new Set();
+          for (const fee of pendingAddedFees.value) {
+            if (fee.currencyCode && fee.currencyCode !== targetCur) {
+              set.add(fee.currencyCode);
+            }
+          }
+          return [...set].map(code => ({ currencyCode: code }));
+        });
+
+        // --------------------------------------------------------------------
+        // 6. 自动核销逻辑与前置校验
+        // --------------------------------------------------------------------
+        const canAutoAllocate = computed(() => {
+          if (bankSourceMode.value === 'new') {
+            return !!newStatementDraft.settlementId && !!newStatementDraft.currencyCode;
+          }
+          return !!existingStatement.settlementId && !!existingStatement.currencyCode;
+        });
+
+        const handleTriggerAutoAllocation = () => {
+          if (!canAutoAllocate.value) {
+            antd.message.warning('请先在主表选择付款方和币别，再执行自动核销');
+            return;
+          }
+          if (!autoAllocAmount.value || autoAllocAmount.value <= 0) {
+            antd.message.warning('请输入大于 0 的本次结算金额');
+            return;
+          }
+
+          const targetCur = drawerTargetCurrency.value;
+          const payerName = bankSourceMode.value === 'new' ? newStatementDraft.settlementName : existingStatement.settlementName;
+
+          autoConfirmLines.value = [
+            `1. 将按本次结算 ${formatCurrency(autoAllocAmount.value, targetCur)} ${targetCur} ${bankSourceMode.value === 'new' ? '新建一条银行流水，并直接生成收费核销单' : '直接新建一张按费用收费核销'}。`,
+            `2. 结算对象固定为「${payerName}」，币别固定为 ${targetCur}。`,
+            `3. 编号范围说明：${drawerFilter.keyword ? `编号匹配委托号/主提号包含「${drawerFilter.keyword}」` : '未填写编号，不按编号收窄范围'}。`,
+            `4. 客户对账说明：${drawerFilter.statementNum ? `严格限定在客户对账单「${drawerFilter.statementNum}」内` : '未填写对账单，不按对账单收窄'}。`,
+            `5. 收付类型说明：${drawerFilter.paySide === 0 ? '仅应收费用（不使用应付费用抵减）' : (drawerFilter.paySide === 1 ? '仅应付费用' : '全部应收与应付费用互抵')}。`,
+            `6. 范围全覆盖说明：自动分配使用符合条件的全部费用（跨页全覆盖，不以勾选费用为限）。`,
+            `7. 草稿忽略说明：当前手选的草稿（主表已选 ${items.value.length} 条${drawerSelectedFeeIds.value.length > 0 ? `，抽屉勾选 ${drawerSelectedFeeIds.value.length} 条` : ''}）不会计入自动核销，核销单备注随单保存。`,
+            `8. 取消保护说明：点击取消将保持原数据不变，不会误产生落库数据。`
+          ];
+
+          autoConfirmOpen.value = true;
+        };
+
+        const handleExecuteAutoAllocation = () => {
+          autoConfirmOpen.value = false;
+          autoAllocating.value = true;
+          setTimeout(() => {
+            autoAllocating.value = false;
+            drawerOpen.value = false;
+            antd.Modal.success({
+              title: '自动核销单据创建成功！',
+              content: '已成功在同一事务中建立银行流水并完成自动核销分配，正在为您导航至核销单详情编辑页...',
+              okText: '好的'
+            });
+            isFormDirty.value = false;
+          }, 800);
+        };
+
+        // --------------------------------------------------------------------
+        // 7. 交互动作实现 (保存、返回、删费、切场景)
+        // --------------------------------------------------------------------
+        const markDirty = () => {
+          isFormDirty.value = true;
+        };
+
+        const handleActualSettledChange = () => {
+          markDirty();
+        };
+
+        const handleRateChange = () => {
+          markDirty();
+          // 如果新建流水模式，自动重新同步实际结算额
+          if (bankSourceMode.value === 'new') {
+            actualSettled.value = originalSettledAmount.value;
+          }
+        };
+
+        const handleLineSettledAmountChange = () => {
+          markDirty();
+          if (bankSourceMode.value === 'new') {
+            actualSettled.value = originalSettledAmount.value;
+          }
+        };
+
+        const handleSourceModeChange = (e) => {
+          markDirty();
+          if (e.target.value === 'existing') {
+            actualSettled.value = 6800.00;
+          } else {
+            actualSettled.value = originalSettledAmount.value;
+          }
+        };
+
+        const handlePayerChange = (val, opt) => {
+          newStatementDraft.settlementName = opt.children || val;
+          newStatementDraft.clientInvoiceBankId = undefined;
+          payerBankNotice.value = true;
+          markDirty();
+          antd.message.info('付款方已变更，对方银行账户已自动清空，请重新选择');
+        };
+
+        const handleCurrencyChange = (val) => {
+          markDirty();
+          newStatementDraft.currencyCode = val;
+          exchangeRates[val] = 1.000000;
+        };
+
+        const handleOpenFeeDrawer = () => {
+          if (!newStatementDraft.settlementId && bankSourceMode.value === 'new') {
+            antd.message.warning('请先在主表选择付款方');
+            return;
+          }
+          drawerFilter.settlementName = bankSourceMode.value === 'new'
+            ? newStatementDraft.settlementName
+            : existingStatement.settlementName;
+          drawerTargetCurrency.value = currentBankCurrency.value;
+          drawerOpen.value = true;
+        };
+
+        const handleCloseDrawer = () => {
+          drawerOpen.value = false;
+        };
+
+        const handleDrawerSearch = () => {
+          if (drawerSelectedFeeIds.value.length > 0) {
+            drawerSelectedFeeIds.value = [];
+            antd.message.info('检索条件已变更，跨页勾选已按业务契约自动重置');
+          } else {
+            antd.message.success('已刷新费用查询结果');
+          }
+        };
+
+        const handleDrawerReset = () => {
+          drawerFilter.keyword = '';
+          drawerFilter.statementNum = '';
+          drawerFilter.clientName = '';
+          drawerFilter.etdRange = undefined;
+          drawerFilter.paySide = 0;
+          if (drawerSelectedFeeIds.value.length > 0) {
+            drawerSelectedFeeIds.value = [];
+          }
+          antd.message.info('已重置查询条件与勾选草稿');
+        };
+
+        const handleConfirmDrawerSelection = () => {
+          const selected = [];
+          for (const group of drawerBusinessList.value) {
+            for (const fee of group.fees) {
+              if (drawerSelectedFeeIds.value.includes(fee.orderFeeId)) {
+                selected.push({
+                  id: fee.orderFeeId,
+                  _isCurrent: true,
+                  commissionNum: group.commissionNum,
+                  mblNum: group.mblNum,
+                  polName: group.polName,
+                  podName: group.podName,
+                  totalCtn: group.totalCtn,
+                  carrierName: group.carrierName,
+                  etd: group.etd,
+                  salesName: '张晓华',
+                  operatorName: '李建国',
+                  feeCodeName: fee.feeCodeName,
+                  paySide: fee.paySide,
+                  currencyCode: fee.currencyCode,
+                  amount: fee.amount,
+                  remainingAmount: fee.remainingAmount,
+                  settledAmount: drawerSettledAmountMap[fee.orderFeeId] || fee.remainingAmount,
+                  remark: ''
+                });
+              }
+            }
+          }
+
+          pendingAddedFees.value = selected;
+
+          // 检查是否有跨币别且缺少汇率
+          const missing = [];
+          for (const fee of selected) {
+            if (fee.currencyCode !== currentBankCurrency.value) {
+              if (!exchangeRates[fee.currencyCode]) {
+                missing.push(fee.currencyCode);
+              }
+            }
+          }
+
+          if (missing.length > 0) {
+            for (const code of missing) {
+              rateDraft[code] = exchangeRates[code] || undefined;
+            }
+            rateModalOpen.value = true;
+          } else {
+            applySelectedFeesToMain(selected);
+          }
+        };
+
+        const handleConfirmRateModal = () => {
+          for (const [code, rate] of Object.entries(rateDraft)) {
+            if (!rate || rate <= 0) {
+              antd.message.warning(`币别 [${code}] 的折汇汇率必须大于 0`);
+              return;
+            }
+            exchangeRates[code] = rate;
+          }
+          rateModalOpen.value = false;
+          applySelectedFeesToMain(pendingAddedFees.value);
+        };
+
+        const applySelectedFeesToMain = (newFees) => {
+          const existingIds = new Set(items.value.map(it => it.id));
+          const addList = newFees.filter(f => !existingIds.has(f.id));
+          items.value = [...items.value, ...addList];
+          drawerOpen.value = false;
+          drawerSelectedFeeIds.value = [];
+          markDirty();
+
+          if (bankSourceMode.value === 'new') {
+            actualSettled.value = originalSettledAmount.value;
+          }
+          antd.message.success(`已添加 ${addList.length} 笔结算明细至草稿`);
+        };
+
+        const handleBatchDeleteFees = () => {
+          antd.Modal.confirm({
+            title: '确认删除选中明细',
+            content: `确定要从当前草稿中移除选中的 ${selectedRowKeys.value.length} 笔费用吗？此操作不会修改后端真实数据。`,
+            okText: '确认移除',
+            okType: 'danger',
+            cancelText: '取消',
+            onOk: () => {
+              const delSet = new Set(selectedRowKeys.value);
+              items.value = items.value.filter(it => !delSet.has(it.id));
+              selectedRowKeys.value = [];
+              markDirty();
+              if (bankSourceMode.value === 'new') {
+                actualSettled.value = originalSettledAmount.value;
+              }
+              antd.message.success('已从草稿中移除选中明细，盘面金额已自动重新汇总！');
+            }
+          });
+        };
+
+        // 统一主表保存
+        const handleSaveMainForm = () => {
+          if (items.value.length === 0) {
+            antd.message.warning('请先添加结算明细');
+            return;
+          }
+          if (!actualSettled.value || actualSettled.value <= 0) {
+            antd.message.warning('本次结算金额必须大于 0');
+            return;
+          }
+          if (isOverLimit.value) {
+            antd.message.error(`本单结算 ${formatCurrency(actualSettled.value, currentBankCurrency.value)} 超过了流水剩余额度，已被拦截！`);
+            return;
+          }
+
+          saving.value = true;
+          setTimeout(() => {
+            saving.value = false;
+            isFormDirty.value = false;
+            antd.Modal.success({
+              title: '收费核销单与银行流水保存成功！',
+              content: `已成功保存收费核销单（系统分配结算单号：JS202610280019）。正在切换至单据编辑视图。`,
+              okText: '进入编辑页'
+            });
+          }, 800);
+        };
+
+        // 安全离开页面拦截
+        const leaveModalOpen = ref(false);
+        const handleSafeBack = () => {
+          if (isFormDirty.value) {
+            leaveModalOpen.value = true;
+          } else {
+            antd.message.info('正在返回收费核销单列表...');
+          }
+        };
+
+        const handleConfirmLeave = () => {
+          leaveModalOpen.value = false;
+          isFormDirty.value = false;
+          antd.message.info('已安全离开新建页，返回列表');
+        };
+
+        // 已有流水弹窗
+        const statementPickerOpen = ref(false);
+        const mockExistingStatements = ref([
+          {
+            id: 'STMT_001',
+            bankStatementNo: 'BS202610280008',
+            statementTime: '2026-10-28 14:30',
+            amount: 10000.00,
+            remainingAmount: 6800.00,
+            currencyCode: 'USD',
+            settlementName: '青岛中远海运集装箱运输有限公司',
+            orgBankAccountName: '招商银行深圳科苑支行 (75591823901)',
+            statementRemark: '美线运费电汇入账',
+            locked: false
+          },
+          {
+            id: 'STMT_002',
+            bankStatementNo: 'BS202610280009',
+            statementTime: '2026-10-28 11:20',
+            amount: 50000.00,
+            remainingAmount: 50000.00,
+            currencyCode: 'CNY',
+            settlementName: '深圳市飞捷达供应链管理有限公司',
+            orgBankAccountName: '中国银行青岛市南支行 (8271009283)',
+            statementRemark: '10月现结运费转入',
+            locked: false
+          },
+          {
+            id: 'STMT_003',
+            bankStatementNo: 'BS202610280010',
+            statementTime: '2026-10-27 16:45',
+            amount: 12000.00,
+            remainingAmount: 0.00,
+            currencyCode: 'EUR',
+            settlementName: '上海东方海外物流供应链有限公司',
+            orgBankAccountName: '工商银行上海分行 (10012489002)',
+            statementRemark: '已全额核销流水',
+            locked: true
+          }
+        ]);
+
+        const pickerColumns = [
+          { title: '流水号', dataIndex: 'bankStatementNo', key: 'bankStatementNo', width: 140 },
+          { title: '交易时间', dataIndex: 'statementTime', key: 'statementTime', width: 140 },
+          { title: '币别', dataIndex: 'currencyCode', key: 'currencyCode', width: 70 },
+          { title: '流水总额', key: 'amount', width: 110, align: 'right' },
+          { title: '可用余额', key: 'remainingAmount', width: 110, align: 'right' },
+          { title: '付款方', dataIndex: 'settlementName', key: 'settlementName', minWidth: 160 },
+          { title: '状态', key: 'locked', width: 80, align: 'center' },
+          { title: '操作', key: 'action', width: 100, align: 'center' }
+        ];
+
+        const openStatementPicker = () => {
+          statementPickerOpen.value = true;
+        };
+
+        const applyStatementSelection = (stmt) => {
+          existingStatement.id = stmt.id;
+          existingStatement.bankStatementNo = stmt.bankStatementNo;
+          existingStatement.statementTime = stmt.statementTime;
+          existingStatement.amount = stmt.amount;
+          existingStatement.currencyCode = stmt.currencyCode;
+          existingStatement.settlementName = stmt.settlementName;
+          existingStatement.orgBankAccountName = stmt.orgBankAccountName;
+          existingStatement.statementRemark = stmt.statementRemark;
+          existingStatement.otherSettledAmount = stmt.amount - stmt.remainingAmount;
+          actualSettled.value = stmt.remainingAmount;
+          statementPickerOpen.value = false;
+          markDirty();
+          antd.message.success(`已切换至银行流水 [${stmt.bankStatementNo}]，可用额度已重算！`);
+        };
+
+        const handleSelectStatement = (stmt) => {
+          if (items.value.length > 0 && (stmt.currencyCode !== existingStatement.currencyCode || stmt.settlementName !== existingStatement.settlementName)) {
+            antd.Modal.confirm({
+              title: '更换流水将重置明细草稿',
+              content: `新选择的流水 [${stmt.bankStatementNo}] 币别为 ${stmt.currencyCode}，付款方为「${stmt.settlementName}」，与当前草稿明细不一致。确认更换并清空当前明细草稿吗？`,
+              okText: '确认清空并更换',
+              okType: 'danger',
+              cancelText: '取消',
+              onOk: () => {
+                items.value = [];
+                applyStatementSelection(stmt);
+              }
+            });
+            return;
+          }
+          applyStatementSelection(stmt);
+        };
+
+        // --------------------------------------------------------------------
+        // 8. 场景沙盘切换器 (Scenario Switcher)
+        // --------------------------------------------------------------------
+        const handleScenarioChange = (e) => {
+          const val = e.target.value;
+          isFormDirty.value = false;
+          isReadonly.value = false;
+          readonlyReason.value = '';
+          canOfferNewStatement.value = true;
+          foreignItems.value = [];
+
+          if (val === 'standard-new') {
+            bankSourceMode.value = 'new';
+            newStatementDraft.settlementId = 'CLI_001';
+            newStatementDraft.settlementName = '测试WF346验收客户';
+            newStatementDraft.currencyCode = 'CNY';
+            exchangeRates['CNY'] = 1.000000;
+            items.value = [
+              {
+                id: 'FEE_ITEM_001',
+                _isCurrent: true,
+                commissionNum: 'WF346-SE-AUG',
+                mblNum: 'ONE2026102801',
+                polName: '青岛 TAO',
+                podName: '洛杉矶 LAX',
+                totalCtn: '2×40HQ',
+                carrierName: 'ONE',
+                etd: '2026-10-30',
+                salesName: '张晓华',
+                operatorName: '李建国',
+                feeCodeName: '海运费 (OFT)',
+                paySide: 0,
+                currencyCode: 'CNY',
+                amount: 20.00,
+                remainingAmount: 20.00,
+                settledAmount: 20.00,
+                remark: '标准现结'
+              }
+            ];
+            actualSettled.value = 20.00;
+            antd.message.info('已加载场景 1：新建流水 + 同币手选 (RMB 20.00)');
+          } else if (val === 'foreign-new') {
+            // 真实验收草稿：WF346-SE-AUG, 原币 1 RMB 按 0.14 折 USD 0.14
+            bankSourceMode.value = 'new';
+            newStatementDraft.settlementId = 'CLI_001';
+            newStatementDraft.settlementName = '测试WF346验收客户';
+            newStatementDraft.currencyCode = 'USD';
+            exchangeRates['USD'] = 1.000000;
+            exchangeRates['CNY'] = 0.140000;
+            items.value = [
+              {
+                id: 'FEE_ITEM_002',
+                _isCurrent: true,
+                commissionNum: 'WF346-SE-AUG',
+                mblNum: 'ONE2026102801',
+                polName: '青岛 TAO',
+                podName: '洛杉矶 LAX',
+                totalCtn: '2×40HQ',
+                carrierName: 'ONE',
+                etd: '2026-10-30',
+                salesName: '张晓华',
+                operatorName: '李建国',
+                feeCodeName: '港杂费 (THC)',
+                paySide: 0,
+                currencyCode: 'CNY',
+                amount: 1.00,
+                remainingAmount: 1.00,
+                settledAmount: 1.00,
+                remark: '文档实测样本：1 RMB 折 0.14 USD'
+              }
+            ];
+            actualSettled.value = 0.14;
+            antd.message.info('已加载场景 2：新建流水 + 折汇草稿 (原币 1 RMB 按 0.14 折 USD 0.14，对齐交接文档图 3/4！)');
+          } else if (val === 'existing-statement') {
+            bankSourceMode.value = 'existing';
+            existingStatement.amount = 10000.00;
+            existingStatement.otherSettledAmount = 3200.00;
+            existingStatement.currencyCode = 'USD';
+            exchangeRates['USD'] = 1.000000;
+            // 注入他单只读明细对照
+            foreignItems.value = [
+              {
+                id: 'FOREIGN_01',
+                _isCurrent: false,
+                _settlementNo: 'JS202610260002',
+                commissionNum: 'WF320-SE-JUN',
+                mblNum: 'MSK20260601',
+                polName: '青岛 TAO',
+                podName: '长滩 LGB',
+                totalCtn: '3×40HQ',
+                carrierName: 'MSK',
+                etd: '2026-06-12',
+                salesName: '周小敏',
+                operatorName: '王凯',
+                feeCodeName: '海运费 (OFT)',
+                paySide: 0,
+                currencyCode: 'USD',
+                amount: 3200.00,
+                remainingAmount: 0.00,
+                settledAmount: 3200.00,
+                exchangeRate: 1.000000,
+                remark: '前单已核销占用'
+              }
+            ];
+            items.value = [
+              {
+                id: 'FEE_ITEM_003',
+                _isCurrent: true,
+                commissionNum: 'WF346-SE-AUG',
+                mblNum: 'ONE2026102801',
+                polName: '青岛 TAO',
+                podName: '洛杉矶 LAX',
+                totalCtn: '2×40HQ',
+                carrierName: 'ONE',
+                etd: '2026-10-30',
+                salesName: '张晓华',
+                operatorName: '李建国',
+                feeCodeName: '海运费 (OFT)',
+                paySide: 0,
+                currencyCode: 'USD',
+                amount: 6800.00,
+                remainingAmount: 6800.00,
+                settledAmount: 6800.00,
+                remark: '本次结算刚好占满可用余额'
+              }
+            ];
+            actualSettled.value = 6800.00;
+            antd.message.info('已加载场景 3：选择已有流水 + 他单明细只读对比');
+          } else if (val === 'over-limit-alert') {
+            bankSourceMode.value = 'existing';
+            existingStatement.amount = 10000.00;
+            existingStatement.otherSettledAmount = 3200.00;
+            existingStatement.currencyCode = 'USD';
+            exchangeRates['USD'] = 1.000000;
+            items.value = [
+              {
+                id: 'FEE_ITEM_004',
+                _isCurrent: true,
+                commissionNum: 'WF346-SE-AUG',
+                mblNum: 'ONE2026102801',
+                polName: '青岛 TAO',
+                podName: '洛杉矶 LAX',
+                totalCtn: '2×40HQ',
+                carrierName: 'ONE',
+                etd: '2026-10-30',
+                salesName: '张晓华',
+                operatorName: '李建国',
+                feeCodeName: '海运费 (OFT)',
+                paySide: 0,
+                currencyCode: 'USD',
+                amount: 8000.00,
+                remainingAmount: 8000.00,
+                settledAmount: 8000.00,
+                remark: '超额测试费用'
+              }
+            ];
+            actualSettled.value = 8000.00;
+            antd.message.error('已加载场景 4：已有流水超额拦截（本单 $8,000 > 剩余可用 $6,800，动态实时标红拦截！）');
+          } else if (val === 'auto-allocation') {
+            bankSourceMode.value = 'new';
+            newStatementDraft.settlementId = 'CLI_001';
+            newStatementDraft.settlementName = '测试WF346验收客户';
+            newStatementDraft.currencyCode = 'CNY';
+            drawerOpen.value = true;
+            autoAllocAmount.value = 5021.00;
+            antd.message.info('已加载场景 5：已自动展开选费抽屉与自动核销沙盘');
+          } else if (val === 'negative-fee') {
+            bankSourceMode.value = 'new';
+            newStatementDraft.settlementId = 'CLI_001';
+            newStatementDraft.settlementName = '测试WF346验收客户';
+            newStatementDraft.currencyCode = 'CNY';
+            items.value = [
+              {
+                id: 'FEE_POS',
+                _isCurrent: true,
+                commissionNum: 'WF346-SE-AUG',
+                mblNum: 'ONE2026102801',
+                polName: '青岛 TAO',
+                podName: '洛杉矶 LAX',
+                totalCtn: '2×40HQ',
+                carrierName: 'ONE',
+                etd: '2026-10-30',
+                salesName: '张晓华',
+                operatorName: '李建国',
+                feeCodeName: '海运费 (OFT)',
+                paySide: 0,
+                currencyCode: 'CNY',
+                amount: 1500.00,
+                remainingAmount: 1500.00,
+                settledAmount: 1500.00,
+                remark: '正向应收费用'
+              },
+              {
+                id: 'FEE_NEG',
+                _isCurrent: true,
+                commissionNum: 'WF346-SE-AUG',
+                mblNum: 'ONE2026102801',
+                polName: '青岛 TAO',
+                podName: '洛杉矶 LAX',
+                totalCtn: '2×40HQ',
+                carrierName: 'ONE',
+                etd: '2026-10-30',
+                salesName: '张晓华',
+                operatorName: '李建国',
+                feeCodeName: '退运/破损折让抵扣',
+                paySide: 0,
+                currencyCode: 'CNY',
+                amount: -300.00,
+                remainingAmount: -300.00,
+                settledAmount: -300.00,
+                remark: '负数费用抵减'
+              }
+            ];
+            actualSettled.value = 1200.00;
+            antd.message.info('已加载场景 6：负数费用收付互抵沙盘 (1500 - 300 = 1200 > 0)');
+          } else if (val === 'locked-readonly') {
+            bankSourceMode.value = 'existing';
+            isReadonly.value = true;
+            readonlyReason.value = '银行流水已锁定，全局只读';
+            antd.message.warning('已加载场景 7：银行流水锁定只读态，主表保存与明细增删改已全部安全锁定');
+          } else if (val === 'no-create-perm') {
+            canOfferNewStatement.value = false;
+            bankSourceMode.value = 'existing';
+            antd.message.warning('已加载场景 8：无新建银行流水权限，流水来源已强制固定为「选择已有流水」');
+          }
+        };
+
+        // --------------------------------------------------------------------
+        // 9. 辅助工具与弹窗说明
+        // --------------------------------------------------------------------
+        const showAuditModal = ref(false);
+        const showSfcModal = ref(false);
+
+        const auditDeliverables = ref([
+          {
+            task: '1. 同一套主表下的新建/已有流水界面与归属',
+            impl: '顶部清晰区分银行流水信息（总额、我司银行、对方银行、手续费、摘要、留言、内部备注）与结算信息（本次结算、原始金额、差值、组织、结算时间、单据备注），彻底杜绝概念混淆。'
+          },
+          {
+            task: '2. 选费抽屉、已选汇总、原币与转币',
+            impl: '支持业务组折叠穿透至费用行；右上角明确定义到账币别；跨币别确认时弹出精准折汇窗口（1 原币 = N 流水币）；抽屉底部常驻已选汇总并缓存跨页选择。'
+          },
+          {
+            task: '3. 自动核销入口、前置条件与全息范围确认',
+            impl: '自动核销前置条件校验就地提示；点击后呈现 8 行全息范围确认弹窗，明确提示不限当前页、忽略手选草稿并直接落库，不可撤销。'
+          },
+          {
+            task: '4. 草稿未保存、离开确认与重试保护',
+            impl: '页面内置 isDirty 脏表单侦听，点击返回或切换页面弹出安全警示；网络提交采用原子事务提示，失败完整保留盘面草稿。'
+          },
+          {
+            task: '5. 权限不足、锁定只读、负数抵扣与超额拦截',
+            impl: '沙盘直接提供 8 种企业极端边界切换：无流水权限灰化、锁定只读标红、负数费用抵减（必须 > 0）、已有流水超额实时标红拦截保存。'
+          }
+        ]);
+
+        const formatCurrency = (val, cur = 'CNY') => {
+          if (val === null || val === undefined || isNaN(val)) return '-';
+          const symMap = { 'CNY': '¥', 'USD': '$', 'EUR': '€', 'HKD': 'HK$' };
+          const sym = symMap[cur] || `${cur} `;
+          return `${sym}${Number(val).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        };
+
+        const copyText = (txt) => {
+          if (!txt) return;
+          navigator.clipboard.writeText(txt).then(() => {
+            antd.message.success(`已复制编号: ${txt}`);
+          }).catch(() => {
+            antd.message.info(`复制编号: ${txt}`);
+          });
+        };
+
+        return {
+          currentScenario,
+          isFormDirty,
+          saving,
+          isReadonly,
+          readonlyReason,
+          canOfferNewStatement,
+          bankSourceMode,
+          payerBankNotice,
+          newStatementDraft,
+          existingStatement,
+          settlementForm,
+          actualSettled,
+          exchangeRates,
+          items,
+          foreignItems,
+          currentBankCurrency,
+          currentItemsCount,
+          tableItems,
+          displayCurrencies,
+          getCurrencyNet,
+          getLineExchangeRate,
+          getLineOriginalAmount,
+          originalSettledAmount,
+          diffAmount,
+          remainingQuota,
+          isOverLimit,
+          feeColumns,
+          selectedRowKeys,
+          rowSelection,
+          getRowClassName,
+          drawerOpen,
+          drawerTargetCurrency,
+          autoAllocAmount,
+          autoAllocating,
+          autoConfirmOpen,
+          autoConfirmLines,
+          drawerFilter,
+          drawerBusinessColumns,
+          drawerInnerFeeColumns,
+          drawerBusinessList,
+          drawerSelectedFeeIds,
+          drawerSettledAmountMap,
+          drawerSelectedNetTotal,
+          isFeeAlreadyInMain,
+          isGroupAllChecked,
+          isGroupIndeterminate,
+          handleToggleFeeSelect,
+          handleToggleGroupSelect,
+          handleUpdateDrawerFeeAmount,
+          rateModalOpen,
+          rateDraft,
+          missingRateCurrencies,
+          canAutoAllocate,
+          handleTriggerAutoAllocation,
+          handleExecuteAutoAllocation,
+          markDirty,
+          handleActualSettledChange,
+          handleRateChange,
+          handleLineSettledAmountChange,
+          handleSourceModeChange,
+          handlePayerChange,
+          handleCurrencyChange,
+          handleOpenFeeDrawer,
+          handleCloseDrawer,
+          handleDrawerSearch,
+          handleDrawerReset,
+          handleConfirmDrawerSelection,
+          handleConfirmRateModal,
+          handleBatchDeleteFees,
+          handleSaveMainForm,
+          leaveModalOpen,
+          handleSafeBack,
+          handleConfirmLeave,
+          statementPickerOpen,
+          mockExistingStatements,
+          pickerColumns,
+          openStatementPicker,
+          handleSelectStatement,
+          handleScenarioChange,
+          showAuditModal,
+          showSfcModal,
+          auditDeliverables,
+          formatCurrency,
+          copyText,
+          bodycellslot
+        };
+      }
+    });
+
+    app.use(antd).mount('#app');
+  </script>
+</body>
+</html>

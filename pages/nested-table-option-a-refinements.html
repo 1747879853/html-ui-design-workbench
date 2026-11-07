@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>方案 A 细节精修版（从“能看出层级”到“高级质感”）</title>
+  
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    
+    body {
+      background: #f4f6f9;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+      margin: 0;
+      padding: 32px 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page-wrap {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    .header-panel {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .header-panel h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .header-panel p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    /* 方案卡片通用外壳 */
+    .variant-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(15,23,42,0.03);
+    }
+
+    .variant-card__head {
+      padding: 12px 18px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .variant-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .variant-desc {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .table-viewport {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    /* 表格基础重置 */
+    .base-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .base-grid th {
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .base-grid td {
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+
+    .mono-num {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      text-align: right;
+    }
+
+    .link-primary {
+      color: #1677ff;
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .link-primary:hover {
+      text-decoration: underline;
+    }
+
+    /* 状态微标签 */
+    .ant-badge-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+    .ant-badge-dot::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .ant-badge-dot.warn::before { background: #fa8c16; }
+    .ant-badge-dot.success::before { background: #52c41a; }
+
+    .tag-pay-item {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 6px;
+      height: 20px;
+      line-height: 18px;
+      border-radius: 3px;
+      font-size: 11px;
+      background: #fff1f0;
+      color: #cf1322;
+      border: 1px solid #ffa39e;
+    }
+
+    /* =========================================================================
+       精修方案 A1：【Ant Design Pro 官方旗舰级精修】
+       细节：
+       1. 边框从粗暴的 2px 亮蓝改为 1px #91caff（AntD 浅蓝边）+ 左侧 3px #1677ff 实体指示条；
+       2. 展开按钮微型化（16×16px，AntD 原生[-]图标，极细边框）；
+       3. 顶盖底色从粗重蓝变为柔和的 #f6faff，与托盘 #fbfcfe 形成平滑微阶梯；
+       4. 档案盒小标题栏采用 32px 紧凑高度，单号带极浅的背景胶囊与复制小标。
+       ========================================================================= */
+    .variant-a1 .base-grid th {
+      background: #fafafa;
+      color: #475569;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 12px;
+    }
+
+    .variant-a1 .parent-row td {
+      background: #ffffff;
+      border-bottom: 1px solid #f0f0f0;
+      height: 40px;
+      transition: background 0.15s ease;
+    }
+
+    .variant-a1 .parent-row.is-open td {
+      background: #f6faff !important;
+      border-top: 1px solid #91caff;
+      border-bottom: 1px solid transparent;
+    }
+
+    .variant-a1 .parent-row.is-open td:first-child {
+      border-left: 3px solid #1677ff;
+    }
+
+    .variant-a1 .parent-row.is-open td:last-child {
+      border-right: 1px solid #91caff;
+    }
+
+    /* 精巧折叠按钮 */
+    .variant-a1 .antd-square-btn {
+      width: 16px;
+      height: 16px;
+      border: 1px solid #d9d9d9;
+      border-radius: 3px;
+      background: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 10px;
+      color: #595959;
+      line-height: 1;
+      padding: 0;
+      transition: all 0.2s;
+    }
+    .variant-a1 .antd-square-btn:hover {
+      border-color: #1677ff;
+      color: #1677ff;
+    }
+    .variant-a1 .antd-square-btn.active {
+      border-color: #1677ff;
+      color: #1677ff;
+      background: #e6f4ff;
+    }
+
+    /* 托盘包容体 */
+    .variant-a1 .envelope-tray {
+      padding: 8px 14px 12px 38px !important;
+      background: #fafafa !important;
+      border-left: 3px solid #1677ff;
+      border-right: 1px solid #91caff;
+      border-bottom: 1px solid #91caff;
+    }
+
+    .variant-a1 .dossier-card {
+      background: #ffffff;
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .variant-a1 .dossier-head {
+      height: 32px;
+      padding: 0 12px;
+      background: #f8fafc;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: #475569;
+    }
+
+    .variant-a1 .order-pill {
+      background: #e6f4ff;
+      color: #0958d9;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-weight: 500;
+      font-family: ui-monospace, monospace;
+      margin-right: 6px;
+    }
+
+    .variant-a1 .sub-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+    }
+
+    .variant-a1 .sub-table th {
+      background: #ffffff;
+      color: #64748b;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .variant-a1 .sub-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #f8fafc;
+      height: 32px;
+      background: #ffffff;
+    }
+
+    .variant-a1 .sub-table tr:hover td {
+      background: #f8fafc;
+    }
+
+    .variant-a1 .sub-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* =========================================================================
+       精修方案 A2：【极简高阶素雅风（Minimal Slate Inset）】
+       细节：
+       1. 彻底去掉所有亮彩色边框，全部采用中性冷灰（#cbd5e1 / #e2e8f0）；
+       2. 父行展开时保持纯白底，仅在首列有一条 2.5px 石板灰/深蓝锁条；
+       3. 子表格区域使用 4px 精密缩进，卡片采用无头轻卡片（Cardless Clean List）；
+       4. 视觉克制到极致，零浮躁感，像 Linear / Vercel 的顶级工程师审美。
+       ========================================================================= */
+    .variant-a2 .base-grid th {
+      background: transparent;
+      color: #64748b;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .variant-a2 .parent-row td {
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+      height: 38px;
+    }
+
+    .variant-a2 .parent-row.is-open td {
+      background: #f8fafc !important;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid transparent;
+    }
+
+    .variant-a2 .parent-row.is-open td:first-child {
+      border-left: 3px solid #334155; /* 沉稳石板灰指示条 */
+    }
+
+    .variant-a2 .parent-row.is-open td:last-child {
+      border-right: 1px solid #e2e8f0;
+    }
+
+    .variant-a2 .envelope-tray {
+      padding: 6px 14px 10px 38px !important;
+      background: #f8fafc !important;
+      border-left: 3px solid #334155;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .variant-a2 .dossier-bar-clean {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 2px 6px;
+      font-size: 11.5px;
+      color: #64748b;
+      border-bottom: 1px dashed #cbd5e1;
+      margin-bottom: 4px;
+    }
+
+    .variant-a2 .sub-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .variant-a2 .sub-table th {
+      background: transparent;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .variant-a2 .sub-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #f1f5f9;
+      height: 30px;
+      background: transparent;
+    }
+
+    .variant-a2 .sub-table tr:hover td {
+      background: #f1f5f9;
+    }
+
+    /* =========================================================================
+       精修方案 A3：【物理凹槽沉浸质感（Soft Inset Well）】
+       细节：
+       1. 托盘顶部增加 1 像素物理微内阴影（inset 0 2px 4px rgba(0,0,0,0.03)），
+          创造真正的“抽屉下沉”物理视差；
+       2. 白底卡片浮在凹槽内，带有微圆角（4px）与 1px 干净边框；
+       3. 顶部副标题栏集成轻量原币徽标，底部自带微型汇总。
+       ========================================================================= */
+    .variant-a3 .base-grid th {
+      background: #f8fafc;
+      color: #334155;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .variant-a3 .parent-row td {
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      height: 40px;
+    }
+
+    .variant-a3 .parent-row.is-open td {
+      background: #ffffff !important;
+      border-top: 1.5px solid #2563eb;
+      border-bottom: 1px solid transparent;
+      font-weight: 600;
+    }
+
+    .variant-a3 .parent-row.is-open td:first-child {
+      border-left: 1.5px solid #2563eb;
+    }
+
+    .variant-a3 .parent-row.is-open td:last-child {
+      border-right: 1.5px solid #2563eb;
+    }
+
+    .variant-a3 .envelope-tray {
+      padding: 10px 14px 12px 38px !important;
+      background: #f1f5f9 !important; /* 冷灰凹槽底色 */
+      border-left: 1.5px solid #2563eb;
+      border-right: 1.5px solid #2563eb;
+      border-bottom: 1.5px solid #2563eb;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.03); /* 物理凹槽微阴影 */
+    }
+
+    .variant-a3 .island-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .variant-a3 .island-head {
+      height: 30px;
+      padding: 0 10px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #475569;
+    }
+
+    .variant-a3 .sub-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .variant-a3 .sub-table th {
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .variant-a3 .sub-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #f1f5f9;
+      height: 30px;
+      background: #ffffff;
+    }
+
+    .variant-a3 .sub-table tr:hover td {
+      background: #f8fafc;
+    }
+
+    .variant-a3 .sub-table tr:last-child td {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    
+    <div class="header-panel">
+      <div>
+        <h1>方案 A（档案盒物理咬合）的 3 种深度细节精修</h1>
+        <p>保持 100% 鲜明的父子咬合层级，去除粗糙与生硬感，专注于边框粗细、色阶阶梯、微阴影、间距与排版的克制高级感。</p>
+      </div>
+      <div>
+        <a-tag color="blue">真实数据：委托单 JHTSE26102208 · 驳船费</a-tag>
+      </div>
+    </div>
+
+    <!-- 精修 1：Ant Design Pro 官方旗舰级精修 -->
+    <div class="variant-card variant-a1">
+      <div class="variant-card__head">
+        <div class="variant-title">
+          <iconify-icon icon="ant-design:safety-certificate-outlined" style="color: #1677ff; font-size: 16px;"></iconify-icon>
+          细化 A1：Ant Design Pro 官方旗舰级精修（⭐️ 最推荐首选）
+        </div>
+        <div class="variant-desc">
+          <b>细节处理</b>：边框收窄至 1px #91caff + 左侧 3px #1677ff 实体指示条；父行展开浅蓝微光(#f6faff)；托盘浅灰(#fafafa)；子表白底微框，极其干净规整。
+        </div>
+      </div>
+
+      <div class="table-viewport">
+        <table class="base-grid">
+          <thead>
+            <tr>
+              <th style="width: 36px; text-align: center;"></th>
+              <th style="width: 44px;">序号</th>
+              <th style="width: 140px;">主提单号</th>
+              <th style="width: 90px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 80px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 父行 1 (展开态) -->
+            <tr class="parent-row is-open">
+              <td style="text-align: center;">
+                <button type="button" class="antd-square-btn active" title="收起">
+                  <iconify-icon icon="ant-design:minus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>1</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="ant-badge-dot warn">未结算</span></td>
+              <td><a class="link-primary">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="mono-num" style="color: #1677ff; font-weight: 600;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <!-- 托盘 (1px 浅蓝边框 + 左侧指示条) -->
+            <tr>
+              <td colspan="9" class="envelope-tray">
+                <div class="dossier-card">
+                  <div class="dossier-head">
+                    <span style="display: flex; align-items: center;">
+                      <span class="order-pill">JHTSE26102208</span>
+                      <span>关联合同费用细项清单 (共 1 项)</span>
+                    </span>
+                    <span style="color: #64748b;">
+                      原始费用: <span class="mono-num" style="color: #0f172a; margin-right: 8px;">RMB 60.00</span>
+                      本次申请: <b class="mono-num" style="color: #1677ff;">¥ 1.00</b>
+                    </span>
+                  </div>
+                  <table class="sub-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 36px; text-align: center;"><input type="checkbox" checked /></th>
+                        <th style="width: 40px;">序号</th>
+                        <th style="width: 50px;">收付</th>
+                        <th style="width: 140px;">费用名称</th>
+                        <th style="width: 80px;">原始币别</th>
+                        <th style="width: 110px; text-align: right;">原始金额</th>
+                        <th style="width: 90px; text-align: right;">原始汇率</th>
+                        <th style="width: 110px; text-align: right;">已核销金额</th>
+                        <th style="width: 120px; text-align: right;">本次申请金额</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="text-align: center;"><input type="checkbox" checked /></td>
+                        <td>1</td>
+                        <td><span class="tag-pay-item">应付</span></td>
+                        <td><b>驳船费</b></td>
+                        <td>RMB</td>
+                        <td class="mono-num">60.00</td>
+                        <td class="mono-num">1.0000</td>
+                        <td class="mono-num">0.00</td>
+                        <td class="mono-num" style="color: #1677ff; font-weight: 600;">¥ 1.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 父行 2 (收起态) -->
+            <tr class="parent-row">
+              <td style="text-align: center;">
+                <button type="button" class="antd-square-btn" title="展开">
+                  <iconify-icon icon="ant-design:plus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>2</td>
+              <td>MSKU9821371</td>
+              <td><span class="ant-badge-dot success">已结算</span></td>
+              <td><a class="link-primary">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="mono-num" style="font-weight: 600;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 精修 2：极简高阶素雅风 -->
+    <div class="variant-card variant-a2">
+      <div class="variant-card__head">
+        <div class="variant-title">
+          <iconify-icon icon="lucide:sliders-horizontal" style="color: #334155; font-size: 16px;"></iconify-icon>
+          细化 A2：极简中性素雅风（Minimal Slate Inset）
+        </div>
+        <div class="variant-desc">
+          <b>细节处理</b>：完全不用彩色边框，采用沉稳冷灰(1px #e2e8f0 + 左侧 3px 石板灰条)；子表去除厚卡片外框，采用虚线极简副标题条；低调耐看，零视觉疲劳。
+        </div>
+      </div>
+
+      <div class="table-viewport">
+        <table class="base-grid">
+          <thead>
+            <tr>
+              <th style="width: 36px; text-align: center;"></th>
+              <th style="width: 44px;">#</th>
+              <th style="width: 140px;">主提单号</th>
+              <th style="width: 90px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 80px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="parent-row is-open">
+              <td style="text-align: center;">
+                <iconify-icon icon="lucide:chevron-down" style="color: #334155; font-size: 14px; cursor: pointer;"></iconify-icon>
+              </td>
+              <td>1</td>
+              <td><span style="color: #cbd5e1;">-</span></td>
+              <td><span class="ant-badge-dot warn">未结算</span></td>
+              <td><a style="color: #0f172a; font-weight: 600;">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #cbd5e1;">-</span></td>
+              <td class="mono-num" style="font-weight: 600;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <tr>
+              <td colspan="9" class="envelope-tray">
+                <div class="dossier-bar-clean">
+                  <span><b>JHTSE26102208</b> · 关联合同费用细项清单 (1 项)</span>
+                  <span>原币小计：RMB 60.00 · 本次申请：<b style="color: #0f172a;">¥ 1.00</b></span>
+                </div>
+                <table class="sub-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px; text-align: center;"><input type="checkbox" checked /></th>
+                      <th style="width: 40px;">#</th>
+                      <th style="width: 50px;">收付</th>
+                      <th style="width: 140px;">费用名称</th>
+                      <th style="width: 80px;">原币</th>
+                      <th style="width: 110px; text-align: right;">原始金额</th>
+                      <th style="width: 90px; text-align: right;">汇率</th>
+                      <th style="width: 110px; text-align: right;">已核销金额</th>
+                      <th style="width: 120px; text-align: right;">本次申请金额</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="text-align: center;"><input type="checkbox" checked /></td>
+                      <td>1</td>
+                      <td><span style="color: #e11d48; font-weight: 500;">应付</span></td>
+                      <td><b>驳船费</b></td>
+                      <td>RMB</td>
+                      <td class="mono-num">60.00</td>
+                      <td class="mono-num">1.0000</td>
+                      <td class="mono-num">0.00</td>
+                      <td class="mono-num" style="font-weight: 600; color: #0f172a;">¥ 1.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            <tr class="parent-row">
+              <td style="text-align: center;">
+                <iconify-icon icon="lucide:chevron-right" style="color: #94a3b8; font-size: 14px; cursor: pointer;"></iconify-icon>
+              </td>
+              <td>2</td>
+              <td>MSKU9821371</td>
+              <td><span class="ant-badge-dot success">已结算</span></td>
+              <td><a style="color: #0f172a; font-weight: 500;">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="mono-num" style="font-weight: 600;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 精修 3：物理凹槽沉浸质感 -->
+    <div class="variant-card variant-a3">
+      <div class="variant-card__head">
+        <div class="variant-title">
+          <iconify-icon icon="lucide:layers" style="color: #2563eb; font-size: 16px;"></iconify-icon>
+          细化 A3：物理微内阴影下沉质感（Soft Inset Well）
+        </div>
+        <div class="variant-desc">
+          <b>细节处理</b>：展开托盘带有 1 像素物理微内阴影(inset 0 2px 4px rgba(0,0,0,0.03))，营造真实的“抽屉凹陷”空间感；子表以白底微卡片浮于凹槽中，层级立体。
+        </div>
+      </div>
+
+      <div class="table-viewport">
+        <table class="base-grid">
+          <thead>
+            <tr>
+              <th style="width: 36px; text-align: center;"></th>
+              <th style="width: 44px;">序号</th>
+              <th style="width: 140px;">主提单号</th>
+              <th style="width: 90px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 80px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="parent-row is-open">
+              <td style="text-align: center;">
+                <iconify-icon icon="ant-design:minus-square-outlined" style="color: #2563eb; font-size: 15px; cursor: pointer;"></iconify-icon>
+              </td>
+              <td>1</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="ant-badge-dot warn">未结算</span></td>
+              <td><a class="link-primary">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="mono-num" style="color: #2563eb; font-weight: 600;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <tr>
+              <td colspan="9" class="envelope-tray">
+                <div class="island-card">
+                  <div class="island-head">
+                    <span><b>JHTSE26102208</b> · 关联合同费用细项清单 (1 项)</span>
+                    <span>原币小计: RMB 60.00 · 本次申请: <b style="color: #2563eb;">¥ 1.00</b></span>
+                  </div>
+                  <table class="sub-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 36px; text-align: center;"><input type="checkbox" checked /></th>
+                        <th style="width: 40px;">序号</th>
+                        <th style="width: 50px;">收付</th>
+                        <th style="width: 140px;">费用名称</th>
+                        <th style="width: 80px;">原始币别</th>
+                        <th style="width: 110px; text-align: right;">原始金额</th>
+                        <th style="width: 90px; text-align: right;">原始汇率</th>
+                        <th style="width: 110px; text-align: right;">已核销金额</th>
+                        <th style="width: 120px; text-align: right;">本次申请金额</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="text-align: center;"><input type="checkbox" checked /></td>
+                        <td>1</td>
+                        <td><span class="tag-pay-item">应付</span></td>
+                        <td><b>驳船费</b></td>
+                        <td>RMB</td>
+                        <td class="mono-num">60.00</td>
+                        <td class="mono-num">1.0000</td>
+                        <td class="mono-num">0.00</td>
+                        <td class="mono-num" style="color: #2563eb; font-weight: 600;">¥ 1.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="parent-row">
+              <td style="text-align: center;">
+                <iconify-icon icon="ant-design:plus-square-outlined" style="color: #94a3b8; font-size: 15px; cursor: pointer;"></iconify-icon>
+              </td>
+              <td>2</td>
+              <td>MSKU9821371</td>
+              <td><span class="ant-badge-dot success">已结算</span></td>
+              <td><a class="link-primary">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="mono-num" style="font-weight: 600;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

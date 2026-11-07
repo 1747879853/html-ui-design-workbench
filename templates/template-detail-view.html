@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>全息业务详情页模板 - Ant Design Vue 4.0 UI 优化</title>
+  
+  <!-- 本地极速资源：零延迟无代理依赖 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    .detail-header-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 20px 24px;
+      border: 1px solid #f0f0f0;
+      margin-bottom: 16px;
+    }
+    .detail-body-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px 24px 24px;
+      border: 1px solid #f0f0f0;
+      min-height: 520px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <a-config-provider :theme="themeConfig">
+      <div class="page-container">
+        
+        <!-- 面包屑与顶部操作 -->
+        <a-breadcrumb style="margin-bottom: 12px;">
+          <a-breadcrumb-item><a href="javascript:;">订单中心</a></a-breadcrumb-item>
+          <a-breadcrumb-item><a href="javascript:;">跨境寄售履约单</a></a-breadcrumb-item>
+          <a-breadcrumb-item>单号：ORD-20261018-8899</a-breadcrumb-item>
+        </a-breadcrumb>
+
+        <!-- 1. 顶部全息态头信息卡片 -->
+        <div class="detail-header-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <span style="font-size: 22px; font-weight: 700; color: #1f2329;">ORD-20261018-8899</span>
+                <a-tag color="processing">出库配送中</a-tag>
+                <a-tag color="purple">加急冷链</a-tag>
+              </div>
+              <div class="text-secondary" style="font-size: 13px;">
+                创建人：李雅婷 (OMS智能客服组) &nbsp;|&nbsp; 创建时间：2026-10-18 10:15:32 &nbsp;|&nbsp; 关联主合同：CT-2026-XN-0992
+              </div>
+            </div>
+
+            <a-space size="middle">
+              <a-button @click="showAuditModal = true">
+                <template #icon><iconify-icon icon="ant-design:file-protect-outlined"></iconify-icon></template>
+                核对结果报告
+              </a-button>
+              <a-button @click="antd.message.info('发起面单打印')">
+                <template #icon><iconify-icon icon="ant-design:printer-outlined"></iconify-icon></template>
+                打印发货单
+              </a-button>
+              <a-button danger @click="antd.message.warning('拦截指令已下发物流中台')">拦截配送</a-button>
+              <a-button type="primary" @click="antd.message.success('已确认收货')">确认签收</a-button>
+            </a-space>
+          </div>
+
+          <!-- 4 维关键指标卡 -->
+          <a-row :gutter="24" style="border-top: 1px solid #f5f5f5; padding-top: 16px;">
+            <a-col :span="6">
+              <div class="text-secondary" style="font-size: 12px;">订单应付总额</div>
+              <div style="font-size: 24px; font-weight: 700; color: #cf1322; margin-top: 4px;">
+                ¥ 186,520.00
+              </div>
+            </a-col>
+            <a-col :span="6">
+              <div class="text-secondary" style="font-size: 12px;">款项结算状态</div>
+              <div style="font-size: 18px; font-weight: 600; color: #52c41a; margin-top: 8px; display: flex; align-items: center; gap: 6px;">
+                <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon>
+                <span>已全额到账 (银企直联)</span>
+              </div>
+            </a-col>
+            <a-col :span="6">
+              <div class="text-secondary" style="font-size: 12px;">商品总件数 / SKU种类</div>
+              <div style="font-size: 20px; font-weight: 600; color: #1f2329; margin-top: 6px;">
+                1,250 件 <span style="font-size: 14px; color: #8c8c8c; font-weight: 400;">/ 18 个SKU</span>
+              </div>
+            </a-col>
+            <a-col :span="6">
+              <div class="text-secondary" style="font-size: 12px;">物流承运商与运单号</div>
+              <div style="font-size: 16px; font-weight: 600; color: #1677ff; margin-top: 8px;">
+                顺丰特快冷链 SF108920182881
+              </div>
+            </a-col>
+          </a-row>
+        </div>
+
+        <!-- 2. 主体多 Tab 详情内容卡片 -->
+        <div class="detail-body-card">
+          <a-tabs default-active-key="items">
+            <!-- Tab 1: 明细行列表 -->
+            <a-tab-pane key="items" tab="商品与货品明细 (18)">
+              <a-table
+                :columns="itemColumns"
+                :data-source="itemDataSource"
+                :pagination="false"
+                size="middle"
+                bordered
+              >
+                <template #bodyCell="{ column, record }">
+                  <template v-if="column.key === 'unitPrice'">
+                    <span>{{ MockUtils.formatCurrency(record.unitPrice) }}</span>
+                  </template>
+                  <template v-else-if="column.key === 'subtotal'">
+                    <span style="font-weight: 600;">{{ MockUtils.formatCurrency(record.subtotal) }}</span>
+                  </template>
+                </template>
+              </a-table>
+            </a-tab-pane>
+
+            <!-- Tab 2: 收发人与商务详情 -->
+            <a-tab-pane key="parties" tab="收发货主体与联系人">
+              <a-descriptions title="收货客户与地址信息" bordered size="middle" :column="3">
+                <a-descriptions-item label="收件客户主体">深圳市腾讯计算机系统有限公司</a-descriptions-item>
+                <a-descriptions-item label="对接联络人">张晓华 (终端采购科)</a-descriptions-item>
+                <a-descriptions-item label="联系电话">138-0018-8888</a-descriptions-item>
+                <a-descriptions-item label="详细配送地址" :span="3">
+                  广东省深圳市南山区高新科技园中区科兴科学园C栋15层企采收发室（附带地下车库直升梯货梯准入证）
+                </a-descriptions-item>
+                <a-descriptions-item label="买家特别备注" :span="3">
+                  冷链货物入库前必须检验温度记录仪指标在 2℃ ~ 8℃ 范围以内，若超温请直接拒收并联系专属商务代表。
+                </a-descriptions-item>
+              </a-descriptions>
+            </a-tab-pane>
+
+            <!-- Tab 3: 流转日志与时效追踪 -->
+            <a-tab-pane key="timeline" tab="履约节点追踪与操作记录">
+              <div style="padding: 24px 16px;">
+                <a-timeline>
+                  <a-timeline-item color="green">
+                    <p style="font-weight: 600; margin-bottom: 4px;">顺丰冷链车辆已从无锡智慧分拨中心发出</p>
+                    <p class="text-secondary">2026-10-18 14:20:00 &nbsp;|&nbsp; 承运驾驶员：王师傅 (13788992211)</p>
+                  </a-timeline-item>
+                  <a-timeline-item color="blue">
+                    <p style="font-weight: 600; margin-bottom: 4px;">仓库出库拣选完成，海关保税核销放行</p>
+                    <p class="text-secondary">2026-10-18 11:45:12 &nbsp;|&nbsp; 操作员：系统自动批跑</p>
+                  </a-timeline-item>
+                  <a-timeline-item color="blue">
+                    <p style="font-weight: 600; margin-bottom: 4px;">财务已确认全额电汇预付款到账</p>
+                    <p class="text-secondary">2026-10-18 10:30:19 &nbsp;|&nbsp; 经办：财务结算科 钱琳</p>
+                  </a-timeline-item>
+                  <a-timeline-item>
+                    <p style="font-weight: 600; margin-bottom: 4px;">客户提交订单并生成待审草稿</p>
+                    <p class="text-secondary">2026-10-18 10:15:32 &nbsp;|&nbsp; 下单渠道：企业专属采购门户</p>
+                  </a-timeline-item>
+                </a-timeline>
+              </div>
+            </a-tab-pane>
+          </a-tabs>
+        </div>
+
+        <!-- 优化核对报告 Modal -->
+        <a-modal v-model:open="showAuditModal" title="详情页布局优化与业务字段核对" width="720px" :footer="null">
+          <a-alert message="100% 业务数据完整性校验" type="success" show-icon style="margin-bottom: 16px;"></a-alert>
+          <p>• <b>指标大盘提炼</b>：将原页面分散在各处的订单金额、货品总件数、物流运单统一收拢至首屏 4 维卡片。</p>
+          <p>• <b>多维信息分流</b>：将原页面单页长滚动拆分为商品明细、收发货主体、履约节点 3 个标准 Tab，避免视口疲劳。</p>
+          <p>• <b>空值与边界设计</b>：对超长收货地址、超长冷链质检备注提供完善的容器包裹，不破损布局。</p>
+        </a-modal>
+
+      </div>
+    </a-config-provider>
+  </div>
+
+  <script>
+    const { createApp, ref } = Vue;
+
+    const app = createApp({
+      setup() {
+        const themeConfig = window.GlobalAntdConfig.theme;
+        const showAuditModal = ref(false);
+
+        const itemColumns = [
+          { title: '序号', dataIndex: 'index', width: 70, align: 'center' },
+          { title: '商品物料编码', dataIndex: 'skuCode', width: 160 },
+          { title: '品名与规格型号', dataIndex: 'name', width: 280 },
+          { title: '单价', dataIndex: 'unitPrice', width: 130, align: 'right' },
+          { title: '订购数量', dataIndex: 'quantity', width: 100, align: 'right' },
+          { title: '单位', dataIndex: 'unit', width: 80, align: 'center' },
+          { title: '小计金额', dataIndex: 'subtotal', width: 140, align: 'right' },
+          { title: '批次质检结果', dataIndex: 'qcStatus', width: 130, align: 'center' }
+        ];
+
+        const itemDataSource = [
+          { index: 1, skuCode: 'SKU-HD-90812', name: '工业级双频 WiFi6 物联网模组 (型号：ESP-32-PRO)', unitPrice: 48.50, quantity: 1000, unit: '个', subtotal: 48500.00, qcStatus: '检测合格' },
+          { index: 2, skuCode: 'SKU-HD-90813', name: '高精度温湿度传感器探头带铠装防尘罩', unitPrice: 138.00, quantity: 500, unit: '支', subtotal: 69000.00, qcStatus: '检测合格' },
+          { index: 3, skuCode: 'SKU-HD-90814', name: '低功耗 RISC-V 32位主控 MCU 晶圆', unitPrice: 276.00, quantity: 250, unit: '托', subtotal: 69020.00, qcStatus: '检测合格' }
+        ];
+
+        return {
+          themeConfig,
+          showAuditModal,
+          itemColumns,
+          itemDataSource,
+          MockUtils: window.MockUtils,
+          antd
+        };
+      }
+    });
+
+    app.use(antd).mount('#app');
+  </script>
+</body>
+</html>

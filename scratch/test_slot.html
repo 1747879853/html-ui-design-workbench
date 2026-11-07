@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+</head>
+<body>
+  <div id="test-app">
+    <a-table :columns="columns" :data-source="data">
+      <template v-slot:[bodycellslot]="scope">
+        <span>KEYS: {{ Object.keys(scope) }} | COL_KEY: {{ scope.column.key }} | DATA_INDEX: {{ scope.column.dataIndex }}</span>
+      </template>
+    </a-table>
+  </div>
+  <script>
+    const { createApp, ref } = Vue;
+    createApp({
+      setup() {
+        const bodycellslot = 'bodyCell';
+        return {
+          bodycellslot,
+          columns: [
+            { title: 'Col A', dataIndex: 'colA', key: 'colA' },
+            { title: 'Col B', key: 'colB' }
+          ],
+          data: [{ key: 1, colA: 'valA', colB: 'valB' }]
+        };
+      }
+    }).use(antd).mount('#test-app');
+  </script>
+</body>
+</html>

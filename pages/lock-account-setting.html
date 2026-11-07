@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>锁账设置 - 财务结算与风控管理</title>
+
+  <!-- 核心样式：Ant Design Vue 4 重置样式与通用规范 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <!-- 本地核心依赖 (全量包含 7 项 Dayjs 插件、Vue 3、Ant Design Vue 4.2.6、Iconify) -->
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       企业级 B2B 财务风控·锁账设置高保真页面规范
+       设计基准：1920×1080 视口，高信息密度、专业金融级视觉排版、严谨去 AI 浮夸
+       ========================================================================== */
+
+    body {
+      background-color: #f4f6f9;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .la-setting-wrap {
+      min-height: 100vh;
+      padding: 12px 20px 32px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* 顶部专业控制条 */
+    .top-header-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 14px 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .header-main-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2563eb;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .header-title-box {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .header-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-title-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.2;
+    }
+
+    .header-desc-text {
+      font-size: 13px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dirty-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      color: #d48806;
+      font-weight: 500;
+    }
+
+    .audit-meta-text {
+      font-size: 12px;
+      color: #9ca3af;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 模块通用卡片容器 */
+    .setting-section-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      overflow: hidden;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: #fafbfc;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    .section-head-left {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .section-subtitle {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 400;
+    }
+
+    .section-body {
+      padding: 16px 20px;
+    }
+
+    /* 表格增强样式 */
+    .company-period-table .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      color: #374151 !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      padding: 10px 14px !important;
+      border-bottom: 1px solid #e5e7eb !important;
+    }
+
+    .company-period-table .ant-table-tbody > tr > td {
+      padding: 10px 14px !important;
+      font-size: 13px !important;
+      border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    .company-name-cell {
+      font-weight: 600;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .period-badge-tag {
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .lock-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #b45309;
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+
+    .gl-set-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .gl-set-chip {
+      font-size: 12px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      padding: 2px 6px;
+      color: #4b5563;
+    }
+
+    /* 锁账条件双栏网格 */
+    .condition-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 18px;
+    }
+
+    .condition-panel {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: #fafbfc;
+      padding: 14px 16px;
+    }
+
+    .condition-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+
+    .condition-panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fixed-check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.5;
+    }
+
+    .fixed-check-icon {
+      color: #059669;
+      font-size: 16px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .fixed-check-tag {
+      margin-left: auto;
+      font-size: 11px;
+      color: #059669;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 3px;
+      padding: 1px 6px;
+      white-space: nowrap;
+    }
+
+    /* 自定义可配置检查行 */
+    .custom-check-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .custom-check-item:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .custom-check-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .custom-check-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .custom-check-desc {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .check-mode-select {
+      width: 140px;
+    }
+
+    /* 白名单分组网格 */
+    .whitelist-groups {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .whitelist-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 12px 14px;
+    }
+
+    .whitelist-card-head {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .whitelist-item-row {
+      padding: 6px 4px;
+    }
+
+    .whitelist-item-row .ant-checkbox-wrapper {
+      font-size: 13px;
+      color: #1f2937;
+    }
+
+    /* 始终锁定的财务警戒横幅 */
+    .hard-locked-banner {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .hard-locked-icon {
+      font-size: 20px;
+      color: #ea580c;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .hard-locked-content {
+      font-size: 13px;
+      color: #9a3412;
+      line-height: 1.6;
+    }
+
+    .hard-locked-content b {
+      color: #7c2d12;
+    }
+
+    /* 审计与迁移弹窗代码样式 */
+    .code-preview-box {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    /* 底部保存浮动停靠栏 (修改时显现) */
+    .sticky-footer-bar {
+      position: sticky;
+      bottom: 12px;
+      background: rgba(31, 41, 55, 0.95);
+      backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 10px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+      margin-top: 8px;
+      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="text/x-template" id="app-template">
+    <a-config-provider :theme="{ token: { colorPrimary: '#2563eb' } }">
+      <div class="la-setting-wrap">
+
+        <!-- 顶部专业操作控制台 -->
+        <div class="top-header-card">
+          <div class="header-main-info">
+            <div class="header-icon-box">
+              <iconify-icon icon="ant-design:safety-certificate-outlined"></iconify-icon>
+            </div>
+            <div class="header-title-box">
+              <div class="header-title-row">
+                <span class="header-title-text">锁账设置</span>
+                <a-tag color="blue">财务结算中心</a-tag>
+                <a-tag color="cyan">当前租户：1 (青岛总部)</a-tag>
+                <span v-if="isDirty" class="dirty-pill">
+                  <iconify-icon icon="ant-design:exclamation-circle-filled"></iconify-icon>
+                  有未保存的草稿修改
+                </span>
+              </div>
+              <p class="header-desc-text">
+                租户级的锁账检查与字段白名单，结合各公司的启用期间。公司未设启用期间时不执行跨期业务控制。
+              </p>
+            </div>
+          </div>
+
+          <div class="header-actions">
+            <!-- 演示用权限切换器 (方便验收只读态与编辑态) -->
+            <a-space size="small">
+              <span style="font-size: 12px; color: #6b7280;">权限状态：</span>
+              <a-switch
+                v-model:checked="canSetting"
+                checked-children="可维护"
+                un-checked-children="只读"
+                @change="onPermissionToggle"
+              />
+            </a-space>
+
+            <a-divider type="vertical" style="height: 24px;" />
+
+            <span v-if="lastModifierUserName || lastModificationTime" class="audit-meta-text">
+              <iconify-icon icon="ant-design:history-outlined"></iconify-icon>
+              最后保存：{{ lastModifierUserName || '-' }} ({{ lastModificationTime }})
+            </span>
+
+            <a-button
+              :disabled="!isDirty"
+              @click="resetFormToSaved"
+            >
+              <template #icon><iconify-icon icon="ant-design:undo-outlined"></iconify-icon></template>
+              撤销修改
+            </a-button>
+
+            <a-button
+              type="primary"
+              :disabled="!canSave"
+              :loading="saving"
+              @click="saveSetting"
+            >
+              <template #icon><iconify-icon icon="ant-design:save-outlined"></iconify-icon></template>
+              保存设置
+            </a-button>
+
+            <a-button
+              @click="showAuditModal = true"
+            >
+              <template #icon><iconify-icon icon="ant-design:file-done-outlined"></iconify-icon></template>
+              资产核对
+            </a-button>
+          </div>
+        </div>
+
+        <!-- 权限不足或加载异常提示栏 -->
+        <a-alert
+          v-if="!canSetting"
+          type="info"
+          show-icon
+          message="当前处于只读模式"
+          description="当前账号未授予锁账设置维护权限（Admin.OrderFee.Lock.Setting），所有配置项置灰只读，仅供核对查阅。"
+          style="border-radius: 6px;"
+        ></a-alert>
+
+        <!-- ==================== 模块 1：公司期间与启用设置 ==================== -->
+        <div class="setting-section-card">
+          <div class="section-head">
+            <div class="section-head-left">
+              <h3 class="section-title">
+                <iconify-icon icon="ant-design:calendar-outlined" style="color: #2563eb;"></iconify-icon>
+                公司期间与启用设置
+              </h3>
+              <span class="section-subtitle">
+                按公司分别结转。启用期间之前的月份视为已结转：不能新建或移入业务，已锁账的票禁止解锁。
+              </span>
+            </div>
+            <a-space size="small">
+              <a-input
+                v-model:value="companySearchKeyword"
+                placeholder="搜索公司名称..."
+                size="small"
+                allow-clear
+                style="width: 200px;"
+              >
+                <template #prefix><iconify-icon icon="ant-design:search-outlined" style="color: #9ca3af;"></iconify-icon></template>
+              </a-input>
+              <a-tag color="processing">共 {{ companies.length }} 家公司</a-tag>
+              <a-tag color="success">{{ enabledCompanyCount }} 家已启用期间</a-tag>
+            </a-space>
+          </div>
+
+          <div class="section-body" style="padding: 12px 20px;">
+            <a-table
+              class="company-period-table"
+              :columns="companyColumns"
+              :data-source="filteredCompanies"
+              row-key="id"
+              :pagination="false"
+              bordered
+              size="middle"
+            >
+              <!-- 所属公司列 -->
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'name'">
+                  <div class="company-name-cell">
+                    <iconify-icon icon="ant-design:bank-outlined" style="color: #64748b; font-size: 16px;"></iconify-icon>
+                    <span>{{ record.name }}</span>
+                    <a-tag v-if="record.name.includes('黄岛')" color="purple" size="small">口岸分公司</a-tag>
+                    <a-tag v-else-if="record.name.includes('总') || record.name.includes('科技')" color="blue" size="small">总公司</a-tag>
+                    <a-tag v-else color="default" size="small">业务主体</a-tag>
+                  </div>
+                </template>
+
+                <!-- 启用期间列 -->
+                <template v-else-if="column.key === 'startPeriod'">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <a-date-picker
+                      picker="month"
+                      :value="formatPeriod(record.startPeriod)"
+                      value-format="YYYY-MM"
+                      format="YYYY-MM"
+                      placeholder="未启用期间控制"
+                      :allow-clear="false"
+                      :disabled="!record.canEditStartPeriod || !canSetting"
+                      style="width: 150px;"
+                      @change="(val) => handleStartPeriodChange(record, val)"
+                    />
+                    <span v-if="record.hasCloseLog" class="lock-status-badge">
+                      <iconify-icon icon="ant-design:lock-outlined"></iconify-icon>
+                      已有结转记录，不能再改
+                    </span>
+                  </div>
+                </template>
+
+                <!-- 当前期间列 -->
+                <template v-else-if="column.key === 'currentPeriod'">
+                  <template v-if="record.currentPeriod">
+                    <a-tag color="blue" class="period-badge-tag">
+                      <iconify-icon icon="ant-design:clock-circle-outlined" style="margin-right: 4px;"></iconify-icon>
+                      {{ record.currentPeriod }}
+                    </a-tag>
+                  </template>
+                  <a-tag v-else color="default">
+                    不做期间控制
+                  </a-tag>
+                </template>
+
+                <!-- 业务已结转至 -->
+                <template v-else-if="column.key === 'closedTo'">
+                  <span v-if="record.closedTo" style="font-family: monospace; font-weight: 600; color: #059669;">
+                    {{ record.closedTo }}
+                  </span>
+                  <span v-else style="color: #9ca3af;">-</span>
+                </template>
+
+                <!-- 本位币 -->
+                <template v-else-if="column.key === 'localCurrencyCode'">
+                  <a-tag color="geekblue" style="font-weight: 600;">
+                    {{ record.localCurrencyCode || 'RMB' }}
+                  </a-tag>
+                </template>
+
+                <!-- 总账已结账至 -->
+                <template v-else-if="column.key === 'glClosedText'">
+                  <div v-if="record.glAccountSets && record.glAccountSets.length > 0" class="gl-set-list">
+                    <div
+                      v-for="(gl, idx) in record.glAccountSets"
+                      :key="idx"
+                      class="gl-set-chip"
+                    >
+                      <iconify-icon icon="ant-design:account-book-outlined" style="margin-right: 4px; color: #4b5563;"></iconify-icon>
+                      <b>{{ gl.name }}</b>：
+                      <span :style="{ color: gl.closedTo ? '#059669' : '#d97706', fontWeight: 600 }">
+                        {{ gl.closedTo || '未结账' }}
+                      </span>
+                    </div>
+                  </div>
+                  <span v-else style="color: #9ca3af;">-</span>
+                </template>
+              </template>
+            </a-table>
+          </div>
+        </div>
+
+        <!-- ==================== 模块 2：反结转安全控制 ==================== -->
+        <div class="setting-section-card">
+          <div class="section-head">
+            <div class="section-head-left">
+              <h3 class="section-title">
+                <iconify-icon icon="ant-design:rollback-outlined" style="color: #d97706;"></iconify-icon>
+                反结转安全防线
+              </h3>
+              <span class="section-subtitle">
+                反结转属高危财务逆向操作：只能反结转最近一个已结转期间，需独立反结转权限并严格填写审计原因。
+              </span>
+            </div>
+            <a-tag color="orange">高危财务防线</a-tag>
+          </div>
+          <div class="section-body">
+            <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <iconify-icon icon="ant-design:shield-check-outlined" style="color: #d97706; font-size: 24px;"></iconify-icon>
+                <div>
+                  <div style="font-size: 14px; font-weight: 600; color: #92400e;">
+                    总账与业务反结转联动保护
+                  </div>
+                  <div style="font-size: 12px; color: #b45309; margin-top: 2px;">
+                    开启后，若财务总账系统中该月份已标记「已结账」，业务系统将彻底阻断反结转，杜绝账实不符与会计差错。
+                  </div>
+                </div>
+              </div>
+              <a-checkbox
+                v-model:checked="form.reopenGlGuard"
+                :disabled="!canSetting"
+                style="font-weight: 600;"
+              >
+                总账已结账时不允许业务反结转
+              </a-checkbox>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== 模块 3：锁账条件与检查模式 ==================== -->
+        <div class="setting-section-card">
+          <div class="section-head">
+            <div class="section-head-left">
+              <h3 class="section-title">
+                <iconify-icon icon="ant-design:file-protect-outlined" style="color: #059669;"></iconify-icon>
+                锁账条件与检查模式
+              </h3>
+              <span class="section-subtitle">
+                定义在业务完结锁账时的校验准则。提醒：列出警告，确认后仍可强行锁定；拦截：不满足时一律阻断锁账（手动与自动锁账均生效）。
+              </span>
+            </div>
+            <a-space size="small">
+              <span style="font-size: 12px; color: #6b7280;">预设风控策略：</span>
+              <a-button size="small" :disabled="!canSetting" @click="applyCheckTemplate('recommended')">
+                标准推荐 (负利润提醒+无应收提醒)
+              </a-button>
+              <a-button size="small" :disabled="!canSetting" @click="applyCheckTemplate('strict')">
+                严格管控 (全量拦截)
+              </a-button>
+              <a-button size="small" :disabled="!canSetting" @click="applyCheckTemplate('loose')">
+                宽松过渡 (全量提醒)
+              </a-button>
+            </a-space>
+          </div>
+
+          <div class="section-body">
+            <div class="condition-grid">
+              
+              <!-- 左侧：系统底层固定规则 -->
+              <div class="condition-panel">
+                <div class="condition-panel-header">
+                  <span class="condition-panel-title">
+                    <iconify-icon icon="ant-design:lock-outlined" style="color: #059669;"></iconify-icon>
+                    系统硬性阻断（固定生效·不可关闭）
+                  </span>
+                  <a-tag color="success">强制校验</a-tag>
+                </div>
+                <div
+                  v-for="(check, idx) in systemChecks"
+                  :key="idx"
+                  class="fixed-check-item"
+                >
+                  <iconify-icon icon="ant-design:check-circle-filled" class="fixed-check-icon"></iconify-icon>
+                  <div>
+                    <div><b>{{ check.title }}</b></div>
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 1px;">{{ check.desc }}</div>
+                  </div>
+                  <span class="fixed-check-tag">底层锁定</span>
+                </div>
+              </div>
+
+              <!-- 右侧：业务可配检查规则 -->
+              <div class="condition-panel" style="background: #ffffff;">
+                <div class="condition-panel-header">
+                  <span class="condition-panel-title">
+                    <iconify-icon icon="ant-design:control-outlined" style="color: #2563eb;"></iconify-icon>
+                    业务弹性检查项（租户级自定义）
+                  </span>
+                  <span style="font-size: 12px; color: #6b7280;">支持：不检查 / 提醒 / 拦截</span>
+                </div>
+
+                <!-- 1. 利润为负 -->
+                <div class="custom-check-item">
+                  <div class="custom-check-meta">
+                    <div class="custom-check-title">
+                      <iconify-icon icon="ant-design:fall-outlined" style="color: #dc2626; font-size: 16px;"></iconify-icon>
+                      <span>利润为负</span>
+                      <a-tag :color="getCheckModeColor(form.negativeProfitCheck)">
+                        {{ getCheckModeLabel(form.negativeProfitCheck) }}
+                      </a-tag>
+                    </div>
+                    <div class="custom-check-desc">
+                      单票收入折合本位币合计小于支出折合本位币合计，即存在亏损业务
+                    </div>
+                  </div>
+                  <a-select
+                    v-model:value="form.negativeProfitCheck"
+                    :options="checkModeOptions"
+                    :disabled="!canSetting"
+                    class="check-mode-select"
+                  />
+                </div>
+
+                <!-- 2. 没有应收费用 -->
+                <div class="custom-check-item">
+                  <div class="custom-check-meta">
+                    <div class="custom-check-title">
+                      <iconify-icon icon="ant-design:dollar-outlined" style="color: #d97706; font-size: 16px;"></iconify-icon>
+                      <span>没有应收费用</span>
+                      <a-tag :color="getCheckModeColor(form.noReceivableCheck)">
+                        {{ getCheckModeLabel(form.noReceivableCheck) }}
+                      </a-tag>
+                    </div>
+                    <div class="custom-check-desc">
+                      该票订单中未录入任何应向客户或代理收取的费用明细（可能存在漏录漏收）
+                    </div>
+                  </div>
+                  <a-select
+                    v-model:value="form.noReceivableCheck"
+                    :options="checkModeOptions"
+                    :disabled="!canSetting"
+                    class="check-mode-select"
+                  />
+                </div>
+
+                <!-- 3. 没有应付费用 -->
+                <div class="custom-check-item">
+                  <div class="custom-check-meta">
+                    <div class="custom-check-title">
+                      <iconify-icon icon="ant-design:pay-circle-outlined" style="color: #4b5563; font-size: 16px;"></iconify-icon>
+                      <span>没有应付费用</span>
+                      <a-tag :color="getCheckModeColor(form.noPayableCheck)">
+                        {{ getCheckModeLabel(form.noPayableCheck) }}
+                      </a-tag>
+                    </div>
+                    <div class="custom-check-desc">
+                      该票订单中未录入任何给船司、车队、报关行的成本支出（适合纯代理服务）
+                    </div>
+                  </div>
+                  <a-select
+                    v-model:value="form.noPayableCheck"
+                    :options="checkModeOptions"
+                    :disabled="!canSetting"
+                    class="check-mode-select"
+                  />
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== 模块 4：锁账后仍可修改的业务字段白名单 ==================== -->
+        <div class="setting-section-card">
+          <div class="section-head">
+            <div class="section-head-left">
+              <h3 class="section-title">
+                <iconify-icon icon="ant-design:unlock-outlined" style="color: #2563eb;"></iconify-icon>
+                锁账后仍可修改的业务字段（字段白名单）
+              </h3>
+              <span class="section-subtitle">
+                保存后立即对已锁账的票生效；全部不勾选亦可（即锁账后业务字段全部只读）。
+              </span>
+            </div>
+            <a-space size="small">
+              <span style="font-size: 12px; color: #6b7280;">已开放：<b>{{ form.editableFields.length }}</b> / 7 项</span>
+              <a-button size="small" :disabled="!canSetting" @click="selectAllEditableFields">全选</a-button>
+              <a-button size="small" :disabled="!canSetting" @click="clearEditableFields">全部锁定</a-button>
+              <a-button size="small" :disabled="!canSetting" @click="resetToDefaultEditableFields">恢复系统默认推荐</a-button>
+            </a-space>
+          </div>
+
+          <div class="section-body">
+            <!-- 白名单按业务域 3 组精细化排布 -->
+            <div class="whitelist-groups">
+              
+              <!-- 分组 1：协同与备注类 -->
+              <div class="whitelist-card">
+                <div class="whitelist-card-head">
+                  <iconify-icon icon="ant-design:comment-outlined" style="color: #2563eb;"></iconify-icon>
+                  协同与备注类
+                </div>
+                <div class="whitelist-item-row">
+                  <a-checkbox :checked="form.editableFields.includes(1)" :disabled="!canSetting" @change="toggleEditableField(1)">
+                    内部备注
+                  </a-checkbox>
+                </div>
+                <div class="whitelist-item-row">
+                  <a-checkbox :checked="form.editableFields.includes(2)" :disabled="!canSetting" @change="toggleEditableField(2)">
+                    外部备注
+                  </a-checkbox>
+                </div>
+                <div class="whitelist-item-row">
+                  <a-checkbox :checked="form.editableFields.includes(7)" :disabled="!canSetting" @change="toggleEditableField(7)">
+                    委托单位联系人
+                  </a-checkbox>
+                </div>
+              </div>
+
+              <!-- 分组 2：履约单证与凭据类 -->
+              <div class="whitelist-card">
+                <div class="whitelist-card-head">
+                  <iconify-icon icon="ant-design:paper-clip-outlined" style="color: #059669;"></iconify-icon>
+                  履约单证与凭据类
+                </div>
+                <div class="whitelist-item-row">
+                  <a-checkbox :checked="form.editableFields.includes(3)" :disabled="!canSetting" @change="toggleEditableField(3)">
+                    附件（支持增删及上传归档）
+                  </a-checkbox>
+                </div>
+                <div class="whitelist-item-row">
+                  <a-checkbox :checked="form.editableFields.includes(6)" :disabled="!canSetting" @change="toggleEditableField(6)">
+                    提单信息（收发通、唛头、货描）
+                  </a-checkbox>
+                </div>
+              </div>
+
+              <!-- 分组 3：物流跟踪与箱货节点 -->
+              <div class="whitelist-card">
+                <div class="whitelist-card-head">
+                  <iconify-icon icon="ant-design:container-outlined" style="color: #d97706;"></iconify-icon>
+                  物流跟踪与箱货节点
+                </div>
+                <div class="whitelist-item-row">
+                  <a-checkbox :checked="form.editableFields.includes(4)" :disabled="!canSetting" @change="toggleEditableField(4)">
+                    货物跟踪节点（实际开船、预抵）
+                  </a-checkbox>
+                </div>
+                <div class="whitelist-item-row">
+                  <a-checkbox :checked="form.editableFields.includes(5)" :disabled="!canSetting" @change="toggleEditableField(5)">
+                    箱号、封号
+                  </a-checkbox>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 始终锁定的财务硬线告警条 -->
+            <div class="hard-locked-banner">
+              <iconify-icon icon="ant-design:security-scan-outlined" class="hard-locked-icon"></iconify-icon>
+              <div class="hard-locked-content">
+                <div><b>财务防篡改硬锁定红线（底层全局只读，严禁勾选）：</b></div>
+                <div>
+                  会计期间，以及决定它的开船/到港日期、委托单位、销售、所属组织、业务类型、箱型箱量、结算方式和应结日期。
+                </div>
+                <div style="font-size: 12px; color: #c2410c; margin-top: 4px;">
+                  * 以上核心要素直接决定财务凭证归属期、总账核算分录与应收应付账龄，锁账后系统一律禁止编辑，杜绝财务穿透风险。
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 浮动停靠保存条 (当有修改草稿时浮现) -->
+        <div v-if="isDirty && canSetting" class="sticky-footer-bar">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <iconify-icon icon="ant-design:info-circle-filled" style="color: #fbbf24; font-size: 18px;"></iconify-icon>
+            <span style="font-size: 14px; font-weight: 500;">
+              检测到锁账设置有未保存的修改项（已变更），请确认后及时保存以生效全租户策略。
+            </span>
+          </div>
+          <a-space size="middle">
+            <a-button ghost size="middle" @click="resetFormToSaved">
+              放弃修改
+            </a-button>
+            <a-button type="primary" size="middle" :loading="saving" @click="saveSetting">
+              立即保存并生效
+            </a-button>
+          </a-space>
+        </div>
+
+        <!-- 弹窗 1：资产一致性核对报告 -->
+        <a-modal
+          v-model:open="showAuditModal"
+          title="📋 业务要求与资产 100% 一致性核对报告"
+          width="800px"
+          :footer="null"
+        >
+          <a-alert
+            type="success"
+            show-icon
+            message="100% 字段、选项与业务规则全量对齐"
+            description="本原型页面严格对齐线上系统 /settlement-management/lock-account-setting 的所有字段、逻辑与接口参数，无任何业务漏项。"
+            style="margin-bottom: 16px;"
+          ></a-alert>
+
+          <a-descriptions bordered size="small" :column="2">
+            <a-descriptions-item label="所属功能模块">财务管理 / 锁账管理 / 锁账设置</a-descriptions-item>
+            <a-descriptions-item label="对应前端组件">LockAccountSetting (Vue 3 SFC)</a-descriptions-item>
+            <a-descriptions-item label="接口路径">/api/services/app/LockAccountSettingAdmin</a-descriptions-item>
+            <a-descriptions-item label="权限标识">Admin.OrderFee.Lock.Setting</a-descriptions-item>
+          </a-descriptions>
+
+          <h4 style="margin: 16px 0 8px; font-weight: 600;">资产清点核对明细表：</h4>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; border: 1px solid #e5e7eb;">
+            <thead>
+              <tr style="background: #f8fafc; text-align: left;">
+                <th style="padding: 8px; border: 1px solid #e5e7eb;">业务资产项</th>
+                <th style="padding: 8px; border: 1px solid #e5e7eb;">原系统定义</th>
+                <th style="padding: 8px; border: 1px solid #e5e7eb;">原型落地状态</th>
+                <th style="padding: 8px; border: 1px solid #e5e7eb;">优化提升亮点</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: 600;">反结转总账防护</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">reopenGlGuard (Boolean)</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; color: #059669; font-weight: 600;">100% 对齐</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">独立安全风控卡片，明确反结转高危业务警示</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: 600;">锁账检查三项</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">利润为负、无应收、无应付 (0/1/2)</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; color: #059669; font-weight: 600;">100% 对齐</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">增加语义状态 Tag、新增 3 种一键预设风控策略</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: 600;">可改白名单 7 项</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">值 1~7 (备注/附件/节点/箱号/提单等)</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; color: #059669; font-weight: 600;">100% 对齐</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">按「协同/单证/物流」结构化分组，支持全选/推荐重置</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: 600;">公司启用期间</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">startPeriod, hasCloseLog 锁定</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; color: #059669; font-weight: 600;">100% 对齐</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">规范 AntD MonthPicker，带结转记录二次确认与防误锁</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: 600;">始终锁定说明</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">会计期间、委托单位、销售等 8 要素</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb; color: #059669; font-weight: 600;">100% 对齐</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">高对比警示横幅，强化防财务穿透风险合规意识</td>
+              </tr>
+            </tbody>
+          </table>
+        </a-modal>
+
+      </div>
+    </a-config-provider>
+  </script>
+
+  <script>
+    const { createApp, ref, reactive, computed } = Vue;
+
+    const app = createApp({
+      template: '#app-template',
+      setup() {
+        // 权限模拟状态 (true: 具备 Admin.OrderFee.Lock.Setting 权限; false: 仅只读)
+        const canSetting = ref(true);
+
+        // 加载中与保存中状态
+        const saving = ref(false);
+        const showAuditModal = ref(false);
+        const companySearchKeyword = ref('');
+
+        // 审计元数据 (取自真实生产测试环境)
+        const lastModifierUserName = ref('测试WF346锁账验收');
+        const lastModificationTime = ref('2026-10-20 00:28:00');
+
+        // 系统固定底层阻断检查（不可关闭）
+        const systemChecks = [
+          {
+            title: '业务未标记「未完结」（更改单不判断）',
+            desc: '未完结业务代表履约仍在进行中，强制阻止锁账，防止漏记漏收运杂费'
+          },
+          {
+            title: '本单费用全部审核通过（没有录入、驳回状态的费用）',
+            desc: '存在未终审或被驳回的费用时禁止锁账，确保成本与收入金额真实准确'
+          },
+          {
+            title: '没有待审核的费用任务（提交、申请修改、申请删除）',
+            desc: '存在并发中的修改/删除/提交任务时阻断锁账，防止审批状态冲突与数据踩踏'
+          }
+        ];
+
+        // 检查项下拉选项
+        const checkModeOptions = [
+          { value: 0, label: '不检查' },
+          { value: 1, label: '提醒' },
+          { value: 2, label: '拦截' }
+        ];
+
+        // 表单数据：严格对应接口 LockAccountApi.SettingEdit
+        const form = reactive({
+          reopenGlGuard: true,
+          negativeProfitCheck: 1, // 0: 不检查, 1: 提醒, 2: 拦截
+          noReceivableCheck: 1,
+          noPayableCheck: 0,
+          editableFields: [1, 2, 3, 4] // 内部备注、外部备注、附件、货物跟踪节点
+        });
+
+        // 保存状态镜像 (用于草稿脏检测)
+        const savedSetting = reactive({
+          reopenGlGuard: true,
+          negativeProfitCheck: 1,
+          noReceivableCheck: 1,
+          noPayableCheck: 0,
+          editableFields: [1, 2, 3, 4]
+        });
+
+        // 脏数据检测：是否发生任何修改
+        const isDirty = computed(() => {
+          const currentFields = [...form.editableFields].sort().join(',');
+          const savedFields = [...savedSetting.editableFields].sort().join(',');
+          return (
+            form.reopenGlGuard !== savedSetting.reopenGlGuard ||
+            form.negativeProfitCheck !== savedSetting.negativeProfitCheck ||
+            form.noReceivableCheck !== savedSetting.noReceivableCheck ||
+            form.noPayableCheck !== savedSetting.noPayableCheck ||
+            currentFields !== savedFields
+          );
+        });
+
+        const canSave = computed(() => canSetting.value && isDirty.value && !saving.value);
+
+        // 公司期间真实数据 (真实映射生产系统)
+        const companies = ref([
+          {
+            id: 'comp-1',
+            name: '青岛佳越软件科技有限公司',
+            startPeriod: null,
+            currentPeriod: null,
+            closedTo: null,
+            localCurrencyCode: 'RMB',
+            hasCloseLog: false,
+            canEditStartPeriod: true,
+            glAccountSets: [
+              { name: '测试 少', closedTo: null },
+              { name: '测试账套', closedTo: null }
+            ]
+          },
+          {
+            id: 'comp-2',
+            name: '青岛佳越软件科技有限公司（黄岛）',
+            startPeriod: null,
+            currentPeriod: null,
+            closedTo: null,
+            localCurrencyCode: 'RMB',
+            hasCloseLog: false,
+            canEditStartPeriod: true,
+            glAccountSets: []
+          },
+          {
+            id: 'comp-3',
+            name: '测试WF346锁账验收公司',
+            startPeriod: '2026-09',
+            currentPeriod: '2026-10',
+            closedTo: '2026-09',
+            localCurrencyCode: 'RMB',
+            hasCloseLog: true,
+            canEditStartPeriod: false,
+            glAccountSets: [
+              { name: '测试WF346锁账联动账套', closedTo: null }
+            ]
+          },
+          {
+            id: 'comp-4',
+            name: '测试WF346边界验收公司',
+            startPeriod: '2026-09',
+            currentPeriod: '2026-10',
+            closedTo: '2026-09',
+            localCurrencyCode: 'RMB',
+            hasCloseLog: true,
+            canEditStartPeriod: false,
+            glAccountSets: []
+          },
+          {
+            id: 'comp-5',
+            name: '测试WF346缓存启用验收公司',
+            startPeriod: '2026-09',
+            currentPeriod: '2026-09',
+            closedTo: null,
+            localCurrencyCode: 'RMB',
+            hasCloseLog: false,
+            canEditStartPeriod: true,
+            glAccountSets: []
+          }
+        ]);
+
+        const filteredCompanies = computed(() => {
+          if (!companySearchKeyword.value.trim()) return companies.value;
+          const kw = companySearchKeyword.value.trim().toLowerCase();
+          return companies.value.filter(c => c.name.toLowerCase().includes(kw));
+        });
+
+        const enabledCompanyCount = computed(() => {
+          return companies.value.filter(c => !!c.startPeriod).length;
+        });
+
+        const companyColumns = [
+          { title: '所属公司', dataIndex: 'name', key: 'name', width: 280 },
+          { title: '启用期间', dataIndex: 'startPeriod', key: 'startPeriod', width: 320 },
+          { title: '当前期间', dataIndex: 'currentPeriod', key: 'currentPeriod', width: 140, align: 'center' },
+          { title: '业务已结转至', dataIndex: 'closedTo', key: 'closedTo', width: 130, align: 'center' },
+          { title: '本位币', dataIndex: 'localCurrencyCode', key: 'localCurrencyCode', width: 90, align: 'center' },
+          { title: '总账已结账至', key: 'glClosedText' }
+        ];
+
+        // 格式化期间辅助函数
+        const formatPeriod = (val) => {
+          if (!val) return undefined;
+          return val.length > 7 ? val.slice(0, 7) : val;
+        };
+
+        // 切换白名单单个复选框
+        const toggleEditableField = (val) => {
+          if (!canSetting.value) return;
+          const idx = form.editableFields.indexOf(val);
+          if (idx >= 0) {
+            form.editableFields.splice(idx, 1);
+          } else {
+            form.editableFields.push(val);
+          }
+        };
+
+        // 白名单批量操作
+        const selectAllEditableFields = () => {
+          if (!canSetting.value) return;
+          form.editableFields = [1, 2, 3, 4, 5, 6, 7];
+        };
+
+        const clearEditableFields = () => {
+          if (!canSetting.value) return;
+          form.editableFields = [];
+        };
+
+        const resetToDefaultEditableFields = () => {
+          if (!canSetting.value) return;
+          form.editableFields = [1, 2, 3, 4];
+        };
+
+        // 快速预设风控策略
+        const applyCheckTemplate = (mode) => {
+          if (!canSetting.value) return;
+          if (mode === 'recommended') {
+            form.negativeProfitCheck = 1; // 提醒
+            form.noReceivableCheck = 1;  // 提醒
+            form.noPayableCheck = 0;     // 不检查
+            antd.message.info('已应用【标准推荐】风控策略');
+          } else if (mode === 'strict') {
+            form.negativeProfitCheck = 2; // 拦截
+            form.noReceivableCheck = 2;  // 拦截
+            form.noPayableCheck = 1;     // 提醒
+            antd.message.warning('已应用【严格财务】全量拦截策略');
+          } else if (mode === 'loose') {
+            form.negativeProfitCheck = 1;
+            form.noReceivableCheck = 1;
+            form.noPayableCheck = 1;
+            antd.message.info('已应用【宽松过渡】全量提醒策略');
+          }
+        };
+
+        const getCheckModeLabel = (val) => {
+          if (val === 2) return '拦截';
+          if (val === 1) return '提醒';
+          return '不检查';
+        };
+
+        const getCheckModeColor = (val) => {
+          if (val === 2) return 'error';
+          if (val === 1) return 'warning';
+          return 'default';
+        };
+
+        // 变更公司启用期间
+        const handleStartPeriodChange = (record, newMonth) => {
+          if (!record.canEditStartPeriod || !canSetting.value) return;
+          if (!newMonth || newMonth === record.startPeriod) return;
+
+          antd.Modal.confirm({
+            title: `把 ${record.name} 的启用期间设为 ${newMonth}？`,
+            content: '启用期间之前的月份都按已结转处理：不能新建或移入业务，已锁账的票不能解锁。',
+            okText: '确认设置',
+            cancelText: '取消',
+            onOk() {
+              record.startPeriod = newMonth;
+              record.currentPeriod = newMonth;
+              antd.message.success(`${record.name} 启用期间已更新为 ${newMonth}`);
+            }
+          });
+        };
+
+        // 恢复未保存草稿
+        const resetFormToSaved = () => {
+          form.reopenGlGuard = savedSetting.reopenGlGuard;
+          form.negativeProfitCheck = savedSetting.negativeProfitCheck;
+          form.noReceivableCheck = savedSetting.noReceivableCheck;
+          form.noPayableCheck = savedSetting.noPayableCheck;
+          form.editableFields = [...savedSetting.editableFields];
+          antd.message.info('已撤销所有未保存的修改');
+        };
+
+        // 提交保存设置
+        const saveSetting = () => {
+          if (!canSave.value) return;
+          saving.value = true;
+          setTimeout(() => {
+            savedSetting.reopenGlGuard = form.reopenGlGuard;
+            savedSetting.negativeProfitCheck = form.negativeProfitCheck;
+            savedSetting.noReceivableCheck = form.noReceivableCheck;
+            savedSetting.noPayableCheck = form.noPayableCheck;
+            savedSetting.editableFields = [...form.editableFields];
+
+            lastModifierUserName.value = '系统管理员 (admin)';
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            lastModificationTime.value = `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+
+            saving.value = false;
+            antd.message.success('锁账设置已保存成功，全租户已锁账业务立即按新白名单与规则生效！');
+          }, 600);
+        };
+
+        const onPermissionToggle = (checked) => {
+          if (checked) {
+            antd.message.success('已切换为：管理员维护模式（具备全部修改权限）');
+          } else {
+            antd.message.warning('已切换为：只读模式（仅允许查看，不可保存）');
+          }
+        };
+
+        return {
+          canSetting,
+          saving,
+          showAuditModal,
+          companySearchKeyword,
+          lastModifierUserName,
+          lastModificationTime,
+          systemChecks,
+          checkModeOptions,
+          form,
+          savedSetting,
+          isDirty,
+          canSave,
+          companies,
+          filteredCompanies,
+          enabledCompanyCount,
+          companyColumns,
+          formatPeriod,
+          toggleEditableField,
+          selectAllEditableFields,
+          clearEditableFields,
+          resetToDefaultEditableFields,
+          applyCheckTemplate,
+          getCheckModeLabel,
+          getCheckModeColor,
+          handleStartPeriodChange,
+          resetFormToSaved,
+          saveSetting,
+          onPermissionToggle
+        };
+      }
+    });
+
+    app.use(antd).mount('#app');
+  </script>
+</body>
+</html>

@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>货代嵌套表格设计方案审查与选型沙盘</title>
+  
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #1677ff;
+      --primary-bg: #e6f4ff;
+      --primary-border: #91caff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+    }
+
+    body {
+      background: #f1f5f9;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .preview-header {
+      background: #0f172a;
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .preview-header__title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preview-header__title h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    .preview-header__badge {
+      background: #2563eb;
+      color: #eff6ff;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .preview-controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .preview-body {
+      max-width: 1600px;
+      margin: 20px auto;
+      padding: 0 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* 样式选择与设计理念卡片 */
+    .style-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .style-card {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .style-card:hover {
+      border-color: #93c5fd;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37,99,235,0.08);
+    }
+
+    .style-card.is-active {
+      border-color: #2563eb;
+      background: #f8faff;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+
+    .style-card__tag {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .tag--recommend { background: #dbeafe; color: #1e40af; }
+    .tag--pro { background: #fef3c7; color: #92400e; }
+    .tag--finance { background: #dcfce7; color: #166534; }
+    .tag--minimal { background: #f1f5f9; color: #475569; }
+
+    .style-card__name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .style-card__desc {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .style-card__highlights {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .highlight-pill {
+      font-size: 11px;
+      background: #e2e8f0;
+      color: #334155;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .style-card.is-active .highlight-pill {
+      background: #bfdbfe;
+      color: #1e3a8a;
+    }
+
+    /* 主展示画板 */
+    .table-stage-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stage-toolbar {
+      padding: 12px 18px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .stage-toolbar__left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stage-toolbar__title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .stage-toolbar__subtitle {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .stage-toolbar__right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* 表格容器通用规范 */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      min-height: 480px;
+    }
+
+    table.b2b-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+      color: #1e293b;
+      line-height: 1.5;
+    }
+
+    table.b2b-table th {
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+      user-select: none;
+      position: relative;
+    }
+
+    table.b2b-table td {
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+
+    .col-resizer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 6px;
+      cursor: col-resize;
+    }
+    .col-resizer:hover {
+      background: #3b82f6;
+    }
+
+    .expand-btn {
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 10px;
+      line-height: 1;
+      padding: 0;
+    }
+    .expand-btn:hover {
+      border-color: #2563eb;
+      color: #2563eb;
+      background: #eff6ff;
+    }
+    .expand-btn.is-expanded {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+      transform: rotate(90deg);
+    }
+
+    .num-cell {
+      font-variant-numeric: tabular-nums;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .tag-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .tag-status--unsettled { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .tag-status--settled { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .tag-status--partial { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+
+    /* =========================================================================
+       风格 1：沉浸卡片内嵌式 (Card Inset / Floating Shelf)
+       ========================================================================= */
+    .style--card-inset table.b2b-table thead th {
+      background: #f8fafc;
+      color: #475569;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 12px;
+    }
+
+    .style--card-inset .parent-row td {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      height: 42px;
+      transition: background 0.15s ease;
+    }
+
+    .style--card-inset .parent-row:hover td {
+      background: #f8fafc;
+    }
+
+    .style--card-inset .parent-row.is-active td {
+      background: #f0f7ff !important;
+      border-bottom-color: transparent;
+    }
+
+    .style--card-inset .parent-row.is-active td:first-child {
+      box-shadow: inset 3px 0 0 #2563eb;
+    }
+
+    .style--card-inset .expanded-tray-cell {
+      background: #f8fafc !important;
+      padding: 12px 18px 16px !important;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .style--card-inset .nested-card-container {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+      overflow: hidden;
+    }
+
+    .style--card-inset .nested-card-header {
+      padding: 8px 14px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .style--card-inset .nested-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+    }
+
+    .style--card-inset .nested-table th {
+      background: #f8fafc;
+      color: #64748b;
+      padding: 7px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 500;
+      font-size: 11px;
+    }
+
+    .style--card-inset .nested-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #fff;
+      height: 32px;
+    }
+
+    .style--card-inset .nested-table tr:hover td {
+      background: #f8fafc;
+    }
+
+    .style--card-inset .nested-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* =========================================================================
+       风格 2：层级导引树线式 (Tree Connector / Structural Blueprint)
+       ========================================================================= */
+    .style--tree-line table.b2b-table thead th {
+      background: #f1f5f9;
+      color: #334155;
+      border-bottom: 1.5px solid #cbd5e1;
+      font-size: 12px;
+    }
+
+    .style--tree-line .parent-row td {
+      background: #fff;
+      border-bottom: 1px solid #f1f5f9;
+      height: 38px;
+    }
+
+    .style--tree-line .parent-row:hover td {
+      background: #f8fafc;
+    }
+
+    .style--tree-line .parent-row.is-active td {
+      background: #fafafa;
+    }
+
+    .style--tree-line .expanded-tray-cell {
+      padding: 0 0 10px 0 !important;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .style--tree-line .tree-wrap {
+      display: flex;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    /* 树形垂直导引虚线 */
+    .style--tree-line .tree-connector-guide {
+      width: 28px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .style--tree-line .tree-connector-guide::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: -19px;
+      bottom: 22px;
+      border-left: 1.5px dashed #94a3b8;
+    }
+
+    .style--tree-line .tree-connector-guide::after {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 14px;
+      width: 14px;
+      border-bottom: 1.5px dashed #94a3b8;
+    }
+
+    .style--tree-line .tree-table-box {
+      flex: 1;
+      margin-right: 14px;
+      border: 1px solid #cbd5e1;
+      border-top: none;
+      background: #ffffff;
+      border-radius: 0 0 6px 6px;
+      overflow: hidden;
+    }
+
+    .style--tree-line .nested-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .style--tree-line .nested-table th {
+      background: #e2e8f0;
+      color: #1e293b;
+      padding: 6px 8px;
+      border-bottom: 1px solid #cbd5e1;
+      font-weight: 600;
+    }
+
+    .style--tree-line .nested-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      height: 28px;
+      background: #fff;
+    }
+
+    .style--tree-line .nested-table tr:hover td {
+      background: #f1f5f9;
+    }
+
+    /* =========================================================================
+       风格 3：财务分栏对照式 (Split Summary & Detail)
+       ========================================================================= */
+    .style--split-view table.b2b-table thead th {
+      background: #f8fafc;
+      color: #475569;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .style--split-view .parent-row td {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      height: 42px;
+    }
+
+    .style--split-view .parent-row.is-active td {
+      background: #f8faff;
+      border-bottom-color: transparent;
+    }
+
+    .style--split-view .expanded-tray-cell {
+      padding: 12px 16px 16px !important;
+      background: #f1f5f9 !important;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .style--split-view .split-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .style--split-view .summary-side-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    .style--split-view .summary-card__header {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+
+    .style--split-view .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 12px;
+    }
+
+    .style--split-view .metric-label {
+      color: #64748b;
+    }
+
+    .style--split-view .metric-value {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: #0f172a;
+    }
+
+    .style--split-view .metric-value--primary {
+      color: #2563eb;
+      font-size: 14px;
+    }
+
+    .style--split-view .metric-value--success {
+      color: #16a34a;
+    }
+
+    .style--split-view .metric-value--warning {
+      color: #d97706;
+    }
+
+    .style--split-view .detail-side-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .style--split-view .nested-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+    }
+
+    .style--split-view .nested-table th {
+      background: #f8fafc;
+      color: #475569;
+      padding: 7px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 500;
+    }
+
+    .style--split-view .nested-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      height: 32px;
+      background: #fff;
+    }
+
+    /* =========================================================================
+       风格 4：现代无缝暗调微渐变式 (Sleek Borderless Ghost)
+       ========================================================================= */
+    .style--borderless table.b2b-table thead th {
+      background: #ffffff;
+      color: #64748b;
+      border-bottom: 2px solid #0f172a;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .style--borderless .parent-row td {
+      background: #fff;
+      border-bottom: 1px solid #f1f5f9;
+      height: 44px;
+    }
+
+    .style--borderless .parent-row.is-active td {
+      background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%);
+    }
+
+    .style--borderless .expanded-tray-cell {
+      padding: 0 !important;
+      background: #fafbfc;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .style--borderless .borderless-wrapper {
+      padding: 10px 16px 14px 44px;
+    }
+
+    .style--borderless .pill-summary-strip {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: #e2e8f0;
+      font-size: 11px;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .style--borderless .pill-summary-strip b {
+      color: #0f172a;
+    }
+
+    .style--borderless .nested-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .style--borderless .nested-table th {
+      background: transparent;
+      color: #94a3b8;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .style--borderless .nested-table td {
+      padding: 7px 10px;
+      border-bottom: 1px dashed #e2e8f0;
+      height: 32px;
+      background: transparent;
+    }
+
+    .style--borderless .nested-table tr:hover td {
+      background: #f1f5f9;
+    }
+
+    /* 浮动对比面板 */
+    .comparison-panel {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 18px 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+
+    .comparison-panel h2 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0 0 12px;
+      color: #0f172a;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .comparison-table th, .comparison-table td {
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    .comparison-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部状态栏 -->
+    <header class="preview-header">
+      <div class="preview-header__title">
+        <iconify-icon icon="lucide:layout-grid" style="font-size: 20px; color: #60a5fa;"></iconify-icon>
+        <h1>货代系统通用嵌套表格 (NestedDataTable) 视觉重构沙盘</h1>
+        <span class="preview-header__badge">高保真设计审查</span>
+      </div>
+
+      <div class="preview-controls">
+        <div class="control-group">
+          <span>业务场景测试：</span>
+          <a-radio-group v-model:value="currentScenario" button-style="solid" size="small">
+            <a-radio-button value="payment">付款申请费用明细</a-radio-button>
+            <a-radio-button value="bank">银行流水核销明细</a-radio-button>
+          </a-radio-group>
+        </div>
+
+        <div class="control-group">
+          <a-button size="small" type="primary" ghost @click="toggleAllRows">
+            <template #icon><iconify-icon :icon="isAllExpanded ? 'lucide:fold-vertical' : 'lucide:unfold-vertical'"></iconify-icon></template>
+            {{ isAllExpanded ? '一键全部折叠' : '一键全部展开' }}
+          </a-button>
+        </div>
+      </div>
+    </header>
+
+    <div class="preview-body">
+      <!-- 风格卡片切换器 -->
+      <div class="style-selector-grid">
+        <div
+          v-for="style in styleOptions"
+          :key="style.key"
+          class="style-card"
+          :class="{ 'is-active': activeStyle === style.key }"
+          @click="activeStyle = style.key"
+        >
+          <span class="style-card__tag" :class="style.tagClass">{{ style.tagText }}</span>
+          <div class="style-card__name">
+            <iconify-icon :icon="style.icon" style="font-size: 16px; color: #2563eb;"></iconify-icon>
+            {{ style.name }}
+          </div>
+          <div class="style-card__desc">{{ style.desc }}</div>
+          <div class="style-card__highlights">
+            <span v-for="h in style.highlights" :key="h" class="highlight-pill">{{ h }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 表格沙盘展示卡片 -->
+      <div class="table-stage-card" :class="'style--' + activeStyle">
+        <div class="stage-toolbar">
+          <div class="stage-toolbar__left">
+            <iconify-icon icon="lucide:table-properties" style="font-size: 18px; color: #2563eb;"></iconify-icon>
+            <span class="stage-toolbar__title">
+              {{ currentScenario === 'payment' ? '付款申请单：WF455-20261029-001 · 底部费用明细' : '银行流水：SH261031037 (青岛运去哪) · 关联核销明细' }}
+            </span>
+            <span class="stage-toolbar__subtitle">
+              当前应用风格：<b>{{ currentStyleName }}</b>
+            </span>
+          </div>
+
+          <div class="stage-toolbar__right">
+            <a-tag color="blue">支持双层列宽拖拽</a-tag>
+            <a-tag color="cyan">支持双层列设置 (useTableConfigStore)</a-tag>
+            <a-button size="small">
+              <template #icon><iconify-icon icon="lucide:settings-2"></iconify-icon></template>
+              列设置
+            </a-button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <!-- 场景一：付款申请费用明细 -->
+          <table v-if="currentScenario === 'payment'" class="b2b-table">
+            <thead>
+              <tr>
+                <th style="width: 44px; text-align: center;">展开</th>
+                <th style="width: 50px; text-align: center;">序号</th>
+                <th style="width: 140px;">主提单号 <div class="col-resizer"></div></th>
+                <th style="width: 100px;">应收状态 <div class="col-resizer"></div></th>
+                <th style="width: 150px;">委托编号 <div class="col-resizer"></div></th>
+                <th style="width: 160px;">起运港 / 目的港 <div class="col-resizer"></div></th>
+                <th style="width: 90px;">客服 <div class="col-resizer"></div></th>
+                <th style="width: 130px; text-align: right;">RMB 申请合计 <div class="col-resizer"></div></th>
+                <th style="width: 180px;">应收未结算 <div class="col-resizer"></div></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-for="(row, idx) in paymentGroups" :key="row.id">
+                <tr class="parent-row" :class="{ 'is-active': row.expanded }">
+                  <td style="text-align: center;">
+                    <button
+                      type="button"
+                      class="expand-btn"
+                      :class="{ 'is-expanded': row.expanded }"
+                      @click="row.expanded = !row.expanded"
+                    >
+                      <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+                    </button>
+                  </td>
+                  <td style="text-align: center;" class="num-cell">{{ idx + 1 }}</td>
+                  <td><b>{{ row.mblNum }}</b></td>
+                  <td>
+                    <span class="tag-status tag-status--unsettled">{{ row.settleStatus }}</span>
+                  </td>
+                  <td><a href="javascript:;" style="color: #2563eb;">{{ row.commissionNum }}</a></td>
+                  <td>{{ row.ports }}</td>
+                  <td>{{ row.operator }}</td>
+                  <td style="text-align: right; font-weight: 600;" class="num-cell">¥ {{ row.totalApply }}</td>
+                  <td class="num-cell" style="color: #64748b; font-size: 11px;">{{ row.receivableUnsettled }}</td>
+                </tr>
+
+                <!-- 展开行托盘 -->
+                <tr v-if="row.expanded" class="expanded-tray-row">
+                  <td colspan="9" class="expanded-tray-cell">
+                    
+                    <!-- 风格 1：沉浸卡片内嵌式 -->
+                    <div v-if="activeStyle === 'card-inset'" class="nested-card-container">
+                      <div class="nested-card-header">
+                        <span style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                          <iconify-icon icon="lucide:layers" style="color: #2563eb;"></iconify-icon>
+                          该票关联费用明细（共 {{ row.children.length }} 项）
+                        </span>
+                        <span style="color: #64748b;">
+                          原币小计：USD {{ row.childrenTotalUsd }} / RMB {{ row.childrenTotalRmb }}
+                        </span>
+                      </div>
+                      <table class="nested-table">
+                        <thead>
+                          <tr>
+                            <th style="width: 40px; text-align: center;"><input type="checkbox" checked /></th>
+                            <th style="width: 140px;">费用名称</th>
+                            <th style="width: 80px;">收支类型</th>
+                            <th style="width: 80px;">原币币别</th>
+                            <th style="width: 120px; text-align: right;">原币金额</th>
+                            <th style="width: 90px; text-align: right;">汇率</th>
+                            <th style="width: 140px; text-align: right;">申请折算 (RMB)</th>
+                            <th style="width: 140px;">发票号</th>
+                            <th style="width: 100px;">结算状态</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="fee in row.children" :key="fee.id">
+                            <td style="text-align: center;"><input type="checkbox" checked /></td>
+                            <td><b>{{ fee.name }}</b></td>
+                            <td><span style="color: #dc2626;">应付</span></td>
+                            <td><a-tag size="small">{{ fee.currency }}</a-tag></td>
+                            <td style="text-align: right;" class="num-cell">{{ fee.origAmount }}</td>
+                            <td style="text-align: right;" class="num-cell">{{ fee.rate }}</td>
+                            <td style="text-align: right; font-weight: 600; color: #0f172a;" class="num-cell">¥ {{ fee.cnyAmount }}</td>
+                            <td style="color: #64748b;">{{ fee.invoiceNo || '-' }}</td>
+                            <td><span class="tag-status tag-status--unsettled">未付款</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <!-- 风格 2：层级导引树线式 -->
+                    <div v-else-if="activeStyle === 'tree-line'" class="tree-wrap">
+                      <div class="tree-connector-guide"></div>
+                      <div class="tree-table-box">
+                        <table class="nested-table">
+                          <thead>
+                            <tr>
+                              <th style="width: 40px; text-align: center;"><input type="checkbox" checked /></th>
+                              <th style="width: 140px;">费用名称</th>
+                              <th style="width: 80px;">收支</th>
+                              <th style="width: 80px;">币别</th>
+                              <th style="width: 120px; text-align: right;">原币金额</th>
+                              <th style="width: 90px; text-align: right;">汇率</th>
+                              <th style="width: 140px; text-align: right;">折算金额 (RMB)</th>
+                              <th style="width: 140px;">发票号</th>
+                              <th style="width: 100px;">状态</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="fee in row.children" :key="fee.id">
+                              <td style="text-align: center;"><input type="checkbox" checked /></td>
+                              <td><b>{{ fee.name }}</b></td>
+                              <td><span style="color: #dc2626;">应付</span></td>
+                              <td>{{ fee.currency }}</td>
+                              <td style="text-align: right;" class="num-cell">{{ fee.origAmount }}</td>
+                              <td style="text-align: right;" class="num-cell">{{ fee.rate }}</td>
+                              <td style="text-align: right; font-weight: 600;" class="num-cell">¥ {{ fee.cnyAmount }}</td>
+                              <td>{{ fee.invoiceNo || '-' }}</td>
+                              <td><span class="tag-status tag-status--unsettled">未付款</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- 风格 3：财务分栏对照式 -->
+                    <div v-else-if="activeStyle === 'split-view'" class="split-layout">
+                      <div class="summary-side-card">
+                        <div>
+                          <div class="summary-card__header">
+                            <span>本票费用核算概览</span>
+                            <a-tag color="blue">单据锁定</a-tag>
+                          </div>
+                          <div class="metric-row">
+                            <span class="metric-label">委托业务号</span>
+                            <span class="metric-value">{{ row.commissionNum }}</span>
+                          </div>
+                          <div class="metric-row">
+                            <span class="metric-label">费用总笔数</span>
+                            <span class="metric-value">{{ row.children.length }} 笔</span>
+                          </div>
+                          <div class="metric-row">
+                            <span class="metric-label">原币合计 (USD)</span>
+                            <span class="metric-value metric-value--primary">$ {{ row.childrenTotalUsd }}</span>
+                          </div>
+                          <div class="metric-row">
+                            <span class="metric-label">本票折算申请</span>
+                            <span class="metric-value metric-value--primary">¥ {{ row.totalApply }}</span>
+                          </div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 8px; border-radius: 6px; font-size: 11px; color: #64748b; margin-top: 10px;">
+                          提示：当前单据处于申请录入中，费用增删与汇率折算将实时重算申请总额。
+                        </div>
+                      </div>
+
+                      <div class="detail-side-card">
+                        <table class="nested-table">
+                          <thead>
+                            <tr>
+                              <th style="width: 40px; text-align: center;"><input type="checkbox" checked /></th>
+                              <th style="width: 140px;">费用名称</th>
+                              <th style="width: 80px;">收支类型</th>
+                              <th style="width: 80px;">原币币别</th>
+                              <th style="width: 110px; text-align: right;">原币金额</th>
+                              <th style="width: 80px; text-align: right;">汇率</th>
+                              <th style="width: 130px; text-align: right;">申请折算 (RMB)</th>
+                              <th style="width: 110px;">发票号</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="fee in row.children" :key="fee.id">
+                              <td style="text-align: center;"><input type="checkbox" checked /></td>
+                              <td><b>{{ fee.name }}</b></td>
+                              <td><span style="color: #dc2626;">应付</span></td>
+                              <td>{{ fee.currency }}</td>
+                              <td style="text-align: right;" class="num-cell">{{ fee.origAmount }}</td>
+                              <td style="text-align: right;" class="num-cell">{{ fee.rate }}</td>
+                              <td style="text-align: right; font-weight: 600;" class="num-cell">¥ {{ fee.cnyAmount }}</td>
+                              <td>{{ fee.invoiceNo || '-' }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- 风格 4：现代无缝暗调微渐变式 -->
+                    <div v-else-if="activeStyle === 'borderless'" class="borderless-wrapper">
+                      <div class="pill-summary-strip">
+                        <span>明细清单：<b>{{ row.children.length }} 项</b></span>
+                        <span>•</span>
+                        <span>原币汇率基准：<b>USD / CNY 7.12</b></span>
+                        <span>•</span>
+                        <span>本票申请折合：<b>¥ {{ row.totalApply }}</b></span>
+                      </div>
+                      <table class="nested-table">
+                        <thead>
+                          <tr>
+                            <th style="width: 140px;">费用名称</th>
+                            <th style="width: 80px;">收支</th>
+                            <th style="width: 80px;">原币</th>
+                            <th style="width: 110px; text-align: right;">原币金额</th>
+                            <th style="width: 90px; text-align: right;">折算汇率</th>
+                            <th style="width: 130px; text-align: right;">申请折合 (RMB)</th>
+                            <th style="width: 140px;">发票号</th>
+                            <th style="width: 100px;">状态</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="fee in row.children" :key="fee.id">
+                            <td><b>{{ fee.name }}</b></td>
+                            <td><span style="color: #dc2626;">应付</span></td>
+                            <td>{{ fee.currency }}</td>
+                            <td style="text-align: right;" class="num-cell">{{ fee.origAmount }}</td>
+                            <td style="text-align: right;" class="num-cell">{{ fee.rate }}</td>
+                            <td style="text-align: right; font-weight: 600;" class="num-cell">¥ {{ fee.cnyAmount }}</td>
+                            <td>{{ fee.invoiceNo || '-' }}</td>
+                            <td><span class="tag-status tag-status--unsettled">未付款</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+
+          <!-- 场景二：银行流水核销明细 -->
+          <table v-else class="b2b-table">
+            <thead>
+              <tr>
+                <th style="width: 44px; text-align: center;">展开</th>
+                <th style="width: 50px; text-align: center;">序号</th>
+                <th style="width: 170px;">结算单号 <div class="col-resizer"></div></th>
+                <th style="width: 130px; text-align: right;">核销金额 (USD) <div class="col-resizer"></div></th>
+                <th style="width: 120px; text-align: right;">折算差值 <div class="col-resizer"></div></th>
+                <th style="width: 90px; text-align: center;">明细条数 <div class="col-resizer"></div></th>
+                <th style="width: 160px;">核销时间 <div class="col-resizer"></div></th>
+                <th style="width: 110px;">创建人 <div class="col-resizer"></div></th>
+                <th style="width: 180px;">备注 <div class="col-resizer"></div></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-for="(settle, sIdx) in bankSettlements" :key="settle.id">
+                <tr class="parent-row" :class="{ 'is-active': settle.expanded }">
+                  <td style="text-align: center;">
+                    <button
+                      type="button"
+                      class="expand-btn"
+                      :class="{ 'is-expanded': settle.expanded }"
+                      @click="settle.expanded = !settle.expanded"
+                    >
+                      <iconify-icon icon="lucide:chevron-right"></iconify-icon>
+                    </button>
+                  </td>
+                  <td style="text-align: center;" class="num-cell">{{ sIdx + 1 }}</td>
+                  <td><b>{{ settle.settlementNo }}</b></td>
+                  <td style="text-align: right; font-weight: 600;" class="num-cell">$ {{ settle.settledAmount }}</td>
+                  <td style="text-align: right;" class="num-cell" :style="{ color: settle.diffAmount === '0.00' ? '#64748b' : '#dc2626' }">
+                    $ {{ settle.diffAmount }}
+                  </td>
+                  <td style="text-align: center;" class="num-cell"><a-tag color="blue">{{ settle.itemCount }} 条</a-tag></td>
+                  <td>{{ settle.createdTime }}</td>
+                  <td>{{ settle.creator }}</td>
+                  <td style="color: #64748b;">{{ settle.remark || '无' }}</td>
+                </tr>
+
+                <!-- 展开托盘 -->
+                <tr v-if="settle.expanded" class="expanded-tray-row">
+                  <td colspan="9" class="expanded-tray-cell">
+                    
+                    <!-- 风格 1：沉浸卡片内嵌式 -->
+                    <div v-if="activeStyle === 'card-inset'" class="nested-card-container">
+                      <div class="nested-card-header">
+                        <span style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                          <iconify-icon icon="lucide:receipt" style="color: #2563eb;"></iconify-icon>
+                          核销费用分配表（单号：{{ settle.settlementNo }}）
+                        </span>
+                        <span style="color: #64748b;">已核原币合计：$ 200.00</span>
+                      </div>
+                      <table class="nested-table">
+                        <thead>
+                          <tr>
+                            <th style="width: 150px;">业务编号</th>
+                            <th style="width: 140px;">主提单号</th>
+                            <th style="width: 130px;">费用名称</th>
+                            <th style="width: 80px;">收支类型</th>
+                            <th style="width: 70px;">原币</th>
+                            <th style="width: 110px; text-align: right;">费用总额</th>
+                            <th style="width: 130px; text-align: right;">本次核销金额</th>
+                            <th style="width: 100px;">核销状态</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="item in settle.fees" :key="item.id">
+                            <td><a href="javascript:;" style="color: #2563eb;">{{ item.commissionNum }}</a></td>
+                            <td>{{ item.mblNum }}</td>
+                            <td><b>{{ item.name }}</b></td>
+                            <td><span style="color: #16a34a;">应收</span></td>
+                            <td>USD</td>
+                            <td style="text-align: right;" class="num-cell">$ {{ item.totalAmount }}</td>
+                            <td style="text-align: right; font-weight: 600; color: #16a34a;" class="num-cell">$ {{ item.settledThisTime }}</td>
+                            <td><span class="tag-status tag-status--settled">完全核销</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <!-- 风格 2：层级导引树线式 -->
+                    <div v-else-if="activeStyle === 'tree-line'" class="tree-wrap">
+                      <div class="tree-connector-guide"></div>
+                      <div class="tree-table-box">
+                        <table class="nested-table">
+                          <thead>
+                            <tr>
+                              <th style="width: 150px;">业务编号</th>
+                              <th style="width: 140px;">主提单号</th>
+                              <th style="width: 130px;">费用名称</th>
+                              <th style="width: 70px;">币别</th>
+                              <th style="width: 110px; text-align: right;">费用总额</th>
+                              <th style="width: 130px; text-align: right;">本次核销</th>
+                              <th style="width: 100px;">核销状态</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="item in settle.fees" :key="item.id">
+                              <td>{{ item.commissionNum }}</td>
+                              <td>{{ item.mblNum }}</td>
+                              <td><b>{{ item.name }}</b></td>
+                              <td>USD</td>
+                              <td style="text-align: right;" class="num-cell">$ {{ item.totalAmount }}</td>
+                              <td style="text-align: right; font-weight: 600; color: #16a34a;" class="num-cell">$ {{ item.settledThisTime }}</td>
+                              <td><span class="tag-status tag-status--settled">完全核销</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- 风格 3：财务分栏对照式 -->
+                    <div v-else-if="activeStyle === 'split-view'" class="split-layout">
+                      <div class="summary-side-card">
+                        <div>
+                          <div class="summary-card__header">
+                            <span>核销损益对照</span>
+                            <span class="tag-status tag-status--settled">平账完成</span>
+                          </div>
+                          <div class="metric-row">
+                            <span class="metric-label">核销单号</span>
+                            <span class="metric-value">{{ settle.settlementNo }}</span>
+                          </div>
+                          <div class="metric-row">
+                            <span class="metric-label">冲抵流水额</span>
+                            <span class="metric-value metric-value--success">$ {{ settle.settledAmount }}</span>
+                          </div>
+                          <div class="metric-row">
+                            <span class="metric-label">汇兑差值</span>
+                            <span class="metric-value">$ {{ settle.diffAmount }}</span>
+                          </div>
+                          <div class="metric-row">
+                            <span class="metric-label">涉及应收总笔数</span>
+                            <span class="metric-value">{{ settle.itemCount }} 笔</span>
+                          </div>
+                        </div>
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px; border-radius: 6px; font-size: 11px; color: #15803d;">
+                          核销状态正常，流水款项与应收费用金额一致无溢出。
+                        </div>
+                      </div>
+
+                      <div class="detail-side-card">
+                        <table class="nested-table">
+                          <thead>
+                            <tr>
+                              <th style="width: 150px;">业务编号</th>
+                              <th style="width: 140px;">主提单号</th>
+                              <th style="width: 130px;">费用名称</th>
+                              <th style="width: 70px;">原币</th>
+                              <th style="width: 110px; text-align: right;">费用总额</th>
+                              <th style="width: 130px; text-align: right;">本次核销金额</th>
+                              <th style="width: 100px;">状态</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="item in settle.fees" :key="item.id">
+                              <td><a href="javascript:;" style="color: #2563eb;">{{ item.commissionNum }}</a></td>
+                              <td>{{ item.mblNum }}</td>
+                              <td><b>{{ item.name }}</b></td>
+                              <td>USD</td>
+                              <td style="text-align: right;" class="num-cell">$ {{ item.totalAmount }}</td>
+                              <td style="text-align: right; font-weight: 600; color: #16a34a;" class="num-cell">$ {{ item.settledThisTime }}</td>
+                              <td><span class="tag-status tag-status--settled">完全核销</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- 风格 4：现代无缝暗调微渐变式 -->
+                    <div v-else-if="activeStyle === 'borderless'" class="borderless-wrapper">
+                      <div class="pill-summary-strip">
+                        <span>结算单：<b>{{ settle.settlementNo }}</b></span>
+                        <span>•</span>
+                        <span>冲抵应收：<b>$ {{ settle.settledAmount }}</b></span>
+                        <span>•</span>
+                        <span>折算汇差：<b>$ {{ settle.diffAmount }}</b></span>
+                      </div>
+                      <table class="nested-table">
+                        <thead>
+                          <tr>
+                            <th style="width: 150px;">业务编号</th>
+                            <th style="width: 140px;">主提单号</th>
+                            <th style="width: 130px;">费用名称</th>
+                            <th style="width: 70px;">原币</th>
+                            <th style="width: 120px; text-align: right;">费用原额</th>
+                            <th style="width: 140px; text-align: right;">本次核销</th>
+                            <th style="width: 100px;">状态</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="item in settle.fees" :key="item.id">
+                            <td>{{ item.commissionNum }}</td>
+                            <td>{{ item.mblNum }}</td>
+                            <td><b>{{ item.name }}</b></td>
+                            <td>USD</td>
+                            <td style="text-align: right;" class="num-cell">$ {{ item.totalAmount }}</td>
+                            <td style="text-align: right; font-weight: 600; color: #16a34a;" class="num-cell">$ {{ item.settledThisTime }}</td>
+                            <td><span class="tag-status tag-status--settled">完全核销</span></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 选型决策对比分析表 -->
+      <div class="comparison-panel">
+        <h2>4 套嵌套表格设计方案决策矩阵</h2>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="width: 150px;">设计方案</th>
+              <th style="width: 180px;">视觉核心表现</th>
+              <th style="width: 220px;">解决当前系统的痛点</th>
+              <th style="width: 200px;">最适用的货代业务场景</th>
+              <th style="width: 120px;">改造改动面</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>风格 1：沉浸卡片内嵌式 (Card Inset)</b></td>
+              <td>柔和灰色托盘（#f8fafc）+ 独立白底微圆角投影卡片，父行展开激活时带蓝色边条高亮。</td>
+              <td>彻底解决原来“内表和外表挤在纯白背景里、像网页破损排版混乱”的丑感，空间层次极强。</td>
+              <td><b>付款申请费用明细</b>、发票申请、出海提单装箱明细。</td>
+              <td>纯 CSS 调优（推荐首选，改动最小效果最棒）。</td>
+            </tr>
+            <tr>
+              <td><b>风格 2：层级导引树线式 (Tree Connector)</b></td>
+              <td>展开按钮下方延伸出工程虚线折线导引（L-Guide），子表半开放网格阶梯缩进。</td>
+              <td>父子归属逻辑极度清晰，取消多余外边框，大幅节省横向与纵向像素空间。</td>
+              <td><b>大批量单据审核</b>、海运整箱/拼箱分票明细、BOM 关务申报。</td>
+              <td>CSS 伪元素结构增加。</td>
+            </tr>
+            <tr>
+              <td><b>风格 3：财务分栏对照式 (Split Summary)</b></td>
+              <td>展开后左侧固定宽度的 KPI 指标看板（核销汇总、折算汇差）+ 右侧自适应细项列表。</td>
+              <td>解决财务对账时“看展开细项就看不到核销单整体汇总指标”的频繁上下滚动痛点。</td>
+              <td><b>银行流水核销明细</b>、费用对账确认单、收退款冲抵。</td>
+              <td>容器增加 2 栏 Grid 布局插槽。</td>
+            </tr>
+            <tr>
+              <td><b>风格 4：极简无界微渐变 (Sleek Borderless)</b></td>
+              <td>去除所有硬线边框与厚重色块，用微弱的上下分割线和胶囊徽标统计条区隔。</td>
+              <td>界面极其呼吸清爽、现代感最强，去掉 90 年代老旧 ERP 的繁琐线条感。</td>
+              <td><b>看板级只读明细展示</b>、移动端/平板端自适应、客户账单预览。</td>
+              <td>纯 CSS 扁平化重写。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, computed } = Vue;
+
+    const app = createApp({
+      setup() {
+        const currentScenario = ref('payment');
+        const activeStyle = ref('card-inset');
+
+        const styleOptions = [
+          {
+            key: 'card-inset',
+            name: '方案一：沉浸卡片内嵌式',
+            tagText: '行业标杆推荐',
+            tagClass: 'tag--recommend',
+            icon: 'lucide:panel-bottom-open',
+            desc: '灰色下凹背景托盘 + 独立悬浮白卡片，父行展开带 3px 品牌色指示条。层次感最强。',
+            highlights: ['下凹托盘', '独立阴影卡片', '展开高亮条', 'AntD 原生质感']
+          },
+          {
+            key: 'tree-line',
+            name: '方案二：层级导引树线式',
+            tagText: '极客高密风',
+            tagClass: 'tag--pro',
+            icon: 'lucide:git-fork',
+            desc: '经典工程折线树形导引，阶梯式缩进，无套娃外框，极大提升财务密集数据查阅效率。',
+            highlights: ['虚线树形连接', '紧凑行高(28px)', '高信息密度', '无嵌套框套娃']
+          },
+          {
+            key: 'split-view',
+            name: '方案三：财务分栏对照式',
+            tagText: '核销对账专用',
+            tagClass: 'tag--finance',
+            icon: 'lucide:columns-2',
+            desc: '展开区域左侧固定统计 KPI 看板（损益、汇差、比例），右侧费用明细。宏观微观同屏对照。',
+            highlights: ['左侧汇总指标', '右侧费用明细', '财务核销专用', '免除来回滚动']
+          },
+          {
+            key: 'borderless',
+            name: '方案四：极简无界微渐变',
+            tagText: '现代设计风',
+            tagClass: 'tag--minimal',
+            icon: 'lucide:sparkles',
+            desc: '去除硬边框，通过微弱上下分隔与胶囊摘要徽标，极简低噪音，现代科技感十足。',
+            highlights: ['无硬线边框', '胶囊摘要条', '低视觉噪音', '现代呼吸感']
+          }
+        ];
+
+        const currentStyleName = computed(() => {
+          const item = styleOptions.find(o => o.key === activeStyle.value);
+          return item ? item.name : '';
+        });
+
+        // 场景一：付款申请费用明细（真实数据）
+        const paymentGroups = ref([
+          {
+            id: 'g-1',
+            mblNum: 'COSU632819001',
+            settleStatus: '未结算',
+            commissionNum: 'JHTSE26102208',
+            ports: 'TAO / ROTTERDAM',
+            operator: '张伟 (OP)',
+            totalApply: '8,500.00',
+            receivableUnsettled: 'RMB 943.00 / USD 470.00',
+            expanded: true,
+            childrenTotalUsd: '1,000.00',
+            childrenTotalRmb: '1,380.00',
+            children: [
+              { id: 'f-1', name: '海运费 (Ocean Freight)', currency: 'USD', origAmount: '1,000.00', rate: '7.1200', cnyAmount: '7,120.00', invoiceNo: 'FP-20261028-09' },
+              { id: 'f-2', name: '港杂费 (Terminal Handling)', currency: 'RMB', origAmount: '1,380.00', rate: '1.0000', cnyAmount: '1,380.00', invoiceNo: '' }
+            ]
+          },
+          {
+            id: 'g-2',
+            mblNum: 'MSKU982137102',
+            settleStatus: '未结算',
+            commissionNum: 'JHTSE26102245',
+            ports: 'QINGDAO / HAMBURG',
+            operator: '李静 (OP)',
+            totalApply: '4,250.00',
+            receivableUnsettled: 'USD 600.00',
+            expanded: false,
+            childrenTotalUsd: '600.00',
+            childrenTotalRmb: '0.00',
+            children: [
+              { id: 'f-3', name: '海运订舱费', currency: 'USD', origAmount: '600.00', rate: '7.0833', cnyAmount: '4,250.00', invoiceNo: 'FP-20261030-12' }
+            ]
+          }
+        ]);
+
+        // 场景二：银行流水核销明细（真实数据）
+        const bankSettlements = ref([
+          {
+            id: 's-1',
+            settlementNo: 'SY261031045',
+            settledAmount: '200.00',
+            diffAmount: '0.00',
+            itemCount: 1,
+            createdTime: '2026-10-31 21:10',
+            creator: '超级管理员',
+            remark: '对冲10月青岛运去哪海运费',
+            expanded: true,
+            fees: [
+              { id: 'bf-1', commissionNum: 'JHTSE26102199', mblNum: 'ONE0293182', name: '海运费 (应收)', totalAmount: '200.00', settledThisTime: '200.00' }
+            ]
+          },
+          {
+            id: 's-2',
+            settlementNo: 'SY261028012',
+            settledAmount: '1,500.00',
+            diffAmount: '-12.50',
+            itemCount: 2,
+            createdTime: '2026-10-28 14:22',
+            creator: '王财务',
+            remark: '含小额手续费汇差调减',
+            expanded: false,
+            fees: [
+              { id: 'bf-2', commissionNum: 'JHTSE26101902', mblNum: 'MSK8921001', name: '订舱包干费', totalAmount: '1,000.00', settledThisTime: '1,000.00' },
+              { id: 'bf-3', commissionNum: 'JHTSE26101902', mblNum: 'MSK8921001', name: '目的港换单费', totalAmount: '512.50', settledThisTime: '500.00' }
+            ]
+          }
+        ]);
+
+        const isAllExpanded = computed(() => {
+          if (currentScenario.value === 'payment') {
+            return paymentGroups.value.every(r => r.expanded);
+          } else {
+            return bankSettlements.value.every(s => s.expanded);
+          }
+        });
+
+        function toggleAllRows() {
+          const target = !isAllExpanded.value;
+          if (currentScenario.value === 'payment') {
+            paymentGroups.value.forEach(r => r.expanded = target);
+          } else {
+            bankSettlements.value.forEach(s => s.expanded = target);
+          }
+        }
+
+        return {
+          currentScenario,
+          activeStyle,
+          styleOptions,
+          currentStyleName,
+          paymentGroups,
+          bankSettlements,
+          isAllExpanded,
+          toggleAllRows
+        };
+      }
+    });
+
+    app.use(antd);
+    app.mount('#app');
+  </script>
+</body>
+</html>

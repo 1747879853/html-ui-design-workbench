@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自动锁账规则 - 财务结算管理中心</title>
+
+  <!-- 核心样式：Ant Design Vue 4 重置样式与通用规范 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <!-- 本地极速资源：零延迟无代理依赖 -->
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       企业级 B2B 财务结算·自动锁账规则 高保真优化规范
+       设计基准：1920×1080 宽屏视口，严谨专业金融级排版，彻底去除 AI 杂质
+       ========================================================================== */
+
+    body {
+      background-color: #f4f6f9;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .page-wrap {
+      min-height: 100vh;
+      padding: 12px 16px 24px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* 顶部控制台头部 */
+    .header-bar {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-icon {
+      font-size: 20px;
+      color: #1890ff;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0;
+    }
+
+    .header-tab-switch {
+      margin-left: 6px;
+    }
+
+    .header-stat-tag {
+      font-size: 12px;
+      color: #6b7280;
+      background: #f3f4f6;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    /* 紧凑型系统固定规则通知条 */
+    .system-notice-bar {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid #3b82f6;
+      border-radius: 4px;
+      padding: 7px 12px;
+      font-size: 12px;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .system-notice-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .system-notice-tag {
+      font-weight: 600;
+      color: #1e40af;
+      background: #dbeafe;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    /* 主表格卡片容器 */
+    .table-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 表格顶部工具栏 */
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f3f4f6;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toolbar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 执行记录过滤检索区 */
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px 14px;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px 16px 4px;
+      margin-bottom: 10px;
+    }
+
+    .filter-grid .ant-form-item {
+      margin-bottom: 8px !important;
+    }
+
+    .filter-grid .ant-form-item-label > label {
+      font-size: 12px;
+      color: #4b5563;
+      font-weight: 500;
+    }
+
+    /* 规则详情与编辑抽屉样式 */
+    .drawer-section {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .drawer-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .drawer-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .drawer-section-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 13px;
+      background: #1890ff;
+      border-radius: 2px;
+    }
+
+    .form-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px 14px;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px 14px;
+    }
+
+    .form-col-span-2 {
+      grid-column: span 2;
+    }
+
+    .form-col-span-3 {
+      grid-column: span 3;
+    }
+
+    .form-col-span-4 {
+      grid-column: span 4;
+    }
+
+    .field-label {
+      font-size: 12px;
+      color: #4b5563;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .field-required {
+      color: #ef4444;
+      margin-right: 2px;
+    }
+
+    .field-help {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 3px;
+    }
+
+    /* 条件编辑器卡片 */
+    .condition-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .condition-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      padding: 6px 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+    }
+
+    .condition-op {
+      width: 65px;
+    }
+
+    .condition-field {
+      width: 150px;
+    }
+
+    .condition-should {
+      width: 100px;
+    }
+
+    .condition-val {
+      flex: 1;
+    }
+
+    /* 试算沙盘区 */
+    .trial-box {
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .trial-stat-ribbon {
+      display: flex;
+      gap: 12px;
+      margin: 10px 0;
+      align-items: center;
+      background: #ffffff;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #e5e7eb;
+    }
+
+    /* 紧凑型表格微调 */
+    .ant-table-wrapper .ant-table-thead > tr > th {
+      background: #fafafa !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #374151 !important;
+      padding: 8px 10px !important;
+      border-bottom: 1px solid #e5e7eb !important;
+    }
+
+    .ant-table-wrapper .ant-table-tbody > tr > td {
+      font-size: 12px !important;
+      padding: 7px 10px !important;
+      border-bottom: 1px solid #f3f4f6 !important;
+    }
+
+    .ant-table-wrapper .ant-table-tbody > tr:hover > td {
+      background-color: #f0f7ff !important;
+    }
+
+    .rule-name-cell {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .company-sub-tag {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    /* 执行明细抽屉摘要指示栏 */
+    .run-summary-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="text/x-template" id="app-template">
+    <a-config-provider :theme="themeConfig">
+      <div class="page-wrap">
+
+        <!-- 顶部控制台 -->
+        <div class="header-bar">
+          <div class="header-left">
+            <div class="header-title-group">
+              <span class="header-icon">
+                <iconify-icon icon="ant-design:safety-certificate-outlined"></iconify-icon>
+              </span>
+              <h2 class="header-title">自动锁账规则</h2>
+            </div>
+
+            <!-- Tab 页签切换 -->
+            <a-radio-group
+              v-model:value="activeTab"
+              button-style="solid"
+              size="small"
+              class="header-tab-switch"
+            >
+              <a-radio-button value="rules">规则列表 ({{ rules.length }})</a-radio-button>
+              <a-radio-button value="runs">执行记录 ({{ runRecords.length }})</a-radio-button>
+            </a-radio-group>
+
+            <span class="header-stat-tag">
+              已启用 {{ enabledRulesCount }} 条 · 停用 {{ rules.length - enabledRulesCount }} 条
+            </span>
+          </div>
+
+          <!-- 顶部右侧快捷操作 -->
+          <div class="header-right">
+            <a-space>
+              <a-button
+                v-if="activeTab === 'rules'"
+                type="primary"
+                @click="openCreateModal"
+              >
+                <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                新建规则
+              </a-button>
+              <a-button
+                v-else
+                @click="resetRunFilter"
+              >
+                <template #icon><iconify-icon icon="ant-design:redo-outlined"></iconify-icon></template>
+                重置查询
+              </a-button>
+            </a-space>
+          </div>
+        </div>
+
+        <!-- 紧凑型系统固定规则通知条 (彻底去 AI 杂质，严密对齐财务风控底线) -->
+        <div class="system-notice-bar">
+          <div class="system-notice-content">
+            <span class="system-notice-tag">系统内置底线条件</span>
+            <span>① 业务未标记「未完结」 ② 本单费用全部审核通过 ③ 没有待审核的费用任务。三项系统固定条件对每条规则强制生效；附加条件在此基础上加严；解锁时勾选「暂停自动锁账」的票将跳过。</span>
+          </div>
+          <a-tooltip title="审核通过规则按排序每票取第一条命中的规则（延迟规则亦计算在内）；定时规则在预定日期执行对应期间批量锁账。">
+            <iconify-icon icon="ant-design:question-circle-outlined" style="cursor: help; color: #94a3b8;"></iconify-icon>
+          </a-tooltip>
+        </div>
+
+        <!-- 视图 1：规则列表 (Tab 1) -->
+        <div v-show="activeTab === 'rules'" class="table-card">
+          <!-- 统一顶部集成操作栏 (依照 SKILL.md Section 3 移除每行重复按钮) -->
+          <div class="table-toolbar">
+            <div class="toolbar-left">
+              <span class="toolbar-title">自动锁账规则矩阵</span>
+              <a-tag color="blue">共 {{ rules.length }} 条规则</a-tag>
+              <a-tag v-if="selectedRuleKeys.length > 0" color="purple">
+                已选 {{ selectedRuleKeys.length }} 项
+              </a-tag>
+            </div>
+            <div class="toolbar-right">
+              <a-space size="small">
+                <a-button
+                  type="primary"
+                  @click="openCreateModal"
+                >
+                  <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                  新建规则
+                </a-button>
+                <a-button
+                  :disabled="selectedRuleKeys.length !== 1"
+                  @click="editSelectedRule"
+                >
+                  <template #icon><iconify-icon icon="ant-design:edit-outlined"></iconify-icon></template>
+                  编辑规则
+                </a-button>
+                <a-button
+                  :disabled="!canRunSelectedNow"
+                  :loading="runningNow"
+                  @click="confirmRunNowSelected"
+                >
+                  <template #icon><iconify-icon icon="ant-design:play-circle-outlined"></iconify-icon></template>
+                  立即执行
+                </a-button>
+                <a-button
+                  :disabled="selectedRuleKeys.length !== 1"
+                  @click="viewSelectedRuns"
+                >
+                  <template #icon><iconify-icon icon="ant-design:history-outlined"></iconify-icon></template>
+                  执行记录
+                </a-button>
+                <a-popconfirm
+                  title="确认删除选中的规则？"
+                  description="若尚有已锁账票件关联该规则，后端将建议改为停用。"
+                  ok-text="确认删除"
+                  cancel-text="取消"
+                  ok-type="danger"
+                  @confirm="deleteSelectedRules"
+                >
+                  <a-button
+                    danger
+                    :disabled="selectedRuleKeys.length === 0"
+                  >
+                    <template #icon><iconify-icon icon="ant-design:delete-outlined"></iconify-icon></template>
+                    删除
+                  </a-button>
+                </a-popconfirm>
+              </a-space>
+            </div>
+          </div>
+
+          <!-- 高密度规则表格 (自适应宽度，消除留白断层) -->
+          <a-table
+            :data-source="rules"
+            :columns="ruleColumns"
+            :row-key="record => record.id"
+            :row-selection="{ selectedRowKeys: selectedRuleKeys, onChange: onRuleSelectionChange }"
+            :custom-row="customRuleRow"
+            :pagination="false"
+            size="small"
+            :scroll="{ x: 1380, y: 560 }"
+          >
+            <!-- 规则名称与适用公司 -->
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'name' || column.dataIndex === 'name'">
+                <div class="rule-name-cell">{{ record.name }}</div>
+                <div class="company-sub-tag">
+                  <iconify-icon icon="ant-design:bank-outlined" style="margin-right: 3px; vertical-align: -1px;"></iconify-icon>
+                  {{ formatCompanies(record.companies) }}
+                </div>
+              </template>
+
+              <!-- 启停开关 -->
+              <template v-else-if="column.key === 'enable'">
+                <a-switch
+                  :checked="record.enable"
+                  size="small"
+                  @change="val => toggleRuleEnable(record, val)"
+                ></a-switch>
+              </template>
+
+              <!-- 触发方式与执行设置 -->
+              <template v-else-if="column.key === 'trigger'">
+                <a-tag :color="record.triggerType === 0 ? 'cyan' : 'geekblue'">
+                  {{ record.triggerType === 0 ? '定时批量执行' : '费用审核通过后' }}
+                </a-tag>
+                <div style="font-size: 11px; color: #4b5563; margin-top: 3px;">
+                  {{ formatScheduleText(record) }}
+                </div>
+              </template>
+
+              <!-- 锁定对象 -->
+              <template v-else-if="column.key === 'targets'">
+                <a-space size="small">
+                  <a-tag v-if="record.lockMain" color="default">主单原票</a-tag>
+                  <a-tag v-if="record.lockChange" color="default">更改单</a-tag>
+                </a-space>
+              </template>
+
+              <!-- 附加条件 -->
+              <template v-else-if="column.key === 'conditions'">
+                <div v-if="(record.conditions || []).length > 0">
+                  <div
+                    v-for="(c, idx) in record.conditions"
+                    :key="idx"
+                    style="font-size: 11px; color: #374151; line-height: 1.4;"
+                  >
+                    <span style="color: #6b7280; font-weight: 500;">{{ idx > 0 ? (c.isOr ? '或 ' : '且 ') : '' }}</span>
+                    <span>{{ c.fieldName }} {{ c.operator }} <b>{{ c.valueText }}</b></span>
+                  </div>
+                </div>
+                <span v-else style="color: #9ca3af; font-size: 11px;">无附加条件 (仅系统固定条件)</span>
+              </template>
+
+              <!-- 不满足的处理动作 -->
+              <template v-else-if="column.key === 'failAction'">
+                <template v-if="record.triggerType === 0">
+                  <a-tag :color="record.failAction === 1 ? 'orange' : 'default'">
+                    {{ record.failAction === 1 ? '顺延到下一期' : '保留在原期间' }}
+                  </a-tag>
+                  <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">
+                    {{ record.autoClose ? '锁完自动结转该期' : '锁完不结转' }}
+                  </div>
+                </template>
+                <template v-else>
+                  <span style="font-size: 11px; color: #6b7280;">不锁，等下次审核判断</span>
+                </template>
+              </template>
+
+              <!-- 最近执行 -->
+              <template v-else-if="column.key === 'lastRun'">
+                <div v-if="record.lastRun">
+                  <div style="font-size: 11px; font-weight: 600; color: #111827;">
+                    {{ record.lastRun.time }} 
+                    <span style="color: #059669;">锁 {{ record.lastRun.lockedCount }}</span> · 
+                    <span style="color: #d97706;">跳 {{ record.lastRun.skippedCount }}</span> · 
+                    <span style="color: #4b5563;">顺 {{ record.lastRun.deferredCount }}</span>
+                  </div>
+                  <div v-if="record.lastRun.closeResult" style="font-size: 11px; color: #d97706; margin-top: 1px;">
+                    {{ record.lastRun.closeResult }}
+                  </div>
+                </div>
+                <span v-else style="color: #9ca3af; font-size: 11px;">尚未执行</span>
+              </template>
+
+              <!-- 排序 -->
+              <template v-else-if="column.key === 'sortId'">
+                <a-tag color="purple" style="font-weight: 600;">{{ record.sortId }}</a-tag>
+              </template>
+
+              <!-- 修改人与时间 -->
+              <template v-else-if="column.key === 'modified'">
+                <div style="font-size: 11px; color: #374151;">{{ record.lastModifierUserName || record.creatorUserName || '-' }}</div>
+                <div style="font-size: 10px; color: #9ca3af;">{{ record.lastModificationTime || record.creationTime || '-' }}</div>
+              </template>
+            </template>
+          </a-table>
+        </div>
+
+        <!-- 视图 2：执行记录 (Tab 2) -->
+        <div v-show="activeTab === 'runs'">
+          <!-- 检索过滤器 -->
+          <div class="filter-grid">
+            <a-form-item label="所属规则">
+              <a-select
+                v-model:value="runFilter.ruleId"
+                allow-clear
+                placeholder="全部规则"
+                :options="ruleSelectOptions"
+              ></a-select>
+            </a-form-item>
+
+            <a-form-item label="触发方式">
+              <a-select
+                v-model:value="runFilter.triggerType"
+                allow-clear
+                placeholder="全部触发方式"
+                :options="[
+                  { label: '全部', value: '' },
+                  { label: '定时执行', value: 0 },
+                  { label: '费用审核通过后', value: 1 }
+                ]"
+              ></a-select>
+            </a-form-item>
+
+            <a-form-item label="执行时间">
+              <a-range-picker
+                v-model:value="runFilter.dateRange"
+                style="width: 100%;"
+              ></a-range-picker>
+            </a-form-item>
+
+            <a-form-item label=" " :colon="false">
+              <a-space>
+                <a-button type="primary" @click="searchRuns">
+                  <template #icon><iconify-icon icon="ant-design:search-outlined"></iconify-icon></template>
+                  查询
+                </a-button>
+                <a-button @click="resetRunFilter">重置</a-button>
+              </a-space>
+            </a-form-item>
+          </div>
+
+          <!-- 执行记录表格卡片 -->
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="toolbar-left">
+                <span class="toolbar-title">自动锁账执行日志</span>
+                <a-tag color="blue">共 {{ filteredRuns.length }} 笔记录</a-tag>
+                <a-tag v-if="selectedRunKeys.length > 0" color="purple">
+                  已选 {{ selectedRunKeys.length }} 项
+                </a-tag>
+              </div>
+              <div class="toolbar-right">
+                <a-space size="small">
+                  <a-button
+                    :disabled="selectedRunKeys.length !== 1"
+                    type="primary"
+                    @click="openSelectedRunDetail"
+                  >
+                    <template #icon><iconify-icon icon="ant-design:file-text-outlined"></iconify-icon></template>
+                    查看执行明细
+                  </a-button>
+                </a-space>
+              </div>
+            </div>
+
+            <!-- 执行记录表格 -->
+            <a-table
+              :data-source="filteredRuns"
+              :columns="runColumns"
+              :row-key="record => record.id"
+              :row-selection="{ selectedRowKeys: selectedRunKeys, onChange: onRunSelectionChange, type: 'radio' }"
+              :custom-row="customRunRow"
+              :pagination="{ pageSize: 10, showSizeChanger: true, showTotal: t => `共 ${t} 条` }"
+              size="small"
+              :scroll="{ x: 1300, y: 520 }"
+            >
+              <template #bodyCell="{ column, record }">
+                <!-- 规则名称 -->
+                <template v-if="column.key === 'ruleName'">
+                  <div style="font-weight: 600; color: #111827;">{{ record.ruleName }}</div>
+                </template>
+
+                <!-- 触发方式 -->
+                <template v-else-if="column.key === 'triggerType'">
+                  <a-tag :color="record.triggerType === 0 ? 'cyan' : 'geekblue'">
+                    {{ record.triggerType === 0 ? '定时' : '费用审核通过后' }}
+                  </a-tag>
+                </template>
+
+                <!-- 手动 -->
+                <template v-else-if="column.key === 'isManual'">
+                  <span :style="{ color: record.isManual ? '#d97706' : '#6b7280', fontWeight: record.isManual ? '600' : 'normal' }">
+                    {{ record.isManual ? '是 (手动触发)' : '否 (调度器)' }}
+                  </span>
+                </template>
+
+                <!-- 期间 -->
+                <template v-else-if="column.key === 'period'">
+                  <a-tag color="default" style="font-family: monospace;">{{ record.period || '多个期间' }}</a-tag>
+                </template>
+
+                <!-- 锁定 / 跳过 / 顺延 -->
+                <template v-else-if="column.key === 'counts'">
+                  <a-space size="small">
+                    <a-tag color="success">锁 {{ record.lockedCount }}</a-tag>
+                    <a-tag color="warning">跳 {{ record.skippedCount }}</a-tag>
+                    <a-tag color="default">顺 {{ record.deferredCount }}</a-tag>
+                  </a-space>
+                </template>
+
+                <!-- 自动结转 -->
+                <template v-else-if="column.key === 'closeResult'">
+                  <div v-if="record.closeResult">
+                    <a-tag :color="closeResultTagColor(record.closeResult)">
+                      {{ record.closeResult }}
+                    </a-tag>
+                    <div v-if="record.closeMessage" style="font-size: 11px; color: #6b7280; margin-top: 2px;">
+                      {{ record.closeMessage }}
+                    </div>
+                  </div>
+                  <span v-else style="color: #9ca3af; font-size: 11px;">不需要结转</span>
+                </template>
+
+                <!-- 操作 -->
+                <template v-else-if="column.key === 'action'">
+                  <a-button type="link" size="small" @click.stop="openRunDetail(record)">
+                    明细
+                  </a-button>
+                </template>
+              </template>
+            </a-table>
+          </div>
+        </div>
+
+        <!-- 弹窗 1：规则新建 / 编辑弹窗 (880px 4列自适应网格) -->
+        <a-modal
+          v-model:open="ruleModalOpen"
+          :title="editingRule.id ? '编辑自动锁账规则' : '新建自动锁账规则'"
+          width="880px"
+          :mask-closable="false"
+          @ok="saveRule"
+        >
+          <div style="max-height: 68vh; overflow-y: auto; padding-right: 6px;">
+
+            <!-- 模块 1：基本信息 -->
+            <div class="drawer-section">
+              <div class="drawer-section-title">基本信息</div>
+              <div class="form-grid-4">
+                <div class="form-col-span-2">
+                  <div class="field-label"><span class="field-required">*</span>规则名称</div>
+                  <a-input
+                    v-model:value="editingRule.name"
+                    placeholder="请输入易于识别的规则名称，如：海运出口月度自动锁账"
+                    maxlength="128"
+                    show-count
+                  ></a-input>
+                </div>
+
+                <div class="form-col-span-2">
+                  <div class="field-label">适用公司</div>
+                  <a-select
+                    v-model:value="editingRule.companyIds"
+                    mode="multiple"
+                    placeholder="不选即对全部分公司生效"
+                    style="width: 100%;"
+                    :options="companyOptions"
+                    :max-tag-count="2"
+                  ></a-select>
+                </div>
+
+                <div>
+                  <div class="field-label">启用状态</div>
+                  <a-switch v-model:checked="editingRule.enable"></a-switch>
+                </div>
+
+                <div>
+                  <div class="field-label">
+                    执行排序
+                    <a-tooltip title="审核通过规则按排序每票取第一条命中的规则（延迟规则亦计算在内），后面的规则不再判断。">
+                      <iconify-icon icon="ant-design:question-circle-outlined" style="cursor: help;"></iconify-icon>
+                    </a-tooltip>
+                  </div>
+                  <a-input-number
+                    v-model:value="editingRule.sortId"
+                    :min="1"
+                    :precision="0"
+                    style="width: 100%;"
+                  ></a-input-number>
+                </div>
+
+                <div class="form-col-span-2">
+                  <div class="field-label">锁定对象 <span class="field-required">*</span></div>
+                  <a-space style="margin-top: 4px;">
+                    <a-checkbox v-model:checked="editingRule.lockMain">主单（原票）</a-checkbox>
+                    <a-checkbox v-model:checked="editingRule.lockChange">更改单</a-checkbox>
+                  </a-space>
+                </div>
+
+                <div class="form-col-span-4">
+                  <div class="field-label">备注说明</div>
+                  <a-input
+                    v-model:value="editingRule.remark"
+                    placeholder="选填：规则设计意图、特殊业务例外说明等"
+                    maxlength="512"
+                    allow-clear
+                  ></a-input>
+                </div>
+              </div>
+            </div>
+
+            <!-- 模块 2：触发时机与动作 -->
+            <div class="drawer-section">
+              <div class="drawer-section-title">触发时机与动作</div>
+              <div style="margin-bottom: 12px;">
+                <a-radio-group v-model:value="editingRule.triggerType">
+                  <a-radio :value="0">
+                    <b>定时批量执行</b>
+                    <span style="font-size: 11px; color: #6b7280; margin-left: 4px;">按日期批量锁某个月的票，例如每月 10 号锁上个月</span>
+                  </a-radio>
+                  <a-radio :value="1" style="margin-left: 20px;">
+                    <b>费用审核通过后</b>
+                    <span style="font-size: 11px; color: #6b7280; margin-left: 4px;">一票的费用全部审核通过时触发</span>
+                  </a-radio>
+                </a-radio-group>
+              </div>
+
+              <!-- 定时专用配置项 -->
+              <div v-if="editingRule.triggerType === 0" class="form-grid-4" style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <div class="form-col-span-2">
+                  <div class="field-label"><span class="field-required">*</span>每月执行日与时点</div>
+                  <a-space>
+                    <span>每月</span>
+                    <a-input-number v-model:value="editingRule.scheduleDay" :min="1" :max="28" style="width: 70px;"></a-input-number>
+                    <span>日</span>
+                    <a-time-picker v-model:value="editingRule.scheduleTime" format="HH:mm" value-format="HH:mm" style="width: 100px;"></a-time-picker>
+                  </a-space>
+                  <div class="field-help">每月 1~28 日可选，避开大小月月底风险</div>
+                </div>
+
+                <div class="form-col-span-2">
+                  <div class="field-label"><span class="field-required">*</span>锁账期间范围</div>
+                  <a-space>
+                    <span>执行日的往前</span>
+                    <a-input-number v-model:value="editingRule.monthsBack" :min="1" :max="3" style="width: 70px;"></a-input-number>
+                    <span>个月</span>
+                  </a-space>
+                  <div class="field-help">如每月 10 号锁上 1 个月即为锁上月整月数据</div>
+                </div>
+
+                <div class="form-col-span-2">
+                  <div class="field-label">不满足锁账条件的票</div>
+                  <a-radio-group v-model:value="editingRule.failAction">
+                    <a-radio :value="1">顺延到下一期</a-radio>
+                    <a-radio :value="0">保留在原期间，通知处理人</a-radio>
+                  </a-radio-group>
+                </div>
+
+                <div class="form-col-span-2">
+                  <div class="field-label">锁完后续处理</div>
+                  <a-checkbox v-model:checked="editingRule.autoClose">
+                    全部锁定/顺延后自动结转该期间
+                  </a-checkbox>
+                </div>
+
+                <div class="form-col-span-4">
+                  <div class="field-label">通知接收人</div>
+                  <a-select
+                    v-model:value="editingRule.notifyUserIds"
+                    mode="multiple"
+                    placeholder="执行结果将通过站内提醒实时推送"
+                    style="width: 100%;"
+                    :options="userOptions"
+                  ></a-select>
+                  <a-checkbox v-model:checked="editingRule.notifyOnlyOnException" style="margin-top: 6px;">
+                    仅在有跳过或顺延的票件时才推送通知
+                  </a-checkbox>
+                </div>
+              </div>
+
+              <!-- 审核通过专用配置项 -->
+              <div v-else class="form-grid-4" style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <div class="form-col-span-2">
+                  <div class="field-label">延迟锁账时效</div>
+                  <a-space>
+                    <span>审核通过满</span>
+                    <a-input-number v-model:value="editingRule.delayDays" :min="0" :max="30" style="width: 80px;"></a-input-number>
+                    <span>天后自动锁（0 为审核通过即刻锁）</span>
+                  </a-space>
+                </div>
+                <div class="form-col-span-2">
+                  <div class="field-label">说明</div>
+                  <div style="font-size: 11px; color: #6b7280; line-height: 1.5;">
+                    审核通过提交后在后台异步执行锁账，状态将在后台处理完成后即时回显。
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 模块 3：附加条件规则集 -->
+            <div class="drawer-section">
+              <div class="drawer-section-title">满足什么附加条件才锁</div>
+              <div class="condition-box">
+                <div v-if="editingRule.conditions.length === 0" style="color: #9ca3af; font-size: 12px; text-align: center; padding: 8px 0;">
+                  暂无附加过滤条件，将对满足系统固定条件的全部票据生效。
+                </div>
+
+                <div
+                  v-for="(cond, cIdx) in editingRule.conditions"
+                  :key="cIdx"
+                  class="condition-row"
+                >
+                  <a-select
+                    v-if="cIdx > 0"
+                    v-model:value="cond.isOr"
+                    size="small"
+                    class="condition-op"
+                  >
+                    <a-select-option :value="false">且</a-select-option>
+                    <a-select-option :value="true">或</a-select-option>
+                  </a-select>
+                  <span v-else style="width: 65px; font-size: 12px; font-weight: 600; color: #1e40af; text-align: center;">条件 1</span>
+
+                  <a-select
+                    v-model:value="cond.field"
+                    size="small"
+                    class="condition-field"
+                    :options="conditionFieldOptions"
+                    @change="onConditionFieldChange(cond)"
+                  ></a-select>
+
+                  <a-select
+                    v-model:value="cond.shouldBe"
+                    size="small"
+                    class="condition-should"
+                    :options="getShouldBeOptions(cond.field)"
+                  ></a-select>
+
+                  <div class="condition-val">
+                    <a-select
+                      v-if="isSetField(cond.field)"
+                      v-model:value="cond.values"
+                      mode="multiple"
+                      size="small"
+                      style="width: 100%;"
+                      placeholder="请选择"
+                      :options="getEnumOptions(cond.field)"
+                    ></a-select>
+                    <a-input-number
+                      v-else-if="isNumberField(cond.field)"
+                      v-model:value="cond.numberValue"
+                      size="small"
+                      style="width: 100%;"
+                      placeholder="请输入数值"
+                    ></a-input-number>
+                    <span v-else style="font-size: 11px; color: #6b7280;">(无需输入值)</span>
+                  </div>
+
+                  <a-button type="text" danger size="small" @click="removeCondition(cIdx)">
+                    <template #icon><iconify-icon icon="ant-design:delete-outlined"></iconify-icon></template>
+                  </a-button>
+                </div>
+
+                <div style="margin-top: 4px;">
+                  <a-button size="small" type="dashed" @click="addCondition">
+                    <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                    添加附加条件
+                  </a-button>
+                  <span style="font-size: 11px; color: #9ca3af; margin-left: 8px;">
+                    有「或」条件时至少满足一个「或」，同时所有「且」都要满足。
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 模块 4：试算沙盘 (只算不锁，不写库) -->
+            <div class="drawer-section">
+              <div class="drawer-section-title">试算沙盘（不保存规则直接算）</div>
+              <div class="trial-box">
+                <a-space>
+                  <a-select
+                    v-model:value="trialCompanyId"
+                    placeholder="选择试算分公司"
+                    style="width: 220px;"
+                    :options="companyOptions"
+                  ></a-select>
+                  <a-month-picker
+                    v-model:value="trialPeriod"
+                    format="YYYY-MM"
+                    value-format="YYYY-MM"
+                    placeholder="试算期间 (默认本期)"
+                    style="width: 140px;"
+                  ></a-month-picker>
+                  <a-button
+                    type="primary"
+                    ghost
+                    :loading="trialLoading"
+                    @click="executeTrial"
+                  >
+                    <template #icon><iconify-icon icon="ant-design:calculator-outlined"></iconify-icon></template>
+                    按当前条件试算
+                  </a-button>
+                </a-space>
+
+                <!-- 试算结果看板 -->
+                <div v-if="trialResult" style="margin-top: 10px;">
+                  <div class="trial-stat-ribbon">
+                    <b>{{ trialResult.companyName }} {{ trialResult.period }}</b>
+                    <a-tag color="default">参与总数: {{ trialResult.totalCount }} 票</a-tag>
+                    <a-tag color="success">符合会锁: {{ trialResult.lockCount }} 票</a-tag>
+                    <a-tag color="warning">受阻不锁: {{ trialResult.notLockCount }} 票</a-tag>
+                    <span style="font-size: 11px; color: #6b7280; margin-left: auto;">
+                      不锁原因：{{ trialResult.reasonsSummary }}
+                    </span>
+                  </div>
+
+                  <!-- 试算样本表格 -->
+                  <a-table
+                    :data-source="trialResult.items"
+                    :columns="trialColumns"
+                    :pagination="false"
+                    size="small"
+                    :scroll="{ y: 180 }"
+                  >
+                    <template #bodyCell="{ column, record }">
+                      <template v-if="column.key === 'result'">
+                        <a-tag :color="record.willLock ? 'success' : 'warning'">
+                          {{ record.willLock ? '满足可锁' : '不锁' }}
+                        </a-tag>
+                      </template>
+                    </template>
+                  </a-table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </a-modal>
+
+        <!-- 弹窗 2：执行明细抽屉 (1080px 宽屏高保真呈现) -->
+        <a-drawer
+          v-model:open="runDetailOpen"
+          :title="`执行明细 · ${currentRunDetail?.ruleName || ''}`"
+          width="960px"
+          :footer="null"
+        >
+          <div v-if="currentRunDetail">
+            <!-- 执行摘要卡片 -->
+            <div class="run-summary-bar">
+              <div>
+                <span style="color: #6b7280; font-size: 12px;">执行时间：</span>
+                <span style="font-weight: 600; font-size: 12px;">{{ currentRunDetail.time }}</span>
+              </div>
+              <div>
+                <span style="color: #6b7280; font-size: 12px;">会计期间：</span>
+                <a-tag color="default" style="font-family: monospace;">{{ currentRunDetail.period || '多个期间' }}</a-tag>
+              </div>
+              <a-space size="small">
+                <a-tag color="success">锁定 {{ currentRunDetail.lockedCount }}</a-tag>
+                <a-tag color="warning">跳过 {{ currentRunDetail.skippedCount }}</a-tag>
+                <a-tag color="default">顺延 {{ currentRunDetail.deferredCount }}</a-tag>
+              </a-space>
+              <div v-if="currentRunDetail.closeResult">
+                <a-tag :color="closeResultTagColor(currentRunDetail.closeResult)">
+                  自动结转：{{ currentRunDetail.closeResult }}
+                </a-tag>
+              </div>
+              <div v-if="currentRunDetail.closeMessage" style="font-size: 11px; color: #dc2626; width: 100%;">
+                {{ currentRunDetail.closeMessage }}
+              </div>
+            </div>
+
+            <!-- 说明提示 -->
+            <div style="font-size: 11px; color: #6b7280; margin-bottom: 10px;">
+              <iconify-icon icon="ant-design:info-circle-outlined" style="margin-right: 3px;"></iconify-icon>
+              不满足附加条件的票不在执行范围内，不会出现在明细清单中，亦不计入锁定、跳过或顺延票数。
+            </div>
+
+            <!-- 执行票件明细清单 -->
+            <a-table
+              :data-source="currentRunDetail.items"
+              :columns="runItemColumns"
+              :pagination="{ pageSize: 8 }"
+              size="small"
+              :scroll="{ y: 440 }"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'ticket'">
+                  <span style="font-weight: 600; font-family: monospace;">{{ record.commissionNum }}</span>
+                  <a-tag v-if="record.isChange" color="orange" style="margin-left: 4px; font-size: 10px;">更改单</a-tag>
+                </template>
+
+                <template v-else-if="column.key === 'result'">
+                  <a-tag :color="record.result === '锁定' ? 'success' : (record.result === '跳过' ? 'warning' : 'default')">
+                    {{ record.result }}
+                  </a-tag>
+                </template>
+
+                <template v-else-if="column.key === 'reason'">
+                  <span :style="{ color: record.reason ? '#b45309' : '#6b7280' }">
+                    {{ record.reason || '-' }}
+                  </span>
+                </template>
+              </template>
+            </a-table>
+          </div>
+        </a-drawer>
+
+      </div>
+    </a-config-provider>
+  </script>
+
+  <script>
+    const { createApp, ref, computed, reactive } = Vue;
+
+    const app = createApp({
+      template: '#app-template',
+      setup() {
+        const activeTab = ref('rules');
+        const selectedRuleKeys = ref(['1']);
+        const runningNow = ref(false);
+        const ruleModalOpen = ref(false);
+        const trialLoading = ref(false);
+        const trialCompanyId = ref('18');
+        const trialPeriod = ref('2026-09');
+        const trialResult = ref(null);
+
+        const selectedRunKeys = ref([]);
+        const runDetailOpen = ref(false);
+        const currentRunDetail = ref(null);
+
+        // 主题统一克制企业风
+        const themeConfig = {
+          token: {
+            colorPrimary: '#1890ff',
+            borderRadius: 4,
+            fontSize: 12
+          }
+        };
+
+        // 分公司字典
+        const companyOptions = [
+          { label: '青岛佳越软件科技有限公司 (主公司)', value: '6' },
+          { label: '测试WF346锁账验收公司', value: '18' },
+          { label: '测试WF346边界验收公司', value: '19' },
+          { label: '黄岛分公司', value: '16' }
+        ];
+
+        // 通知人字典
+        const userOptions = [
+          { label: 'admin (系统管理员)', value: '2' },
+          { label: '测试WF346锁账验收 (专员)', value: '35' },
+          { label: '测试WF346数据人员', value: '36' }
+        ];
+
+        // 附加条件业务字段
+        const conditionFieldOptions = [
+          { label: '业务类型', value: 1, kind: 'set' },
+          { label: '所属组织', value: 2, kind: 'set' },
+          { label: '委托单位', value: 3, kind: 'set' },
+          { label: '委托单位客户性质', value: 4, kind: 'set' },
+          { label: '结算方式', value: 5, kind: 'set' },
+          { label: '销售人员', value: 6, kind: 'set' },
+          { label: '船公司', value: 7, kind: 'set' },
+          { label: '起运港', value: 8, kind: 'set' },
+          { label: '目的港', value: 9, kind: 'set' },
+          { label: '应收费用条数', value: 10, kind: 'number' },
+          { label: '应付费用条数', value: 11, kind: 'number' },
+          { label: '利润 (本位币)', value: 12, kind: 'number' },
+          { label: '利润率 (%)', value: 13, kind: 'number' },
+          { label: '开船/到港后天数', value: 14, kind: 'number' },
+          { label: '是否已对账', value: 15, kind: 'bool' },
+          { label: '是否已开票', value: 16, kind: 'bool' }
+        ];
+
+        // 真实高保真规则数据
+        const rules = ref([
+          {
+            id: '1',
+            name: '测试WF346定时验收',
+            companies: ['18'],
+            enable: false,
+            triggerType: 0,
+            scheduleDay: 10,
+            scheduleTime: '02:00',
+            monthsBack: 1,
+            failAction: 1,
+            autoClose: true,
+            lockMain: true,
+            lockChange: true,
+            sortId: 1,
+            conditions: [
+              { isOr: false, field: 1, fieldName: '业务类型', operator: '属于', valueText: '海运出口、件杂货', values: ['0', '3'] }
+            ],
+            lastRun: {
+              time: '10-20 14:56',
+              lockedCount: 0,
+              skippedCount: 0,
+              deferredCount: 0,
+              closeResult: '自动结转：未结转 (适用公司未设启用期间)'
+            },
+            creatorUserName: '测试WF346锁账验收',
+            creationTime: '2026-10-19 22:49',
+            lastModifierUserName: '测试WF346锁账验收',
+            lastModificationTime: '2026-10-20 09:33'
+          },
+          {
+            id: '2',
+            name: '测试WF346审核延迟',
+            companies: ['18'],
+            enable: false,
+            triggerType: 1,
+            delayDays: 1,
+            lockMain: true,
+            lockChange: true,
+            sortId: 2,
+            conditions: [],
+            lastRun: null,
+            creatorUserName: '测试WF346锁账验收',
+            creationTime: '2026-10-19 22:52',
+            lastModifierUserName: '测试WF346锁账验收',
+            lastModificationTime: '2026-10-19 22:52'
+          },
+          {
+            id: '3',
+            name: '测试WF346审核立即',
+            companies: ['18'],
+            enable: false,
+            triggerType: 1,
+            delayDays: 0,
+            lockMain: true,
+            lockChange: true,
+            sortId: 3,
+            conditions: [],
+            lastRun: {
+              time: '10-19 22:53',
+              lockedCount: 1,
+              skippedCount: 0,
+              deferredCount: 0,
+              closeResult: null
+            },
+            creatorUserName: '测试WF346锁账验收',
+            creationTime: '2026-10-19 22:53',
+            lastModifierUserName: '测试WF346锁账验收',
+            lastModificationTime: '2026-10-19 22:53'
+          },
+          {
+            id: '4',
+            name: '测试WF346延迟到期复验',
+            companies: ['19'],
+            enable: true,
+            triggerType: 1,
+            delayDays: 1,
+            lockMain: true,
+            lockChange: false,
+            sortId: 9001,
+            conditions: [
+              { isOr: false, field: 1, fieldName: '业务类型', operator: '属于', valueText: '海运出口', values: ['0'] }
+            ],
+            lastRun: null,
+            creatorUserName: '测试WF346锁账验收',
+            creationTime: '2026-10-20 09:31',
+            lastModifierUserName: '测试WF346锁账验收',
+            lastModificationTime: '2026-10-20 09:31'
+          },
+          {
+            id: '5',
+            name: '测试WF346延迟后序立即对照',
+            companies: ['19'],
+            enable: true,
+            triggerType: 1,
+            delayDays: 0,
+            lockMain: true,
+            lockChange: false,
+            sortId: 9002,
+            conditions: [
+              { isOr: false, field: 1, fieldName: '业务类型', operator: '属于', valueText: '海运出口', values: ['0'] }
+            ],
+            lastRun: null,
+            creatorUserName: '测试WF346锁账验收',
+            creationTime: '2026-10-20 09:31',
+            lastModifierUserName: '测试WF346锁账验收',
+            lastModificationTime: '2026-10-20 09:31'
+          }
+        ]);
+
+        const enabledRulesCount = computed(() => rules.value.filter(r => r.enable).length);
+
+        // 表格列定义
+        const ruleColumns = [
+          { title: '规则名称 & 适用范围', dataIndex: 'name', key: 'name', width: 230, fixed: 'left' },
+          { title: '启用', dataIndex: 'enable', key: 'enable', width: 70, align: 'center' },
+          { title: '触发时点设置', dataIndex: 'trigger', key: 'trigger', width: 200 },
+          { title: '锁定对象', dataIndex: 'targets', key: 'targets', width: 140 },
+          { title: '附加过滤条件', dataIndex: 'conditions', key: 'conditions', width: 230 },
+          { title: '不满足的处理动作', dataIndex: 'failAction', key: 'failAction', width: 170 },
+          { title: '最近执行结果', dataIndex: 'lastRun', key: 'lastRun', width: 240 },
+          { title: '排序', dataIndex: 'sortId', key: 'sortId', width: 65, align: 'center' },
+          { title: '最后修改', dataIndex: 'modified', key: 'modified', width: 140 }
+        ];
+
+        // 真实执行记录数据
+        const runRecords = ref([
+          {
+            id: 'run-1',
+            ruleId: '1',
+            time: '2026-10-20 14:56:07',
+            ruleName: '测试WF346定时验收',
+            triggerType: 0,
+            isManual: true,
+            period: '2026-09',
+            lockedCount: 0,
+            skippedCount: 0,
+            deferredCount: 0,
+            closeResult: '未结转',
+            closeMessage: '适用公司都没设启用期间，不做期间控制',
+            skippedReasons: '-',
+            creatorUserName: '测试WF346锁账验收',
+            items: []
+          },
+          {
+            id: 'run-2',
+            ruleId: '1',
+            time: '2026-10-20 14:54:37',
+            ruleName: '测试WF346定时验收',
+            triggerType: 0,
+            isManual: true,
+            period: '2026-09',
+            lockedCount: 0,
+            skippedCount: 0,
+            deferredCount: 0,
+            closeResult: '未结转',
+            closeMessage: '适用公司都没设启用期间，不做期间控制',
+            skippedReasons: '-',
+            creatorUserName: '测试WF346锁账验收',
+            items: []
+          },
+          {
+            id: 'run-3',
+            ruleId: '1',
+            time: '2026-10-20 09:29:11',
+            ruleName: '测试WF346定时验收',
+            triggerType: 0,
+            isManual: true,
+            period: '2026-09',
+            lockedCount: 0,
+            skippedCount: 0,
+            deferredCount: 0,
+            closeResult: '部分结转',
+            closeMessage: '测试WF346锁账验收公司: 2026-09 还有 1 票没锁账也没顺延: WF346-SI-PARTIAL-BLOCK，请先锁账或顺延；测试WF346边界验收公司: 已结转',
+            skippedReasons: '-',
+            creatorUserName: '测试WF346锁账验收',
+            items: []
+          },
+          {
+            id: 'run-4',
+            ruleId: '1',
+            time: '2026-10-20 09:28:58',
+            ruleName: '测试WF346定时验收',
+            triggerType: 0,
+            isManual: true,
+            period: '2026-09',
+            lockedCount: 0,
+            skippedCount: 0,
+            deferredCount: 0,
+            closeResult: '未结转',
+            closeMessage: '测试WF346锁账验收公司: 2026-09 还有 1 票没锁账也没顺延: WF346-SI-PARTIAL-BLOCK，请先锁账或顺延到下一期',
+            skippedReasons: '-',
+            creatorUserName: '测试WF346锁账验收',
+            items: []
+          },
+          {
+            id: 'run-5',
+            ruleId: '3',
+            time: '2026-10-19 22:53:20',
+            ruleName: '测试WF346审核立即',
+            triggerType: 1,
+            isManual: false,
+            period: '2026-09',
+            lockedCount: 1,
+            skippedCount: 0,
+            deferredCount: 0,
+            closeResult: null,
+            closeMessage: '',
+            skippedReasons: '-',
+            creatorUserName: '系统自动',
+            items: [
+              {
+                id: 'item-101',
+                commissionNum: 'WF346-SE-SEP',
+                isChange: false,
+                bizType: '海运出口',
+                result: '锁定',
+                reason: '',
+                message: '费用全部已审核，自动锁账成功'
+              }
+            ]
+          },
+          {
+            id: 'run-6',
+            ruleId: '1',
+            time: '2026-10-19 22:50:11',
+            ruleName: '测试WF346定时验收',
+            triggerType: 0,
+            isManual: true,
+            period: '2026-08',
+            lockedCount: 2,
+            skippedCount: 1,
+            deferredCount: 1,
+            closeResult: '已结转',
+            closeMessage: '全期间票据已锁定或顺延，期间已自动归档结转',
+            skippedReasons: '业务未完结 1',
+            creatorUserName: '测试WF346锁账验收',
+            items: [
+              { id: 'item-1', commissionNum: 'WF346-SE-AUG', isChange: false, bizType: '海运出口', result: '锁定', reason: '', message: '符合条件正常锁账' },
+              { id: 'item-2', commissionNum: 'WF346-SI-AUG', isChange: false, bizType: '海运进口', result: '锁定', reason: '', message: '符合条件正常锁账' },
+              { id: 'item-3', commissionNum: 'WF346-AE-AUG', isChange: false, bizType: '空运出口', result: '跳过', reason: '业务标记未完结', message: '待业务完结后处理' },
+              { id: 'item-4', commissionNum: 'WF346-BB-AUG', isChange: true, bizType: '件杂货', result: '顺延', reason: '费用未审核通过', message: '顺延至 2026-09 会计期间' }
+            ]
+          }
+        ]);
+
+        const runFilter = reactive({
+          ruleId: undefined,
+          triggerType: '',
+          dateRange: []
+        });
+
+        const filteredRuns = computed(() => {
+          return runRecords.value.filter(r => {
+            if (runFilter.ruleId && r.ruleId !== runFilter.ruleId) return false;
+            if (runFilter.triggerType !== '' && r.triggerType !== runFilter.triggerType) return false;
+            return true;
+          });
+        });
+
+        const ruleSelectOptions = computed(() => {
+          return [
+            { label: '全部规则', value: undefined },
+            ...rules.value.map(r => ({ label: r.name, value: r.id }))
+          ];
+        });
+
+        const runColumns = [
+          { title: '执行时间', dataIndex: 'time', key: 'time', width: 150, fixed: 'left' },
+          { title: '规则名称', dataIndex: 'ruleName', key: 'ruleName', width: 170 },
+          { title: '触发方式', dataIndex: 'triggerType', key: 'triggerType', width: 120 },
+          { title: '调度类型', dataIndex: 'isManual', key: 'isManual', width: 120 },
+          { title: '锁账期间', dataIndex: 'period', key: 'period', width: 100 },
+          { title: '处理票数 (锁 / 跳 / 顺)', dataIndex: 'counts', key: 'counts', width: 170 },
+          { title: '自动结转结果', dataIndex: 'closeResult', key: 'closeResult', width: 250 },
+          { title: '跳过原因分类', dataIndex: 'skippedReasons', key: 'skippedReasons', width: 130 },
+          { title: '执行人', dataIndex: 'creatorUserName', key: 'creatorUserName', width: 120 },
+          { title: '操作', dataIndex: 'action', key: 'action', width: 80, fixed: 'right', align: 'center' }
+        ];
+
+        const runItemColumns = [
+          { title: '业务单号', dataIndex: 'commissionNum', key: 'ticket', width: 180 },
+          { title: '业务类型', dataIndex: 'bizType', key: 'bizType', width: 110 },
+          { title: '锁账结果', dataIndex: 'result', key: 'result', width: 90, align: 'center' },
+          { title: '受阻/跳过原因', dataIndex: 'reason', key: 'reason', width: 180 },
+          { title: '说明', dataIndex: 'message', key: 'message' }
+        ];
+
+        // 试算表格列
+        const trialColumns = [
+          { title: '业务号', dataIndex: 'ticketNo', key: 'ticketNo', width: 160 },
+          { title: '类型', dataIndex: 'bizType', key: 'bizType', width: 90 },
+          { title: '试算结果', key: 'result', width: 90, align: 'center' },
+          { title: '受阻原因', dataIndex: 'reason', key: 'reason', width: 160 },
+          { title: '明细说明', dataIndex: 'note', key: 'note' }
+        ];
+
+        // 当前编辑的规则表单
+        const editingRule = reactive({
+          id: '',
+          name: '',
+          companyIds: [],
+          enable: true,
+          sortId: 1,
+          remark: '',
+          triggerType: 0,
+          scheduleDay: 10,
+          scheduleTime: '02:00',
+          monthsBack: 1,
+          failAction: 1,
+          autoClose: true,
+          lockMain: true,
+          lockChange: true,
+          delayDays: 0,
+          notifyUserIds: ['35'],
+          notifyOnlyOnException: false,
+          conditions: []
+        });
+
+        // 格式化函数
+        function formatCompanies(compIds) {
+          if (!compIds || compIds.length === 0) return '全部分公司通用';
+          const names = compIds.map(id => {
+            const found = companyOptions.find(c => c.value === id);
+            return found ? found.label.split(' ')[0] : id;
+          });
+          return names.join('、');
+        }
+
+        function formatScheduleText(r) {
+          if (r.triggerType === 0) {
+            return `每月 ${r.scheduleDay} 日 ${r.scheduleTime} 锁上 ${r.monthsBack} 个月`;
+          } else {
+            return r.delayDays > 0 ? `审核通过满 ${r.delayDays} 天后锁` : '审核通过立即锁';
+          }
+        }
+
+        function closeResultTagColor(status) {
+          if (status.includes('已结转')) return 'success';
+          if (status.includes('部分')) return 'warning';
+          if (status.includes('未结转')) return 'error';
+          return 'default';
+        }
+
+        // 行选择事件
+        function onRuleSelectionChange(keys) {
+          selectedRuleKeys.value = keys;
+        }
+
+        function customRuleRow(record) {
+          return {
+            onClick: () => {
+              selectedRuleKeys.value = [record.id];
+            },
+            onDblclick: () => {
+              selectedRuleKeys.value = [record.id];
+              editSelectedRule();
+            }
+          };
+        }
+
+        function onRunSelectionChange(keys) {
+          selectedRunKeys.value = keys;
+        }
+
+        function customRunRow(record) {
+          return {
+            onClick: () => {
+              selectedRunKeys.value = [record.id];
+            },
+            onDblclick: () => {
+              openRunDetail(record);
+            }
+          };
+        }
+
+        // 按钮状态与操作
+        const canRunSelectedNow = computed(() => {
+          if (selectedRuleKeys.value.length !== 1) return false;
+          const r = rules.value.find(item => item.id === selectedRuleKeys.value[0]);
+          return r && r.triggerType === 0;
+        });
+
+        function toggleRuleEnable(rule, val) {
+          rule.enable = val;
+          antd.message.success(`规则「${rule.name}」已${val ? '启用' : '停用'}`);
+        }
+
+        function openCreateModal() {
+          Object.assign(editingRule, {
+            id: '',
+            name: '',
+            companyIds: ['18'],
+            enable: true,
+            sortId: rules.value.length + 1,
+            remark: '',
+            triggerType: 0,
+            scheduleDay: 10,
+            scheduleTime: '02:00',
+            monthsBack: 1,
+            failAction: 1,
+            autoClose: true,
+            lockMain: true,
+            lockChange: true,
+            delayDays: 0,
+            notifyUserIds: ['35'],
+            notifyOnlyOnException: false,
+            conditions: []
+          });
+          trialResult.value = null;
+          ruleModalOpen.value = true;
+        }
+
+        function editSelectedRule() {
+          const found = rules.value.find(r => r.id === selectedRuleKeys.value[0]);
+          if (!found) return;
+          Object.assign(editingRule, JSON.parse(JSON.stringify(found)));
+          trialResult.value = null;
+          ruleModalOpen.value = true;
+        }
+
+        function confirmRunNowSelected() {
+          const found = rules.value.find(r => r.id === selectedRuleKeys.value[0]);
+          if (!found) return;
+          antd.Modal.confirm({
+            title: `立即执行规则「${found.name}」？`,
+            content: `系统将立即锁对应期间的票件，不影响原定时调度计划；停用的规则亦支持手动试跑。`,
+            okText: '立即执行',
+            cancelText: '取消',
+            onOk: () => {
+              runningNow.value = true;
+              setTimeout(() => {
+                runningNow.value = false;
+                antd.message.success(`执行完成：锁定 1，跳过 0，顺延 0；自动结转：未结转`);
+                // 增加一条执行记录
+                runRecords.value.unshift({
+                  id: `run-${Date.now()}`,
+                  ruleId: found.id,
+                  time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                  ruleName: found.name,
+                  triggerType: found.triggerType,
+                  isManual: true,
+                  period: '2026-09',
+                  lockedCount: 1,
+                  skippedCount: 0,
+                  deferredCount: 0,
+                  closeResult: '未结转',
+                  closeMessage: '分公司未设启用期间',
+                  skippedReasons: '-',
+                  creatorUserName: 'admin (管理员)',
+                  items: [
+                    { id: 'item-now', commissionNum: 'WF346-SE-SEP', isChange: false, bizType: '海运出口', result: '锁定', reason: '', message: '满足条件即时锁定成功' }
+                  ]
+                });
+              }, 700);
+            }
+          });
+        }
+
+        function viewSelectedRuns() {
+          const found = rules.value.find(r => r.id === selectedRuleKeys.value[0]);
+          if (!found) return;
+          runFilter.ruleId = found.id;
+          activeTab.value = 'runs';
+        }
+
+        function deleteSelectedRules() {
+          rules.value = rules.value.filter(r => !selectedRuleKeys.value.includes(r.id));
+          selectedRuleKeys.value = [];
+          antd.message.success('规则已成功删除');
+        }
+
+        function saveRule() {
+          if (!editingRule.name.trim()) {
+            antd.message.warning('请输入规则名称');
+            return;
+          }
+          if (!editingRule.lockMain && !editingRule.lockChange) {
+            antd.message.warning('锁定对象至少需要选择一项（主单或更改单）');
+            return;
+          }
+
+          if (editingRule.id) {
+            const idx = rules.value.findIndex(r => r.id === editingRule.id);
+            if (idx !== -1) {
+              rules.value[idx] = JSON.parse(JSON.stringify(editingRule));
+            }
+            antd.message.success('规则已更新保存');
+          } else {
+            const newObj = JSON.parse(JSON.stringify(editingRule));
+            newObj.id = String(Date.now());
+            newObj.lastRun = null;
+            newObj.creatorUserName = 'admin';
+            newObj.creationTime = dayjs().format('YYYY-MM-DD HH:mm');
+            rules.value.push(newObj);
+            antd.message.success('新规则已成功创建');
+          }
+          ruleModalOpen.value = false;
+        }
+
+        // 条件增删
+        function addCondition() {
+          editingRule.conditions.push({
+            isOr: false,
+            field: 1,
+            fieldName: '业务类型',
+            shouldBe: 10,
+            operator: '属于',
+            values: ['0'],
+            valueText: '海运出口'
+          });
+        }
+
+        function removeCondition(idx) {
+          editingRule.conditions.splice(idx, 1);
+        }
+
+        function onConditionFieldChange(cond) {
+          const found = conditionFieldOptions.find(f => f.value === cond.field);
+          if (found) {
+            cond.fieldName = found.label;
+            if (found.kind === 'set') {
+              cond.shouldBe = 10;
+              cond.operator = '属于';
+              cond.values = [];
+              cond.valueText = '';
+            } else if (found.kind === 'number') {
+              cond.shouldBe = 8;
+              cond.operator = '等于';
+              cond.numberValue = 0;
+            } else {
+              cond.shouldBe = 0;
+              cond.operator = '是';
+            }
+          }
+        }
+
+        function isSetField(fVal) {
+          const f = conditionFieldOptions.find(item => item.value === fVal);
+          return f ? f.kind === 'set' : false;
+        }
+
+        function isNumberField(fVal) {
+          const f = conditionFieldOptions.find(item => item.value === fVal);
+          return f ? f.kind === 'number' : false;
+        }
+
+        function getShouldBeOptions(fVal) {
+          const f = conditionFieldOptions.find(item => item.value === fVal);
+          if (!f) return [];
+          if (f.kind === 'set') return [{ label: '属于', value: 10 }, { label: '不属于', value: 11 }];
+          if (f.kind === 'number') return [
+            { label: '等于', value: 8 },
+            { label: '不等于', value: 9 },
+            { label: '大于', value: 6 },
+            { label: '大于等于', value: 7 },
+            { label: '小于', value: 4 },
+            { label: '小于等于', value: 5 }
+          ];
+          return [{ label: '是', value: 0 }, { label: '不是', value: 1 }];
+        }
+
+        function getEnumOptions(fVal) {
+          if (fVal === 1) { // 业务类型
+            return [
+              { label: '海运出口 (0)', value: '0' },
+              { label: '海运进口 (1)', value: '1' },
+              { label: '空运出口 (2)', value: '2' },
+              { label: '件杂货 (3)', value: '3' },
+              { label: '空运进口 (4)', value: '4' }
+            ];
+          }
+          if (fVal === 4) { // 客户性质
+            return [{ label: '同行', value: '0' }, { label: '直客', value: '1' }];
+          }
+          if (fVal === 5) { // 结算方式
+            return [{ label: '票结', value: '0' }, { label: '月结', value: '1' }, { label: '约定天数', value: '2' }];
+          }
+          return [
+            { label: '测试WF346验收客户', value: 'c-1' },
+            { label: '青岛瑟琳国际物流有限公司', value: 'c-2' },
+            { label: 'MSK (马士基)', value: 'c-3' },
+            { label: 'COSCO (中远海运)', value: 'c-4' }
+          ];
+        }
+
+        // 试算沙盘
+        function executeTrial() {
+          trialLoading.value = true;
+          setTimeout(() => {
+            trialLoading.value = false;
+            trialResult.value = {
+              companyName: '测试WF346锁账验收公司',
+              period: trialPeriod.value || '2026-09',
+              totalCount: 4,
+              lockCount: 2,
+              notLockCount: 2,
+              reasonsSummary: '业务未标记完结 1 票 · 费用未全部审核通过 1 票',
+              items: [
+                { ticketNo: 'WF346-SE-SEP', bizType: '海运出口', willLock: true, reason: '-', note: '满足全部系统固定条件及附加条件' },
+                { ticketNo: 'WF346-SI-SEP', bizType: '海运进口', willLock: true, reason: '-', note: '符合锁账规则要求' },
+                { ticketNo: 'WF346-AE-SEP', bizType: '空运出口', willLock: false, reason: '业务未标记完结', note: '业务单号仍在操作作业中' },
+                { ticketNo: 'WF346-BB-SEP', bizType: '件杂货', willLock: false, reason: '费用未全部审核通过', note: '尚存 1 笔录入态未审核费用' }
+              ]
+            };
+          }, 450);
+        }
+
+        // 执行明细
+        function openRunDetail(run) {
+          currentRunDetail.value = run;
+          runDetailOpen.value = true;
+        }
+
+        function openSelectedRunDetail() {
+          const found = runRecords.value.find(r => r.id === selectedRunKeys.value[0]);
+          if (found) openRunDetail(found);
+        }
+
+        function searchRuns() {
+          selectedRunKeys.value = [];
+        }
+
+        function resetRunFilter() {
+          runFilter.ruleId = undefined;
+          runFilter.triggerType = '';
+          runFilter.dateRange = [];
+          selectedRunKeys.value = [];
+        }
+
+        return {
+          activeTab,
+          rules,
+          enabledRulesCount,
+          ruleColumns,
+          selectedRuleKeys,
+          canRunSelectedNow,
+          runningNow,
+          ruleModalOpen,
+          editingRule,
+          companyOptions,
+          userOptions,
+          conditionFieldOptions,
+          themeConfig,
+          formatCompanies,
+          formatScheduleText,
+          toggleRuleEnable,
+          openCreateModal,
+          editSelectedRule,
+          confirmRunNowSelected,
+          viewSelectedRuns,
+          deleteSelectedRules,
+          saveRule,
+          addCondition,
+          removeCondition,
+          onConditionFieldChange,
+          isSetField,
+          isNumberField,
+          getShouldBeOptions,
+          getEnumOptions,
+          trialCompanyId,
+          trialPeriod,
+          trialLoading,
+          trialResult,
+          trialColumns,
+          executeTrial,
+          runRecords,
+          filteredRuns,
+          runFilter,
+          ruleSelectOptions,
+          runColumns,
+          selectedRunKeys,
+          runDetailOpen,
+          currentRunDetail,
+          runItemColumns,
+          closeResultTagColor,
+          openRunDetail,
+          openSelectedRunDetail,
+          searchRuns,
+          resetRunFilter,
+          onRuleSelectionChange,
+          customRuleRow,
+          onRunSelectionChange,
+          customRunRow
+        };
+      }
+    });
+
+    app.use(antd);
+    app.mount('#app');
+  </script>
+</body>
+</html>

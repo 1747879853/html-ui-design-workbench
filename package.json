@@ -1,0 +1,20 @@
+{
+  "name": "html-ui-design-workbench",
+  "version": "1.0.0",
+  "description": "基于 Ant Design Vue 4.0 + Iconify 的静态可运行 HTML 交互原型优化项目，用于替代传统静态设计稿",
+  "scripts": {
+    "dev": "npx serve . -l 3000",
+    "serve": "npx serve . -l 3000",
+    "preview": "open index.html"
+  },
+  "keywords": [
+    "ant-design-vue",
+    "ui-optimization",
+    "design-mockup",
+    "vue3",
+    "iconify",
+    "prototype"
+  ],
+  "author": "Antigravity UI Design",
+  "license": "MIT"
+}

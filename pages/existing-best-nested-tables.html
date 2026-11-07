@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>业界成熟优秀的嵌套表格方案（Ant Design 官方正版标准）</title>
+  
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.full.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    body {
+      background: #f1f5f9;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+      color: #1e293b;
+    }
+    .page-wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+    .header-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .header-box h1 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .header-box p {
+      margin: 0;
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .card-head {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .card p {
+      margin: 0;
+      font-size: 12.5px;
+      color: #64748b;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 方案 3 的浅色高亮高阶修饰 */
+    .highlight-table .ant-table-row-expanded > td {
+      background: #f0f7ff !important;
+    }
+    .highlight-table .ant-table-expanded-row > td {
+      background: #f8fbff !important;
+      padding: 10px 16px 14px 44px !important;
+    }
+    .highlight-table .inner-antd-table .ant-table-thead > tr > th {
+      background: #edf4fa !important;
+      font-size: 11.5px !important;
+      font-weight: 600 !important;
+      color: #475569 !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const { createApp, ref } = Vue;
+
+    const App = {
+      template: `
+        <div class="page-wrap">
+          
+          <div class="header-box">
+            <h1>为什么之前自己画的表格一直丑？因为有现成的 Ant Design 官方标准！</h1>
+            <p>
+              你项目用的就是 <b>Vue 3 + Ant Design Vue</b>（@vben/web-antd）。之前你的 <code>NestedDataTable.vue</code> 之所以丑，是因为前人是用原生 <code>&lt;table&gt;</code>、<code>&lt;tr&gt;</code>、<code>&lt;td&gt;</code> 手写的，缺少了 Ant Design 官方原厂的设计系统支撑。<br>
+              下面这 3 款全部基于 <b>Ant Design Vue 官方正版规范</b>（没有我们自己乱加的花里胡哨大框与外挂线条），你可以直接在浏览器体验原厂大厂的成熟质感。
+            </p>
+          </div>
+
+          <!-- 方案 1：Ant Design 官方原生带边框版 -->
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>现成方案 1：Ant Design 官方原生带网格版（Native Bordered Grid）</h2>
+                <p>纯正的 Ant Design 官方标准网格：折叠方角 [+] / [-]、标准灰色嵌套内托盘（#fafafa）、内层使用官方 Small 尺寸表格，线条严谨对称。</p>
+              </div>
+              <a-tag color="blue">官方标准</a-tag>
+            </div>
+
+            <a-table
+              :columns="columns"
+              :data-source="data"
+              :pagination="false"
+              row-key="key"
+              v-model:expandedRowKeys="keys1"
+              size="middle"
+              bordered
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'status'">
+                  <a-badge v-if="record.status === 0" status="warning" text="未结算"></a-badge>
+                  <a-badge v-else status="success" text="已结算"></a-badge>
+                </template>
+                <template v-else-if="column.key === 'commissionNum'">
+                  <a style="color: #1677ff; font-weight: 600; font-family: ui-monospace, monospace;">{{ record.commissionNum }}</a>
+                </template>
+                <template v-else-if="column.key === 'totalApplied'">
+                  <span class="mono" style="color: #1677ff; font-weight: 600;">{{ record.totalApplied }}</span>
+                </template>
+              </template>
+
+              <!-- 官方原生 expandedRowRender 插槽 -->
+              <template #expandedRowRender="{ record }">
+                <div style="margin: -8px -8px; padding: 12px 16px; background: #fafafa;">
+                  <a-table
+                    :columns="innerColumns"
+                    :data-source="record.fees"
+                    :pagination="false"
+                    size="small"
+                    row-key="id"
+                    bordered
+                  >
+                    <template #bodyCell="{ column, record: fee }">
+                      <template v-if="column.key === 'paySide'">
+                        <a-tag color="red">应付</a-tag>
+                      </template>
+                      <template v-else-if="column.key === 'appliedAmount'">
+                        <span class="mono" style="color: #1677ff; font-weight: 600;">{{ fee.appliedAmount }}</span>
+                      </template>
+                      <template v-else-if="['origAmount', 'rate', 'settled'].includes(column.key)">
+                        <span class="mono">{{ fee[column.dataIndex] }}</span>
+                      </template>
+                    </template>
+                  </a-table>
+                </div>
+              </template>
+            </a-table>
+          </div>
+
+          <!-- 方案 2：Ant Design 官方原生无边框版 -->
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>现成方案 2：Ant Design 官方原生无框流（Native Clean Inset）</h2>
+                <p>Ant Design 官方文档中最推荐的经典无框嵌套流：去除外层垂直边框，只保留底部 1px 细线。内层自动带有 42px 缩进，平整透气，零视觉疲劳。</p>
+              </div>
+              <a-tag color="cyan">官方推荐</a-tag>
+            </div>
+
+            <a-table
+              :columns="columns"
+              :data-source="data"
+              :pagination="false"
+              row-key="key"
+              v-model:expandedRowKeys="keys2"
+              size="middle"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'status'">
+                  <a-badge v-if="record.status === 0" status="warning" text="未结算"></a-badge>
+                  <a-badge v-else status="success" text="已结算"></a-badge>
+                </template>
+                <template v-else-if="column.key === 'commissionNum'">
+                  <a style="color: #1677ff; font-weight: 600; font-family: ui-monospace, monospace;">{{ record.commissionNum }}</a>
+                </template>
+                <template v-else-if="column.key === 'totalApplied'">
+                  <span class="mono" style="color: #1677ff; font-weight: 600;">{{ record.totalApplied }}</span>
+                </template>
+              </template>
+
+              <template #expandedRowRender="{ record }">
+                <div style="padding: 10px 16px 14px 44px; background: #fafafa;">
+                  <a-table
+                    :columns="innerColumns"
+                    :data-source="record.fees"
+                    :pagination="false"
+                    size="small"
+                    row-key="id"
+                  >
+                    <template #bodyCell="{ column, record: fee }">
+                      <template v-if="column.key === 'paySide'">
+                        <a-tag color="red">应付</a-tag>
+                      </template>
+                      <template v-else-if="column.key === 'appliedAmount'">
+                        <span class="mono" style="color: #1677ff; font-weight: 600;">{{ fee.appliedAmount }}</span>
+                      </template>
+                      <template v-else-if="['origAmount', 'rate', 'settled'].includes(column.key)">
+                        <span class="mono">{{ fee[column.dataIndex] }}</span>
+                      </template>
+                    </template>
+                  </a-table>
+                </div>
+              </template>
+            </a-table>
+          </div>
+
+          <!-- 方案 3：Ant Design Pro 官方旗舰级微光高亮版 -->
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>现成方案 3：Ant Design Pro 旗舰级微光高亮版（Pro Active Tint Inset）</h2>
+                <p>官方标准嵌套基础上的最高阶细节微调：父行展开时微泛浅蓝光（#f0f7ff），托盘为极浅微蓝（#f8fbff），子表头采用灰蓝低饱和度（#edf4fa）。层级清澈，质感一流。</p>
+              </div>
+              <a-tag color="purple">旗舰微调</a-tag>
+            </div>
+
+            <a-table
+              class="highlight-table"
+              :columns="columns"
+              :data-source="data"
+              :pagination="false"
+              row-key="key"
+              v-model:expandedRowKeys="keys3"
+              size="middle"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'status'">
+                  <a-badge v-if="record.status === 0" status="warning" text="未结算"></a-badge>
+                  <a-badge v-else status="success" text="已结算"></a-badge>
+                </template>
+                <template v-else-if="column.key === 'commissionNum'">
+                  <a style="color: #1677ff; font-weight: 600; font-family: ui-monospace, monospace;">{{ record.commissionNum }}</a>
+                </template>
+                <template v-else-if="column.key === 'totalApplied'">
+                  <span class="mono" style="color: #1677ff; font-weight: 600;">{{ record.totalApplied }}</span>
+                </template>
+              </template>
+
+              <template #expandedRowRender="{ record }">
+                <div>
+                  <a-table
+                    class="inner-antd-table"
+                    :columns="innerColumns"
+                    :data-source="record.fees"
+                    :pagination="false"
+                    size="small"
+                    row-key="id"
+                  >
+                    <template #bodyCell="{ column, record: fee }">
+                      <template v-if="column.key === 'paySide'">
+                        <a-tag color="red">应付</a-tag>
+                      </template>
+                      <template v-else-if="column.key === 'appliedAmount'">
+                        <span class="mono" style="color: #1677ff; font-weight: 600;">{{ fee.appliedAmount }}</span>
+                      </template>
+                      <template v-else-if="['origAmount', 'rate', 'settled'].includes(column.key)">
+                        <span class="mono">{{ fee[column.dataIndex] }}</span>
+                      </template>
+                    </template>
+                  </a-table>
+                </div>
+              </template>
+            </a-table>
+          </div>
+
+        </div>
+      `,
+      setup() {
+        const keys1 = ref(['1']);
+        const keys2 = ref(['1']);
+        const keys3 = ref(['1']);
+
+        const columns = [
+          { title: '序号', dataIndex: 'seq', key: 'seq', width: 60 },
+          { title: '主提单号', dataIndex: 'mblNum', key: 'mblNum', width: 140 },
+          { title: '应收状态', dataIndex: 'status', key: 'status', width: 100 },
+          { title: '委托编号', dataIndex: 'commissionNum', key: 'commissionNum', width: 150 },
+          { title: '起运港', dataIndex: 'pol', key: 'pol', width: 150 },
+          { title: '客服', dataIndex: 'operator', key: 'operator', width: 90 },
+          { title: 'RMB 申请合计', dataIndex: 'totalApplied', key: 'totalApplied', align: 'right', width: 130 },
+          { title: '应收未结算', dataIndex: 'unsettled', key: 'unsettled', width: 180 },
+        ];
+
+        const innerColumns = [
+          { title: '序号', dataIndex: 'seq', key: 'seq', width: 50 },
+          { title: '收付', dataIndex: 'paySide', key: 'paySide', width: 70 },
+          { title: '费用名称', dataIndex: 'feeName', key: 'feeName', width: 140 },
+          { title: '原始币别', dataIndex: 'currency', key: 'currency', width: 90 },
+          { title: '原始金额', dataIndex: 'origAmount', key: 'origAmount', align: 'right', width: 110 },
+          { title: '原始汇率', dataIndex: 'rate', key: 'rate', align: 'right', width: 90 },
+          { title: '已核销金额', dataIndex: 'settled', key: 'settled', align: 'right', width: 110 },
+          { title: '本次申请金额', dataIndex: 'appliedAmount', key: 'appliedAmount', align: 'right', width: 120 },
+        ];
+
+        const data = ref([
+          {
+            key: '1',
+            seq: 1,
+            mblNum: '-',
+            status: 0,
+            commissionNum: 'JHTSE26102208',
+            pol: 'QINGDAO, CHINA',
+            operator: '-',
+            totalApplied: '¥ 1.00',
+            unsettled: 'RMB 943.00 / USD 470.00',
+            fees: [
+              { id: '101', seq: 1, paySide: '应付', feeName: '驳船费', currency: 'RMB', origAmount: '60.00', rate: '1.0000', settled: '0.00', appliedAmount: '¥ 1.00' },
+              { id: '102', seq: 2, paySide: '应付', feeName: '港杂费', currency: 'RMB', origAmount: '120.00', rate: '1.0000', settled: '0.00', appliedAmount: '¥ 0.00' },
+            ]
+          },
+          {
+            key: '2',
+            seq: 2,
+            mblNum: 'MSKU9821371',
+            status: 1,
+            commissionNum: 'JHTSE26102245',
+            pol: 'QINGDAO / HAMBURG',
+            operator: '李静',
+            totalApplied: '¥ 4,250.00',
+            unsettled: 'USD 0.00',
+            fees: []
+          }
+        ]);
+
+        return {
+          keys1,
+          keys2,
+          keys3,
+          columns,
+          innerColumns,
+          data
+        };
+      }
+    };
+
+    createApp(App).use(antd).mount('#app');
+  </script>
+</body>
+</html>

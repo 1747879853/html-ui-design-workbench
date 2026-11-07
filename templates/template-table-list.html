@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>标准表格列表页模板 - Ant Design Vue 4.0 UI 优化</title>
+  
+  <!-- 本地极速资源：零延迟无代理依赖 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* 页面特定样式：均采用 scoped 规范类名，便于直接迁移至 Vue SFC */
+    .template-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .query-form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px 24px;
+    }
+    @media (max-width: 1440px) {
+      .query-form-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <a-config-provider :theme="themeConfig" :locale="locale">
+      <div class="page-container">
+        
+        <!-- 页面顶部导航与标题区 -->
+        <div class="page-header">
+          <div class="header-content">
+            <div>
+              <div class="page-title">
+                <iconify-icon icon="ant-design:table-outlined" class="icon-20" style="color: #1677ff;"></iconify-icon>
+                <span>标准高级查询表格列表页模板</span>
+                <a-tag color="blue" bordered="false">1920 × 1080 视口基准</a-tag>
+              </div>
+              <div class="page-description">
+                适用于具有复杂组合过滤条件、批量批处理动作、多维数据展示及行级抽屉查看的业务场景。
+              </div>
+            </div>
+            
+            <a-space>
+              <a-button @click="showAuditModal = true">
+                <template #icon><iconify-icon icon="ant-design:file-protect-outlined"></iconify-icon></template>
+                核对结果与变更说明
+              </a-button>
+              <a-button type="primary" @click="handleCreate">
+                <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                新建记录
+              </a-button>
+            </a-space>
+          </div>
+        </div>
+
+        <!-- 1. 查询筛选卡片 (标准 8px 网格与 4 列折叠响应式) -->
+        <div class="search-card">
+          <a-form layout="vertical" :model="queryForm">
+            <div class="query-form-grid">
+              
+              <a-form-item label="业务编号" name="keyword">
+                <a-input v-model:value="queryForm.keyword" placeholder="支持订单号/流水号模糊搜索" allow-clear />
+              </a-form-item>
+
+              <a-form-item label="主体类型" name="type">
+                <a-select v-model:value="queryForm.type" placeholder="全部类型" allow-clear :options="typeOptions" />
+              </a-form-item>
+
+              <a-form-item label="业务状态" name="status">
+                <a-select v-model:value="queryForm.status" placeholder="全部状态" allow-clear :options="statusOptions" />
+              </a-form-item>
+
+              <a-form-item label="起止时间范围" name="dateRange">
+                <a-range-picker v-model:value="queryForm.dateRange" style="width: 100%;" />
+              </a-form-item>
+
+              <!-- 高级展开筛选区域 -->
+              <template v-if="isExpanded">
+                <a-form-item label="对接渠道" name="channel">
+                  <a-select v-model:value="queryForm.channel" placeholder="请选择渠道" allow-clear :options="channelOptions" />
+                </a-form-item>
+                
+                <a-form-item label="开票状态" name="invoiceStatus">
+                  <a-select v-model:value="queryForm.invoiceStatus" placeholder="全部开票状态" allow-clear :options="invoiceOptions" />
+                </a-form-item>
+
+                <a-form-item label="最小金额" name="minAmount">
+                  <a-input-number v-model:value="queryForm.minAmount" style="width: 100%;" placeholder="¥ 0.00" :min="0" />
+                </a-form-item>
+
+                <a-form-item label="收货人联系方式" name="phone">
+                  <a-input v-model:value="queryForm.phone" placeholder="请输入 11 位手机号" allow-clear />
+                </a-form-item>
+              </template>
+
+            </div>
+
+            <!-- 查询操作按钮栏 -->
+            <div class="search-actions" style="margin-top: 8px;">
+              <a-space>
+                <a-button @click="resetQuery">重置</a-button>
+                <a-button type="primary" :loading="loading" @click="handleQuery">
+                  <template #icon><iconify-icon icon="ant-design:search-outlined"></iconify-icon></template>
+                  查询
+                </a-button>
+                <a-button type="link" @click="isExpanded = !isExpanded" style="padding: 0 4px;">
+                  <span>{{ isExpanded ? '收起高级筛选' : '展开高级筛选' }}</span>
+                  <iconify-icon :icon="isExpanded ? 'ant-design:up-outlined' : 'ant-design:down-outlined'" style="margin-left: 4px;"></iconify-icon>
+                </a-button>
+              </a-space>
+            </div>
+          </a-form>
+        </div>
+
+        <!-- 2. 数据表格卡片 -->
+        <div class="table-card">
+          
+          <!-- 表格工具栏 -->
+          <div class="table-toolbar">
+            <div class="table-toolbar-left">
+              <a-space wrap>
+                <a-button type="primary" @click="handleCreate">
+                  <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                  新建业务单
+                </a-button>
+                <a-button :disabled="selectedRowKeys.length === 0" @click="handleBatchExport">
+                  <template #icon><iconify-icon icon="ant-design:download-outlined"></iconify-icon></template>
+                  批量导出 ({{ selectedRowKeys.length }})
+                </a-button>
+                <a-dropdown :disabled="selectedRowKeys.length === 0">
+                  <template #overlay>
+                    <a-menu @click="handleBatchAction">
+                      <a-menu-item key="batchPass">批量审核通过</a-menu-item>
+                      <a-menu-item key="batchReject">批量驳回处理</a-menu-item>
+                      <a-menu-divider />
+                      <a-menu-item key="batchDelete" danger>批量作废</a-menu-item>
+                    </a-menu>
+                  </template>
+                  <a-button>
+                    更多批量操作
+                    <iconify-icon icon="ant-design:down-outlined" style="margin-left: 4px;"></iconify-icon>
+                  </a-button>
+                </a-dropdown>
+                <a-alert
+                  v-if="selectedRowKeys.length > 0"
+                  type="info"
+                  show-icon
+                  style="padding: 4px 12px;"
+                  :message="`已选择 ${selectedRowKeys.length} 项数据`"
+                >
+                  <template #action>
+                    <a-button type="link" size="small" @click="selectedRowKeys = []">清空</a-button>
+                  </template>
+                </a-alert>
+              </a-space>
+            </div>
+
+            <div class="table-toolbar-right">
+              <a-space>
+                <a-tooltip title="刷新当前列表">
+                  <a-button shape="circle" @click="handleQuery">
+                    <template #icon><iconify-icon icon="ant-design:reload-outlined"></iconify-icon></template>
+                  </a-button>
+                </a-tooltip>
+                <a-tooltip title="密度调整">
+                  <a-dropdown>
+                    <a-button shape="circle">
+                      <template #icon><iconify-icon icon="ant-design:column-height-outlined"></iconify-icon></template>
+                    </a-button>
+                    <template #overlay>
+                      <a-menu :selected-keys="[tableSize]" @click="e => tableSize = e.key">
+                        <a-menu-item key="default">宽松 (Default)</a-menu-item>
+                        <a-menu-item key="middle">标准 (Middle)</a-menu-item>
+                        <a-menu-item key="small">紧凑 (Small)</a-menu-item>
+                      </a-menu>
+                    </template>
+                  </a-dropdown>
+                </a-tooltip>
+              </a-space>
+            </div>
+          </div>
+
+          <!-- 表格主体 (1920 视口宽度下的列宽自适应与横向滚动保障) -->
+          <a-table
+            :columns="columns"
+            :data-source="tableData"
+            :loading="loading"
+            :size="tableSize"
+            :row-key="record => record.id"
+            :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }"
+            :pagination="pagination"
+            :scroll="{ x: 1600, y: 'calc(100vh - 440px)' }"
+            @change="handleTableChange"
+          >
+            <!-- 业务编号插槽 -->
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'id'">
+                <a @click="handleViewDetail(record)" style="font-weight: 600; font-family: monospace;">
+                  {{ record.id }}
+                </a>
+              </template>
+
+              <!-- 金额插槽 (千分位对齐) -->
+              <template v-else-if="column.key === 'amount'">
+                <span class="text-number" style="font-weight: 600; color: #cf1322;">
+                  {{ MockUtils.formatCurrency(record.amount) }}
+                </span>
+              </template>
+
+              <!-- 状态插槽 -->
+              <template v-else-if="column.key === 'status'">
+                <a-badge :status="record.statusBadge || 'processing'" :text="record.statusLabel" />
+              </template>
+
+              <!-- 收货地址插槽 (长文本容错 + Tooltip) -->
+              <template v-else-if="column.key === 'deliveryAddress'">
+                <template v-if="record.deliveryAddress">
+                  <a-tooltip :title="record.deliveryAddress" placement="topLeft">
+                    <span class="text-ellipsis" style="display: block; max-width: 260px;">
+                      {{ record.deliveryAddress }}
+                    </span>
+                  </a-tooltip>
+                </template>
+                <span v-else class="text-empty">-</span>
+              </template>
+
+              <!-- 备注长文本插槽 -->
+              <template v-else-if="column.key === 'remark'">
+                <template v-if="record.remark">
+                  <a-tooltip :title="record.remark" placement="topLeft">
+                    <span class="text-ellipsis text-secondary" style="display: block; max-width: 220px;">
+                      {{ record.remark }}
+                    </span>
+                  </a-tooltip>
+                </template>
+                <span v-else class="text-empty">-</span>
+              </template>
+
+              <!-- 操作列 -->
+              <template v-else-if="column.key === 'action'">
+                <a-space size="small">
+                  <a-button type="link" size="small" @click="handleViewDetail(record)">查看</a-button>
+                  <a-divider type="vertical" />
+                  <a-button type="link" size="small" @click="handleEdit(record)">编辑</a-button>
+                  <a-divider type="vertical" />
+                  <a-popconfirm
+                    title="确定要作废该业务单据吗？"
+                    ok-text="确认作废"
+                    cancel-text="取消"
+                    @confirm="handleDelete(record)"
+                  >
+                    <a-button type="link" danger size="small">作废</a-button>
+                  </a-popconfirm>
+                </a-space>
+              </template>
+            </template>
+          </a-table>
+
+        </div>
+
+        <!-- 3. 行详情快速查看抽屉 -->
+        <a-drawer
+          v-model:open="detailDrawerVisible"
+          :title="`业务单详情 - ${activeRecord.id || ''}`"
+          width="640"
+          placement="right"
+        >
+          <template v-if="activeRecord.id">
+            <a-descriptions title="基础业务属性" :column="2" bordered size="small">
+              <a-descriptions-item label="业务单号">{{ activeRecord.id }}</a-descriptions-item>
+              <a-descriptions-item label="业务类型">{{ activeRecord.orderType }}</a-descriptions-item>
+              <a-descriptions-item label="主体客户">{{ activeRecord.buyerName }}</a-descriptions-item>
+              <a-descriptions-item label="联系电话">{{ MockUtils.maskPhone(activeRecord.buyerContact) }}</a-descriptions-item>
+              <a-descriptions-item label="当前状态">
+                <a-tag :color="activeRecord.statusColor">{{ activeRecord.statusLabel }}</a-tag>
+              </a-descriptions-item>
+              <a-descriptions-item label="订单金额">
+                <span style="font-weight: 700; color: #cf1322;">{{ MockUtils.formatCurrency(activeRecord.amount) }}</span>
+              </a-descriptions-item>
+              <a-descriptions-item label="配送地址" :span="2">
+                {{ activeRecord.deliveryAddress || '（未填写配送地址）' }}
+              </a-descriptions-item>
+              <a-descriptions-item label="加急备注" :span="2">
+                {{ activeRecord.remark || '无附加备注' }}
+              </a-descriptions-item>
+            </a-descriptions>
+          </template>
+          <template #extra>
+            <a-space>
+              <a-button @click="detailDrawerVisible = false">关闭</a-button>
+              <a-button type="primary" @click="antd.message.success('已发起催办通知')">催办协同</a-button>
+            </a-space>
+          </template>
+        </a-drawer>
+
+        <!-- 4. 优化核对结果弹窗 (核对清单交付件) -->
+        <a-modal
+          v-model:open="showAuditModal"
+          title="📋 字段、按钮与表格列核对结果报告"
+          width="880px"
+          :footer="null"
+        >
+          <a-alert
+            message="核对一致性确认"
+            description="已核对原业务系统全部 8 项过滤字段、4 种核心操作按钮与 9 个表格列，100% 完整保留原有业务数据与交互能力。"
+            type="success"
+            show-icon
+            style="margin-bottom: 16px;"
+          ></a-alert>
+
+          <a-tabs default-active-key="1">
+            <a-tab-pane key="1" tab="1. 字段一致性核对">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                  <tr style="background: #fafafa; border-bottom: 1px solid #f0f0f0; text-align: left;">
+                    <th style="padding: 8px;">序号</th>
+                    <th style="padding: 8px;">字段名称</th>
+                    <th style="padding: 8px;">类型</th>
+                    <th style="padding: 8px;">必填</th>
+                    <th style="padding: 8px;">优化改动说明</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="padding: 8px;">1</td><td style="padding: 8px;">业务编号</td><td style="padding: 8px;">Input</td><td style="padding: 8px;">否</td><td style="padding: 8px;">增加 allow-clear 一键清除</td></tr>
+                  <tr><td style="padding: 8px;">2</td><td style="padding: 8px;">主体类型</td><td style="padding: 8px;">Select</td><td style="padding: 8px;">否</td><td style="padding: 8px;">5 项业务枚举值对齐</td></tr>
+                  <tr><td style="padding: 8px;">3</td><td style="padding: 8px;">业务状态</td><td style="padding: 8px;">Select</td><td style="padding: 8px;">否</td><td style="padding: 8px;">对应 Badge 状态色系</td></tr>
+                  <tr><td style="padding: 8px;">4</td><td style="padding: 8px;">起止时间</td><td style="padding: 8px;">RangePicker</td><td style="padding: 8px;">否</td><td style="padding: 8px;">由原两个独立输入框改为 AntD 日期区间</td></tr>
+                </tbody>
+              </table>
+            </a-tab-pane>
+            <a-tab-pane key="2" tab="2. 按钮与操作核对">
+              <p>• <b>查询 / 重置</b>：统一收拢至右下侧，符合用户视觉动线。</p>
+              <p>• <b>批量操作</b>：新增批量导出、批量审核，提升大批量数据处理效率。</p>
+              <p>• <b>作废危险操作</b>：增加 Popconfirm 二次校验防误触。</p>
+            </a-tab-pane>
+            <a-tab-pane key="3" tab="3. 布局与 1920 视口优化">
+              <p>• <b>栅格利用</b>：1920 宽屏采用 4 列网格（Col 6），折叠高级选项提升视口首屏展示密度。</p>
+              <p>• <b>表格纵深</b>：表头锁定与纵向滚动计算，避免多行时产生外层滚动条。</p>
+            </a-tab-pane>
+          </a-tabs>
+        </a-modal>
+
+      </div>
+    </a-config-provider>
+  </div>
+
+  <script>
+    const { createApp, ref, reactive, computed } = Vue;
+
+    const app = createApp({
+      setup() {
+        const themeConfig = window.GlobalAntdConfig.theme;
+        const locale = antd.locales ? antd.locales.zh_CN : undefined;
+
+        // 状态管理
+        const isExpanded = ref(false);
+        const loading = ref(false);
+        const tableSize = ref('middle');
+        const showAuditModal = ref(false);
+        const detailDrawerVisible = ref(false);
+        const activeRecord = ref({});
+        const selectedRowKeys = ref([]);
+
+        // 筛选表单
+        const queryForm = reactive({
+          keyword: '',
+          type: undefined,
+          status: undefined,
+          dateRange: [],
+          channel: undefined,
+          invoiceStatus: undefined,
+          minAmount: null,
+          phone: ''
+        });
+
+        // 字典选项
+        const typeOptions = [
+          { label: '自营大宗采购', value: '自营大宗采购' },
+          { label: 'B2B 企采直发', value: 'B2B 企采直发' },
+          { label: '跨境寄售', value: '跨境寄售' },
+          { label: '保税直邮', value: '保税直邮' },
+          { label: '样单采购', value: '样单采购' }
+        ];
+
+        const statusOptions = [
+          { label: '待支付', value: 'PENDING_PAY' },
+          { label: '处理中', value: 'PROCESSING' },
+          { label: '已发货', value: 'SHIPPED' },
+          { label: '已完成', value: 'COMPLETED' },
+          { label: '已取消', value: 'CANCELLED' }
+        ];
+
+        const channelOptions = [
+          { label: '线上商城', value: '线上商城' },
+          { label: '线下专属合同', value: '线下专属合同' }
+        ];
+
+        const invoiceOptions = [
+          { label: '已开票', value: '已开票' },
+          { label: '开票中', value: '开票中' },
+          { label: '未申请', value: '未申请' }
+        ];
+
+        // 表格列定义 (严格控制宽屏分布、固定列与对齐)
+        const columns = [
+          { title: '业务单号', dataIndex: 'id', key: 'id', width: 170, fixed: 'left' },
+          { title: '业务类型', dataIndex: 'orderType', key: 'orderType', width: 130 },
+          { title: '客户主体名称', dataIndex: 'buyerName', key: 'buyerName', width: 230, ellipsis: true },
+          { title: '联系电话', dataIndex: 'buyerContact', key: 'buyerContact', width: 130 },
+          { title: '状态', dataIndex: 'status', key: 'status', width: 110, align: 'center' },
+          { title: '交易金额', dataIndex: 'amount', key: 'amount', width: 140, align: 'right', sorter: (a, b) => a.amount - b.amount },
+          { title: '收货地址', dataIndex: 'deliveryAddress', key: 'deliveryAddress', width: 260 },
+          { title: '长文本备注', dataIndex: 'remark', key: 'remark', width: 220 },
+          { title: '创建时间', dataIndex: 'createdTime', key: 'createdTime', width: 170 },
+          { title: '操作', key: 'action', width: 160, fixed: 'right', align: 'center' }
+        ];
+
+        // 数据源与分页
+        const tableData = ref(window.MockUtils.generateOrders(15));
+        const pagination = reactive({
+          current: 1,
+          pageSize: 10,
+          total: 15,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: total => `共 ${total} 条业务记录`
+        });
+
+        // 交互处理
+        const onSelectChange = keys => {
+          selectedRowKeys.value = keys;
+        };
+
+        const handleQuery = () => {
+          loading.value = true;
+          setTimeout(() => {
+            loading.value = false;
+            antd.message.success('查询完成，已刷新数据列表');
+          }, 400);
+        };
+
+        const resetQuery = () => {
+          Object.keys(queryForm).forEach(k => queryForm[k] = undefined);
+          handleQuery();
+        };
+
+        const handleCreate = () => {
+          antd.message.info('点击了新建记录按钮');
+        };
+
+        const handleViewDetail = record => {
+          activeRecord.value = record;
+          detailDrawerVisible.value = true;
+        };
+
+        const handleEdit = record => {
+          antd.message.info(`准备编辑单据: ${record.id}`);
+        };
+
+        const handleDelete = record => {
+          tableData.value = tableData.value.filter(item => item.id !== record.id);
+          antd.message.success(`已作废单据: ${record.id}`);
+        };
+
+        const handleBatchExport = () => {
+          antd.message.success(`已触发导出 ${selectedRowKeys.value.length} 条记录`);
+        };
+
+        const handleBatchAction = ({ key }) => {
+          antd.message.info(`执行批量动作 [${key}]，影响 ${selectedRowKeys.value.length} 条记录`);
+        };
+
+        const handleTableChange = (pag, filters, sorter) => {
+          pagination.current = pag.current;
+          pagination.pageSize = pag.pageSize;
+        };
+
+        return {
+          themeConfig,
+          locale,
+          isExpanded,
+          loading,
+          tableSize,
+          showAuditModal,
+          detailDrawerVisible,
+          activeRecord,
+          selectedRowKeys,
+          queryForm,
+          typeOptions,
+          statusOptions,
+          channelOptions,
+          invoiceOptions,
+          columns,
+          tableData,
+          pagination,
+          MockUtils: window.MockUtils,
+          antd,
+          onSelectChange,
+          handleQuery,
+          resetQuery,
+          handleCreate,
+          handleViewDetail,
+          handleEdit,
+          handleDelete,
+          handleBatchExport,
+          handleBatchAction,
+          handleTableChange
+        };
+      }
+    });
+
+    app.use(antd).mount('#app');
+  </script>
+</body>
+</html>

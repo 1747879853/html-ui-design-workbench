@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>强层级嵌套表格设计方案</title>
+  
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+      margin: 0;
+      padding: 30px;
+    }
+
+    .wrapper {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    .main-header {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 18px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .main-header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .main-header p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .design-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(15,23,42,0.04);
+    }
+
+    .design-card__head {
+      padding: 14px 20px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .design-card__title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .design-card__desc {
+      font-size: 12.5px;
+      color: #475569;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .grid-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .grid-table th {
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .grid-table td {
+      padding: 9px 14px;
+      white-space: nowrap;
+    }
+
+    .tnum {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      text-align: right;
+    }
+
+    .tag-status {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .tag-unsettled { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+    .tag-settled { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+    /* =========================================================================
+       方案 1：【文件夹档案盒咬合模式 (Folder Envelope / Dossier Inset)】
+       层级原理：主行与子表区域在视觉上被同一个边框和浅蓝底色“物理包容”在一起，
+       就像打开了一个档案袋，绝不可能看错父子归属！
+       ========================================================================= */
+    .scheme-envelope .grid-table th {
+      background: #f1f5f9;
+      border-bottom: 2px solid #cbd5e1;
+      color: #334155;
+    }
+
+    .scheme-envelope .row-parent td {
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      height: 42px;
+    }
+
+    /* 展开态：主行变成档案袋的“顶盖” */
+    .scheme-envelope .row-parent.is-expanded td {
+      background: #eef6ff !important;
+      border-top: 2px solid #3b82f6 !important;
+      border-bottom: 1px solid #bfdbfe !important;
+      font-weight: 600;
+    }
+    .scheme-envelope .row-parent.is-expanded td:first-child {
+      border-left: 2px solid #3b82f6 !important;
+    }
+    .scheme-envelope .row-parent.is-expanded td:last-child {
+      border-right: 2px solid #3b82f6 !important;
+    }
+
+    /* 展开托盘：档案袋的“本体舱” */
+    .scheme-envelope .envelope-tray-cell {
+      padding: 12px 18px 16px 44px !important;
+      background: #f8fafc !important;
+      border-left: 2px solid #3b82f6 !important;
+      border-right: 2px solid #3b82f6 !important;
+      border-bottom: 2px solid #3b82f6 !important;
+    }
+
+    .scheme-envelope .dossier-box {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .scheme-envelope .dossier-tab-header {
+      padding: 8px 14px;
+      background: #e2e8f0;
+      border-bottom: 1px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .scheme-envelope .child-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .scheme-envelope .child-table th {
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 7px 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .scheme-envelope .child-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      height: 32px;
+      background: #fff;
+    }
+
+    .scheme-envelope .child-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* =========================================================================
+       方案 2：【实体树轨柱与下沉缩进 (Solid Tree Rail with Deep Indent)】
+       层级原理：左侧首列变成一根深色实体导轨柱，实体实线拐角牢牢挂住子表，
+       子表大幅向右偏移，产生无可争议的“主干挂枝桠”机械工程感！
+       ========================================================================= */
+    .scheme-rail .grid-table th {
+      background: #f8fafc;
+      border-bottom: 1px solid #cbd5e1;
+      color: #334155;
+    }
+
+    .scheme-rail .row-parent td {
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      height: 42px;
+    }
+
+    .scheme-rail .row-parent.is-expanded td {
+      background: #f1f5f9;
+      font-weight: 600;
+    }
+
+    .scheme-rail .rail-tray-cell {
+      padding: 0 !important;
+      background: #ffffff;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .scheme-rail .rail-layout {
+      display: flex;
+      min-height: 120px;
+    }
+
+    /* 实体垂直导轨柱 */
+    .scheme-rail .rail-column {
+      width: 52px;
+      background: #e2e8f0; /* 实心灰柱子 */
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 从柱子伸出的实体锁扣 */
+    .scheme-rail .rail-arm {
+      position: absolute;
+      left: 26px;
+      top: 0;
+      width: 26px;
+      height: 28px;
+      border-left: 2px solid #0f172a;
+      border-bottom: 2px solid #0f172a;
+    }
+
+    .scheme-rail .rail-content {
+      flex: 1;
+      padding: 10px 16px 14px 12px;
+      background: #f8fafc;
+    }
+
+    .scheme-rail .child-card {
+      background: #ffffff;
+      border: 1.5px solid #0f172a; /* 黑色工程边框，轮廓极度清晰 */
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .scheme-rail .child-card-head {
+      padding: 6px 12px;
+      background: #0f172a;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .scheme-rail .child-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .scheme-rail .child-table th {
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .scheme-rail .child-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      height: 30px;
+      background: #ffffff;
+    }
+
+    /* =========================================================================
+       方案 3：【父行锚定悬浮岛模式 (Anchor Pointer & Data Island)】
+       层级原理：父行高亮并在正下方伸出一个物理指针小三角(▼)，
+       直插下方的白色数据卡片岛。底色托盘明显下沉，三维层级立竿见影！
+       ========================================================================= */
+    .scheme-anchor .grid-table th {
+      background: #fafafa;
+      border-bottom: 1px solid #e5e7eb;
+      color: #4b5563;
+    }
+
+    .scheme-anchor .row-parent td {
+      background: #ffffff;
+      border-bottom: 1px solid #f3f4f6;
+      height: 42px;
+      position: relative;
+    }
+
+    .scheme-anchor .row-parent.is-expanded td {
+      background: #f0f7ff !important;
+      border-bottom: 1px solid #93c5fd !important;
+      font-weight: 600;
+    }
+
+    .scheme-anchor .anchor-pointer {
+      position: absolute;
+      bottom: -6px;
+      left: 18px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid #2563eb;
+      z-index: 10;
+    }
+
+    .scheme-anchor .anchor-tray-cell {
+      padding: 12px 18px 16px 24px !important;
+      background: #f1f5f9 !important; /* 深一度下沉底色 */
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .scheme-anchor .island-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+    }
+
+    .scheme-anchor .island-header {
+      padding: 8px 14px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .scheme-anchor .child-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .scheme-anchor .child-table th {
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .scheme-anchor .child-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      height: 30px;
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    
+    <div class="main-header">
+      <h1>嵌套表格（NestedDataTable）层级辨识度彻底重塑</h1>
+      <p>彻底解决“看不出嵌套层级、两层表格混成一团像排版混乱”的痛点。以下 3 套方案在父子从属关系上具有绝对的视觉确定性。</p>
+    </div>
+
+    <!-- 方案 1：文件夹档案盒咬合模式 -->
+    <div class="design-card scheme-envelope">
+      <div class="design-card__head">
+        <div class="design-card__title">
+          <iconify-icon icon="lucide:folder-open" style="color: #2563eb; font-size: 18px;"></iconify-icon>
+          方案一：【文件夹档案盒咬合模式 (Folder Envelope)】
+        </div>
+        <div class="design-card__desc">
+          <b>层级锁定机制</b>：展开时，父行变成档案袋的“顶盖”，展开区变成“档案袋内页”，四周围绕同一圈蓝色咬合边框，父子关系物理一体化！
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="grid-table">
+          <thead>
+            <tr>
+              <th style="width: 44px; text-align: center;">展开</th>
+              <th style="width: 44px;">序号</th>
+              <th style="width: 140px;">主提单号</th>
+              <th style="width: 100px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 90px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 父行 1 (展开态) -->
+            <tr class="row-parent is-expanded">
+              <td style="text-align: center;">
+                <iconify-icon icon="lucide:minus-square" style="color: #2563eb; font-size: 16px; cursor: pointer;"></iconify-icon>
+              </td>
+              <td>1</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="tag-status tag-unsettled">未结算</span></td>
+              <td><a href="javascript:;" style="color: #2563eb;">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="tnum" style="color: #2563eb; font-weight: 700;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <!-- 子表托盘 (与父行完全咬合) -->
+            <tr>
+              <td colspan="9" class="envelope-tray-cell">
+                <div class="dossier-box">
+                  <div class="dossier-tab-header">
+                    <span>
+                      <iconify-icon icon="lucide:file-text" style="vertical-align: -2px; margin-right: 4px;"></iconify-icon>
+                      单据档案：JHTSE26102208 · 关联合同费用明细清单 (共 1 项)
+                    </span>
+                    <span style="font-size: 11.5px; color: #475569;">
+                      原始费用总计: <b style="color: #0f172a;">RMB 60.00</b> · 本次申请: <b style="color: #2563eb;">¥ 1.00</b>
+                    </span>
+                  </div>
+                  <table class="child-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 36px; text-align: center;"><input type="checkbox" checked /></th>
+                        <th style="width: 40px;">序号</th>
+                        <th style="width: 60px;">收付</th>
+                        <th style="width: 140px;">费用名称</th>
+                        <th style="width: 80px;">原始币别</th>
+                        <th style="width: 110px; text-align: right;">原始金额</th>
+                        <th style="width: 90px; text-align: right;">原始汇率</th>
+                        <th style="width: 110px; text-align: right;">已核销金额</th>
+                        <th style="width: 120px; text-align: right;">本次申请金额</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="text-align: center;"><input type="checkbox" checked /></td>
+                        <td>1</td>
+                        <td><span style="color: #dc2626; font-weight: 600;">应付</span></td>
+                        <td><b>驳船费</b></td>
+                        <td>RMB</td>
+                        <td class="tnum">60.00</td>
+                        <td class="tnum">1.0000</td>
+                        <td class="tnum">0.00</td>
+                        <td class="tnum" style="color: #2563eb; font-weight: 700;">¥ 1.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 父行 2 (收起态，形成鲜明对照) -->
+            <tr class="row-parent">
+              <td style="text-align: center;">
+                <iconify-icon icon="lucide:plus-square" style="color: #64748b; font-size: 16px; cursor: pointer;"></iconify-icon>
+              </td>
+              <td>2</td>
+              <td>MSKU9821371</td>
+              <td><span class="tag-status tag-settled">已结算</span></td>
+              <td><a href="javascript:;" style="color: #2563eb;">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="tnum" style="font-weight: 700;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 方案 2：实体树轨柱与下沉缩进 -->
+    <div class="design-card scheme-rail">
+      <div class="design-card__head">
+        <div class="design-card__title">
+          <iconify-icon icon="lucide:git-commit" style="color: #0f172a; font-size: 18px;"></iconify-icon>
+          方案二：【实体树轨柱与下沉缩进 (Solid Tree Rail)】
+        </div>
+        <div class="design-card__desc">
+          <b>层级锁定机制</b>：左侧展开列化身一条实体灰色承重导轨柱，并伸出黑色实线工程挂钩（L-Arm）托住子表，绝非细飘飘的虚线，结构感极强！
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="grid-table">
+          <thead>
+            <tr>
+              <th style="width: 52px; text-align: center; background: #e2e8f0;">树轨</th>
+              <th style="width: 44px;">序号</th>
+              <th style="width: 140px;">主提单号</th>
+              <th style="width: 100px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 90px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 父行 1 (展开态) -->
+            <tr class="row-parent is-expanded">
+              <td style="text-align: center; background: #e2e8f0 !important;">
+                <iconify-icon icon="lucide:chevron-down" style="color: #0f172a; font-size: 16px; font-weight: 700;"></iconify-icon>
+              </td>
+              <td>1</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="tag-status tag-unsettled">未结算</span></td>
+              <td><a href="javascript:;" style="color: #0f172a; font-weight: 700;">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="tnum" style="font-weight: 700;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <!-- 导轨展开行 -->
+            <tr>
+              <td colspan="9" class="rail-tray-cell">
+                <div class="rail-layout">
+                  <!-- 导轨柱 -->
+                  <div class="rail-column">
+                    <div class="rail-arm"></div>
+                  </div>
+                  <!-- 子内容区 -->
+                  <div class="rail-content">
+                    <div class="child-card">
+                      <div class="child-card-head">
+                        <span>下属费用细项 (1 项) · 委托单 JHTSE26102208</span>
+                        <span>本次核算申请：¥ 1.00</span>
+                      </div>
+                      <table class="child-table">
+                        <thead>
+                          <tr>
+                            <th style="width: 36px; text-align: center;"><input type="checkbox" checked /></th>
+                            <th style="width: 40px;">序号</th>
+                            <th style="width: 60px;">收付</th>
+                            <th style="width: 140px;">费用名称</th>
+                            <th style="width: 80px;">币别</th>
+                            <th style="width: 110px; text-align: right;">原始金额</th>
+                            <th style="width: 90px; text-align: right;">汇率</th>
+                            <th style="width: 110px; text-align: right;">已核销金额</th>
+                            <th style="width: 120px; text-align: right;">本次申请金额</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td style="text-align: center;"><input type="checkbox" checked /></td>
+                            <td>1</td>
+                            <td><span style="color: #dc2626; font-weight: 600;">应付</span></td>
+                            <td><b>驳船费</b></td>
+                            <td>RMB</td>
+                            <td class="tnum">60.00</td>
+                            <td class="tnum">1.0000</td>
+                            <td class="tnum">0.00</td>
+                            <td class="tnum" style="font-weight: 700; color: #0f172a;">¥ 1.00</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 父行 2 (收起态) -->
+            <tr class="row-parent">
+              <td style="text-align: center; background: #e2e8f0;">
+                <iconify-icon icon="lucide:chevron-right" style="color: #64748b; font-size: 16px;"></iconify-icon>
+              </td>
+              <td>2</td>
+              <td>MSKU9821371</td>
+              <td><span class="tag-status tag-settled">已结算</span></td>
+              <td><a href="javascript:;" style="color: #0f172a; font-weight: 600;">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="tnum" style="font-weight: 700;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 方案 3：父行锚定悬浮岛模式 -->
+    <div class="design-card scheme-anchor">
+      <div class="design-card__head">
+        <div class="design-card__title">
+          <iconify-icon icon="lucide:compass" style="color: #0284c7; font-size: 18px;"></iconify-icon>
+          方案三：【父行指针锚定 + 独立卡片岛 (Anchor Pointer)】
+        </div>
+        <div class="design-card__desc">
+          <b>层级锁定机制</b>：展开的父行正下方延伸出一个实体物理指示小三角（▼），直接刺入下方的白底卡片岛，底色托盘明显下陷，三维纵深极强！
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="grid-table">
+          <thead>
+            <tr>
+              <th style="width: 44px; text-align: center;">展开</th>
+              <th style="width: 44px;">序号</th>
+              <th style="width: 140px;">主提单号</th>
+              <th style="width: 100px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 90px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 父行 1 (展开态，带小三角) -->
+            <tr class="row-parent is-expanded">
+              <td style="text-align: center;">
+                <iconify-icon icon="lucide:chevron-down" style="color: #2563eb; font-size: 16px; font-weight: 700;"></iconify-icon>
+                <div class="anchor-pointer"></div>
+              </td>
+              <td>1</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="tag-status tag-unsettled">未结算</span></td>
+              <td><a href="javascript:;" style="color: #2563eb; font-weight: 600;">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="tnum" style="color: #2563eb; font-weight: 700;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <!-- 独立卡片岛托盘 -->
+            <tr>
+              <td colspan="9" class="anchor-tray-cell">
+                <div class="island-card">
+                  <div class="island-header">
+                    <span style="font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                      <iconify-icon icon="lucide:layers" style="color: #2563eb;"></iconify-icon>
+                      JHTSE26102208 关联费用明细 (共 1 项)
+                    </span>
+                    <span style="font-size: 11.5px; color: #64748b;">
+                      原始金额: RMB 60.00 · 本次申请折算: <b style="color: #2563eb;">¥ 1.00</b>
+                    </span>
+                  </div>
+                  <table class="child-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 36px; text-align: center;"><input type="checkbox" checked /></th>
+                        <th style="width: 40px;">序号</th>
+                        <th style="width: 60px;">收付</th>
+                        <th style="width: 140px;">费用名称</th>
+                        <th style="width: 80px;">原始币别</th>
+                        <th style="width: 110px; text-align: right;">原始金额</th>
+                        <th style="width: 90px; text-align: right;">原始汇率</th>
+                        <th style="width: 110px; text-align: right;">已核销金额</th>
+                        <th style="width: 120px; text-align: right;">本次申请金额</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="text-align: center;"><input type="checkbox" checked /></td>
+                        <td>1</td>
+                        <td><span style="color: #dc2626; font-weight: 600;">应付</span></td>
+                        <td><b>驳船费</b></td>
+                        <td>RMB</td>
+                        <td class="tnum">60.00</td>
+                        <td class="tnum">1.0000</td>
+                        <td class="tnum">0.00</td>
+                        <td class="tnum" style="color: #2563eb; font-weight: 700;">¥ 1.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+
+            <!-- 父行 2 (收起态) -->
+            <tr class="row-parent">
+              <td style="text-align: center;">
+                <iconify-icon icon="lucide:chevron-right" style="color: #64748b; font-size: 16px;"></iconify-icon>
+              </td>
+              <td>2</td>
+              <td>MSKU9821371</td>
+              <td><span class="tag-status tag-settled">已结算</span></td>
+              <td><a href="javascript:;" style="color: #2563eb;">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="tnum" style="font-weight: 700;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

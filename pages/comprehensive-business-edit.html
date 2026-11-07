@@ -1,0 +1,3314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>综合业务编辑工作台 - 操作管理 (高保真交互与UI优化)</title>
+
+  <!-- 核心样式：Ant Design Vue 4 重置样式与通用规范 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <!-- 本地极速资源：零外网依赖、离线秒开 -->
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       综合业务编辑工作台 (Comprehensive Business Workbench) · 高保真生产级样式
+       设计基准：1920×1080 视口，极致紧凑、严谨克制、零 AI 浮夸、100% 业务字段保真
+       ========================================================================== */
+
+    body {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+      font-size: 13px;
+    }
+
+    .wb-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部原型审查沙盘控制器 (评审与多状态验证专用) */
+    .scenario-toolbar {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+      font-size: 12px;
+      z-index: 100;
+    }
+    .scenario-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .scenario-title {
+      font-weight: 600;
+      color: #38bdf8;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .scenario-badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .scenario-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 主工作台容器 */
+    .workbench-body {
+      flex: 1;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* 顶层认票身份栏 (Persistent Ticket Identity Bar) */
+    .ticket-header-card {
+      background: #ffffff;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      padding: 8px 14px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .ticket-identity-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .ticket-type-tag {
+      background: #e0f2fe;
+      color: #0284c7;
+      font-weight: 600;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid #bae6fd;
+    }
+    .ticket-number-box {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .ticket-label {
+      color: #64748b;
+      font-size: 12px;
+    }
+    .ticket-value {
+      color: #0f172a;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', Consolas, monospace;
+    }
+    .ticket-mbl-box {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding-left: 10px;
+      border-left: 1px solid #e2e8f0;
+    }
+    .ticket-client-box {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding-left: 10px;
+      border-left: 1px solid #e2e8f0;
+      max-width: 220px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ticket-meta-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      background: #f8fafc;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+    }
+    .meta-item strong {
+      color: #0f172a;
+    }
+    .related-order-tag {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-ticket-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 核心页签与主保存栏 */
+    .tabs-workbench-container {
+      background: #ffffff;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .wb-tab-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #fafafa;
+      height: 42px;
+    }
+    .wb-tab-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+    }
+    .wb-tab-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px;
+      height: 100%;
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      user-select: none;
+      position: relative;
+    }
+    .wb-tab-item:hover {
+      color: #1677ff;
+    }
+    .wb-tab-item.active {
+      color: #1677ff;
+      font-weight: 600;
+      border-bottom-color: #1677ff;
+      background: #ffffff;
+    }
+    .dirty-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+      display: inline-block;
+    }
+    .tab-badge {
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 11px;
+      padding: 0 5px;
+      border-radius: 10px;
+    }
+    .wb-tab-item.active .tab-badge {
+      background: #e6f4ff;
+      color: #1677ff;
+    }
+
+    .wb-tab-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 页签内容区域 */
+    .wb-tab-content {
+      padding: 10px 14px;
+      background: #ffffff;
+    }
+
+    /* 模块分块样式 */
+    .section-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .section-header {
+      background: #f8fafc;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-body {
+      padding: 10px 12px;
+    }
+
+    /* 表单高密度网格系统 (1920 CSS 视口优化: 6列自适应网格) */
+    .form-grid-6 {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px 12px;
+      align-items: start;
+    }
+    .form-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px 12px;
+      align-items: start;
+    }
+    .col-span-1 { grid-column: span 1; }
+    .col-span-2 { grid-column: span 2; }
+    .col-span-3 { grid-column: span 3; }
+    .col-span-4 { grid-column: span 4; }
+    .col-span-5 { grid-column: span 5; }
+    .col-span-6 { grid-column: span 6; }
+
+    .form-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-label {
+      font-size: 12px;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      line-height: 1.2;
+    }
+    .form-label.required::before {
+      content: '* ';
+      color: #ef4444;
+      font-weight: bold;
+    }
+    .label-hint {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: normal;
+    }
+
+    /* 特殊货物参数抽屉条 */
+    .special-cargo-panel {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+    .special-cargo-panel.danger-goods {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+    }
+    .special-cargo-panel.reefer-goods {
+      background: #ecfeff;
+      border: 1px solid #cffafe;
+    }
+
+    /* 收发通三方并排卡片 */
+    .parties-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .party-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      background: #fafafa;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .party-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    /* 船期时效流转链 */
+    .schedule-flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .schedule-step {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .schedule-step-title {
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .flow-arrow {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    /* 港口流转链 */
+    .port-flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .port-box {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+    }
+
+    /* 货物与备注区 */
+    .cargo-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 2fr;
+      gap: 10px;
+    }
+
+    /* 基础信息左右分栏：左主表单 + 右干系人 */
+    .basic-layout-split {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 10px;
+    }
+    .stakeholder-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .stakeholder-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .stakeholder-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 4px 0;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .stakeholder-item:last-child {
+      border-bottom: none;
+    }
+    .stakeholder-role {
+      font-size: 12px;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ==========================================================================
+       TAB 2: 应收应付双轨工作台样式
+       ========================================================================== */
+    .fee-workbench-layout {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 10px;
+      min-height: 580px;
+    }
+
+    /* 左侧认票底账导轨 (Persistent Ticket Rail) */
+    .fee-ticket-rail {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .rail-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .rail-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .rail-label {
+      font-size: 11px;
+      color: #64748b;
+    }
+    .rail-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+      word-break: break-all;
+    }
+
+    /* 右侧费用主操作区 */
+    .fee-main-workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .fee-top-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+    .fee-table-container {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .fee-table-header {
+      padding: 6px 10px;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .merge-mode-banner {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #c2410c;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* 利润浮动汇总条 */
+    .profit-summary-bar {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 6px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    .profit-items {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 12px;
+    }
+    .profit-item strong {
+      font-size: 14px;
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      margin-left: 4px;
+    }
+
+    /* ==========================================================================
+       TAB 3: 更改单交互与防丢保护样式
+       ========================================================================== */
+    .co-precondition-alert {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .co-header-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+    }
+
+    /* ==========================================================================
+       TAB 4: 附件管理三级空态与卡片
+       ========================================================================== */
+    .attachment-empty-config {
+      padding: 48px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .attachment-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .attachment-group-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .group-header {
+      background: #f8fafc;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .group-upload-dropzone {
+      border: 1px dashed #cbd5e1;
+      border-radius: 4px;
+      margin: 8px;
+      padding: 12px;
+      text-align: center;
+      background: #fafafa;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .group-upload-dropzone:hover {
+      border-color: #1677ff;
+      background: #f0f7ff;
+      color: #1677ff;
+    }
+    .file-item-list {
+      padding: 0 8px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .file-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* 快捷悬停卡片与动画 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-enter {
+      animation: fadeIn 0.2s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak class="wb-wrapper">
+    <a-config-provider :theme="{ token: { colorPrimary: '#1677ff', borderRadius: 4, fontSize: 13 } }">
+
+      <!-- ====================================================================
+           顶部原型审查沙盘控制器 (7大业务场景一键切换)
+           ==================================================================== -->
+      <div class="scenario-toolbar">
+        <div class="scenario-left">
+          <div class="scenario-title">
+            <iconify-icon icon="ant-design:control-outlined" style="font-size: 16px;"></iconify-icon>
+            <span>综合业务交互沙盘</span>
+            <span class="scenario-badge">交接实测 100% 对齐</span>
+          </div>
+
+          <a-radio-group v-model:value="currentScenario" button-style="solid" size="small" @change="onScenarioChange">
+            <a-radio-button value="standard">场景1: 完整录入标准态</a-radio-button>
+            <a-radio-button value="empty">场景2: 实测空数据样本 (TEST130-0003)</a-radio-button>
+            <a-radio-button value="feeMerge">场景3: 费用合并更改单 (只读态)</a-radio-button>
+            <a-radio-button value="coBlocked">场景4: 更改单前置未锁 (拦截态)</a-radio-button>
+            <a-radio-button value="coUnlocked">场景5: 更改单录入 (单侧保存防丢)</a-radio-button>
+            <a-radio-button value="attachEmpty">场景6: 附件未配置类型 (配置空态)</a-radio-button>
+            <a-radio-button value="lockedAccount">场景7: 财务锁账受限态</a-radio-button>
+          </a-radio-group>
+        </div>
+
+        <div class="scenario-actions">
+          <a-button size="small" ghost @click="showCopyModal = true">
+            <template #icon><iconify-icon icon="ant-design:copy-outlined"></iconify-icon></template>
+            预览复制弹窗
+          </a-button>
+
+          <a-button size="small" ghost @click="triggerUnsavedGuard">
+            <template #icon><iconify-icon icon="ant-design:safety-certificate-outlined"></iconify-icon></template>
+            测试离开防丢保护
+          </a-button>
+
+          <a-button size="small" type="primary" ghost @click="resetCurrentData">
+            <template #icon><iconify-icon icon="ant-design:reload-outlined"></iconify-icon></template>
+            重置沙盘数据
+          </a-button>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           主工作台
+           ==================================================================== -->
+      <div class="workbench-body">
+
+        <!-- 1. 顶层认票身份栏 (Persistent Ticket Identity Bar) -->
+        <div class="ticket-header-card">
+          <div class="ticket-identity-group">
+            <div class="ticket-type-tag">
+              <iconify-icon icon="ant-design:gold-outlined"></iconify-icon>
+              <span>综合业务</span>
+            </div>
+
+            <!-- 委托编号 + 重新生成 -->
+            <div class="ticket-number-box">
+              <span class="ticket-label">委托编号:</span>
+              <span class="ticket-value">{{ currentData.commissionNum }}</span>
+              <a-popconfirm
+                title="确定重新按系统规则生成本票委托编号？"
+                description="生成后将直接落库，不可撤销。"
+                ok-text="确认生成"
+                cancel-text="取消"
+                :disabled="isTicketLocked"
+                @confirm="regenerateCommissionNum"
+              >
+                <a-tooltip title="重新生成委托编号">
+                  <a-button type="text" size="small" style="padding: 0 4px; color: #1677ff;" :disabled="isTicketLocked">
+                    <iconify-icon icon="ant-design:sync-outlined"></iconify-icon>
+                  </a-button>
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
+
+            <!-- 主提单号 -->
+            <div class="ticket-mbl-box">
+              <span class="ticket-label">主提单号:</span>
+              <span class="ticket-value" style="color: #0369a1;">{{ currentData.mblNum || '--' }}</span>
+              <a-tooltip title="综合业务主提单号不参与全租户查重，多为被关联海运单号">
+                <iconify-icon icon="ant-design:info-circle-outlined" style="color: #94a3b8; font-size: 12px; cursor: help;"></iconify-icon>
+              </a-tooltip>
+            </div>
+
+            <!-- 委托单位 -->
+            <div class="ticket-client-box">
+              <span class="ticket-label">委托单位:</span>
+              <span class="ticket-value" :title="currentData.clientName">{{ currentData.clientName || '未选择' }}</span>
+            </div>
+
+            <!-- 锁定状态徽章 -->
+            <a-tag v-if="currentData.isAccountLocked" color="red">
+              <template #icon><iconify-icon icon="ant-design:lock-outlined"></iconify-icon></template>
+              财务已锁账
+            </a-tag>
+            <a-tag v-else-if="currentData.isFeeLocked" color="orange">
+              <template #icon><iconify-icon icon="ant-design:lock-outlined"></iconify-icon></template>
+              费用已锁定
+            </a-tag>
+            <a-tag v-else color="green">
+              <template #icon><iconify-icon icon="ant-design:check-circle-outlined"></iconify-icon></template>
+              正常可编辑
+            </a-tag>
+          </div>
+
+          <!-- 关联主单与期间 -->
+          <div class="ticket-meta-group">
+            <div class="meta-item">
+              <span>会计期间:</span>
+              <strong>{{ currentData.accountPeriod || '2026-11' }}</strong>
+            </div>
+
+            <div class="meta-item">
+              <span>应结日期:</span>
+              <strong>{{ currentData.settleDate || '2026-11-15' }}</strong>
+            </div>
+
+            <!-- 关联主单卡片 -->
+            <div v-if="currentData.relatedOrder" class="related-order-tag">
+              <iconify-icon icon="ant-design:link-outlined"></iconify-icon>
+              <span>关联主单: [{{ currentData.relatedOrder.bizType }}] {{ currentData.relatedOrder.commissionNum }} ({{ currentData.relatedOrder.clientName }})</span>
+              <a-popconfirm
+                title="确认解除与该主单的关联？"
+                description="解除后需点击保存基础信息生效。"
+                ok-text="确认解除"
+                cancel-text="取消"
+                @confirm="unlinkMasterOrder"
+              >
+                <iconify-icon icon="ant-design:close-circle-outlined" style="cursor: pointer; color: #dc2626;" title="解除关联"></iconify-icon>
+              </a-popconfirm>
+            </div>
+            <div v-else>
+              <a-button size="small" type="dashed" @click="showRelateModal = true" style="font-size: 12px; height: 24px;">
+                <iconify-icon icon="ant-design:plus-outlined"></iconify-icon>
+                关联海运/件杂货主单
+              </a-button>
+            </div>
+
+            <!-- 上一票 / 下一票 -->
+            <div class="nav-ticket-btn-group">
+              <a-tooltip title="切换上一票 (保持列表排序筛选)">
+                <a-button size="small" :disabled="ticketIndex <= 1" @click="prevTicket">上一票</a-button>
+              </a-tooltip>
+              <span style="font-size: 11px; color: #94a3b8; padding: 0 4px;">{{ ticketIndex }}/18</span>
+              <a-tooltip title="切换下一票 (保持列表排序筛选)">
+                <a-button size="small" :disabled="ticketIndex >= 18" @click="nextTicket">下一票</a-button>
+              </a-tooltip>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 四页签工作台主体 -->
+        <div class="tabs-workbench-container">
+          
+          <!-- 统一工作台页签栏 (含草稿脏标记与独立保存单元) -->
+          <div class="wb-tab-header">
+            <div class="wb-tab-nav">
+              <div
+                class="wb-tab-item"
+                :class="{ active: activeTab === 'basic' }"
+                @click="switchTab('basic')"
+              >
+                <iconify-icon icon="ant-design:form-outlined"></iconify-icon>
+                <span>基础信息</span>
+                <span v-if="dirtyStates.basic" class="dirty-dot" title="有未保存草稿"></span>
+              </div>
+
+              <div
+                class="wb-tab-item"
+                :class="{ active: activeTab === 'fee' }"
+                @click="switchTab('fee')"
+              >
+                <iconify-icon icon="ant-design:transaction-outlined"></iconify-icon>
+                <span>应收应付</span>
+                <span class="tab-badge">{{ currentData.receivables.length }} - {{ currentData.payables.length }}</span>
+                <span v-if="dirtyStates.fee" class="dirty-dot" title="有未保存费用草稿"></span>
+              </div>
+
+              <div
+                class="wb-tab-item"
+                :class="{ active: activeTab === 'changeOrder' }"
+                @click="switchTab('changeOrder')"
+              >
+                <iconify-icon icon="ant-design:history-outlined"></iconify-icon>
+                <span>更改单</span>
+                <span class="tab-badge">{{ currentData.changeOrders.length }}</span>
+                <span v-if="dirtyStates.changeOrder" class="dirty-dot" title="更改单草稿未保存"></span>
+              </div>
+
+              <div
+                class="wb-tab-item"
+                :class="{ active: activeTab === 'attachment' }"
+                @click="switchTab('attachment')"
+              >
+                <iconify-icon icon="ant-design:paper-clip-outlined"></iconify-icon>
+                <span>附件</span>
+                <span class="tab-badge">{{ totalAttachmentCount }}</span>
+              </div>
+            </div>
+
+            <!-- 页签专属保存与状态操作区 (明确定位保存单元，彻底消灭全单统存歧义) -->
+            <div class="wb-tab-actions">
+              <!-- 基础信息保存 -->
+              <template v-if="activeTab === 'basic'">
+                <span v-if="dirtyStates.basic" style="font-size: 12px; color: #f59e0b; display: inline-flex; align-items: center; gap: 4px;">
+                  <iconify-icon icon="ant-design:edit-outlined"></iconify-icon> 基础信息有未保存改动
+                </span>
+                <a-button
+                  type="primary"
+                  :loading="savingBasic"
+                  :disabled="isTicketLocked"
+                  @click="saveBasicInfo"
+                >
+                  <template #icon><iconify-icon icon="ant-design:save-outlined"></iconify-icon></template>
+                  保存基础信息
+                </a-button>
+
+                <a-dropdown :trigger="['click']">
+                  <a-button>
+                    更多 <iconify-icon icon="ant-design:down-outlined" style="font-size: 11px;"></iconify-icon>
+                  </a-button>
+                  <template #overlay>
+                    <a-menu>
+                      <a-menu-item key="copy" @click="showCopyModal = true">
+                        <iconify-icon icon="ant-design:copy-outlined" style="margin-right: 6px;"></iconify-icon>
+                        复制本票业务
+                      </a-menu-item>
+                      <a-menu-item key="regen" :disabled="isTicketLocked" @click="regenerateCommissionNum">
+                        <iconify-icon icon="ant-design:sync-outlined" style="margin-right: 6px;"></iconify-icon>
+                        重算委托编号
+                      </a-menu-item>
+                      <a-menu-divider />
+                      <a-menu-item key="reset" @click="revertBasicChanges">
+                        <iconify-icon icon="ant-design:undo-outlined" style="margin-right: 6px;"></iconify-icon>
+                        放弃未保存修改
+                      </a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+              </template>
+
+              <!-- 应收应付保存 -->
+              <template v-else-if="activeTab === 'fee'">
+                <a-space size="small">
+                  <a-button
+                    type="primary"
+                    :disabled="isMergeReadOnly"
+                    @click="saveFeeSide('receivable')"
+                  >
+                    <template #icon><iconify-icon icon="ant-design:save-outlined"></iconify-icon></template>
+                    保存应收费用
+                  </a-button>
+
+                  <a-button
+                    type="primary"
+                    :disabled="isMergeReadOnly"
+                    @click="saveFeeSide('payable')"
+                  >
+                    <template #icon><iconify-icon icon="ant-design:save-outlined"></iconify-icon></template>
+                    保存应付费用
+                  </a-button>
+                </a-space>
+              </template>
+
+              <!-- 更改单保存 -->
+              <template v-else-if="activeTab === 'changeOrder'">
+                <a-button
+                  type="primary"
+                  :disabled="!currentData.isFeeLocked"
+                  @click="saveChangeOrderSafeguard"
+                >
+                  <template #icon><iconify-icon icon="ant-design:save-outlined"></iconify-icon></template>
+                  保存当前侧 ({{ currentCoSide === 'receivable' ? '应收费用' : '应付费用' }})
+                </a-button>
+              </template>
+
+              <!-- 附件区动作 -->
+              <template v-else-if="activeTab === 'attachment'">
+                <a-button type="primary" ghost @click="showAddTypeModal = true">
+                  <template #icon><iconify-icon icon="ant-design:folder-add-outlined"></iconify-icon></template>
+                  添加其他类型
+                </a-button>
+              </template>
+            </div>
+          </div>
+
+          <!-- 页签内容承载 -->
+          <div class="wb-tab-content">
+
+            <!-- ================================================================
+                 TAB 1: 基础信息 (Basic Info)
+                 ================================================================ -->
+            <div v-show="activeTab === 'basic'">
+              <div class="basic-layout-split">
+                
+                <!-- 左侧主表单区 -->
+                <div class="basic-main-form">
+
+                  <!-- 归属与业务基础 (行 1: 归属组织、业务来源、销售) -->
+                  <div class="section-card">
+                    <div class="section-header">
+                      <span class="section-title">
+                        <iconify-icon icon="ant-design:bank-outlined"></iconify-icon>
+                        业务归属与核心往来
+                      </span>
+                      <span style="font-size: 11px; color: #64748b;">销售决定组织候选范围，当票销售有且仅有一人</span>
+                    </div>
+
+                    <div class="section-body">
+                      <!-- 严格对齐 enterprise-ui-optimization 4列黄金表单网格规范 (16项要素 4x4 严密对齐，零空洞) -->
+                      <div class="form-grid-4">
+                        <!-- 第 1 行: 核心往来与归属 -->
+                        <div class="form-item">
+                          <label class="form-label required">
+                            <span>委托单位</span>
+                            <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="openContactSelect">
+                              选择联系人 ({{ currentData.clientContact || '暂无' }})
+                            </a-button>
+                          </label>
+                          <a-select
+                            v-model:value="currentData.clientName"
+                            :disabled="isTicketLocked"
+                            show-search
+                            style="width: 100%;"
+                            @change="onClientChange"
+                          >
+                            <a-select-option value="测试459票结 测试1000459票结验...">测试459票结 测试1000459票结验证客户</a-select-option>
+                            <a-select-option value="青岛海尔国际物流供应链有限公司">青岛海尔国际物流供应链有限公司</a-select-option>
+                            <a-select-option value="青岛鲁抗医药贸易有限公司">青岛鲁抗医药贸易有限公司</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label required">归属组织</label>
+                          <a-select
+                            v-model:value="currentData.orgName"
+                            :disabled="isTicketLocked"
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="青岛佳越/管理部">青岛佳越/管理部</a-select-option>
+                            <a-select-option value="青岛佳越/综合业务部">青岛佳越/综合业务部</a-select-option>
+                            <a-select-option value="上海佳越/货运部">上海佳越/货运部</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">业务来源</label>
+                          <a-select
+                            v-model:value="currentData.bizSource"
+                            :disabled="isTicketLocked"
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="自揽货">自揽货</a-select-option>
+                            <a-select-option value="指定货">指定货</a-select-option>
+                            <a-select-option value="同行调拨">同行调拨</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">货物类型</label>
+                          <a-select
+                            v-model:value="currentData.goodsType"
+                            :disabled="isTicketLocked"
+                            style="width: 100%;"
+                            @change="onGoodsTypeChange"
+                          >
+                            <a-select-option value="普通货">普通货</a-select-option>
+                            <a-select-option value="危险品">危险品 (DG)</a-select-option>
+                            <a-select-option value="冷藏">冷藏 (Reefer)</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <!-- 第 2 行: 运输关键标识 -->
+                        <div class="form-item">
+                          <label class="form-label">船公司</label>
+                          <a-select
+                            v-model:value="currentData.carrier"
+                            :disabled="isTicketLocked"
+                            placeholder="请选择"
+                            allow-clear
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="COSCO">COSCO 中远海运</a-select-option>
+                            <a-select-option value="MSK">MSK 马士基</a-select-option>
+                            <a-select-option value="SITC">SITC 海丰</a-select-option>
+                            <a-select-option value="EMC">EMC 长荣海运</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">
+                            <span>船名 / 航次</span>
+                            <span class="label-hint">最多64字符</span>
+                          </label>
+                          <a-input-group compact style="display: flex;">
+                            <a-input
+                              v-model:value="currentData.vessel"
+                              :disabled="isTicketLocked"
+                              placeholder="船名"
+                              style="width: 55%;"
+                              @change="markDirty('basic')"
+                            >
+                              <template #suffix>
+                                <a-tooltip :title="currentData.vessel">
+                                  <iconify-icon icon="ant-design:info-circle-outlined" style="color: #94a3b8; cursor: pointer;"></iconify-icon>
+                                </a-tooltip>
+                              </template>
+                            </a-input>
+                            <a-input
+                              v-model:value="currentData.voyage"
+                              :disabled="isTicketLocked"
+                              placeholder="航次"
+                              style="width: 45%;"
+                              @change="markDirty('basic')"
+                            ></a-input>
+                          </a-input-group>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">车队</label>
+                          <a-select
+                            v-model:value="currentData.truckFleet"
+                            :disabled="isTicketLocked"
+                            allow-clear
+                            placeholder="请选择"
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="海丰船代">海丰船代</a-select-option>
+                            <a-select-option value="青岛畅通集运车队">青岛畅通集运车队</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">
+                            <span>主提单号</span>
+                            <span class="label-hint">不查重</span>
+                          </label>
+                          <a-input
+                            v-model:value="currentData.mblNum"
+                            :disabled="isTicketLocked"
+                            placeholder="输入提单号"
+                            @change="markDirty('basic')"
+                          ></a-input>
+                        </div>
+
+                        <!-- 第 3 行: 单证与商务编码 -->
+                        <div class="form-item">
+                          <label class="form-label">订舱编号</label>
+                          <a-input
+                            v-model:value="currentData.bookingNum"
+                            :disabled="isTicketLocked"
+                            placeholder="输入订舱号"
+                            @change="markDirty('basic')"
+                          ></a-input>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">合同号</label>
+                          <a-input
+                            v-model:value="currentData.contractNum"
+                            :disabled="isTicketLocked"
+                            placeholder="输入合同号"
+                            @change="markDirty('basic')"
+                          ></a-input>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">报关发票号</label>
+                          <a-input
+                            v-model:value="currentData.customsInvNum"
+                            :disabled="isTicketLocked"
+                            placeholder="输入发票号"
+                            @change="markDirty('basic')"
+                          ></a-input>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">保险公司</label>
+                          <a-select
+                            v-model:value="currentData.insuranceCo"
+                            :disabled="isTicketLocked"
+                            placeholder="请选择"
+                            allow-clear
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="中国平安财产保险">中国平安财产保险</a-select-option>
+                            <a-select-option value="中国人民财产保险">中国人民财产保险</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <!-- 第 4 行: 服务与履约条款 (严格满格无空缺) -->
+                        <div class="form-item">
+                          <label class="form-label">报关行</label>
+                          <a-select
+                            v-model:value="currentData.customsBroker"
+                            :disabled="isTicketLocked"
+                            placeholder="请选择"
+                            allow-clear
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="青岛邦达报关行">青岛邦达报关行</a-select-option>
+                            <a-select-option value="佳越国际报关中心">佳越国际报关中心</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">仓库</label>
+                          <a-select
+                            v-model:value="currentData.warehouse"
+                            :disabled="isTicketLocked"
+                            placeholder="请选择"
+                            allow-clear
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="前湾港综保区1号库">前湾港综保区1号库</a-select-option>
+                            <a-select-option value="青岛保税物流园立体仓">青岛保税物流园立体仓</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">付费方式 / 付费地点</label>
+                          <a-input-group compact style="display: flex;">
+                            <a-select
+                              v-model:value="currentData.paymentTerm"
+                              :disabled="isTicketLocked"
+                              style="width: 50%;"
+                              @change="markDirty('basic')"
+                            >
+                              <a-select-option value="到付">到付</a-select-option>
+                              <a-select-option value="预付">预付</a-select-option>
+                            </a-select>
+                            <a-input
+                              v-model:value="currentData.paymentPlace"
+                              :disabled="isTicketLocked"
+                              placeholder="地点"
+                              style="width: 50%;"
+                              @change="markDirty('basic')"
+                            ></a-input>
+                          </a-input-group>
+                        </div>
+
+                        <div class="form-item">
+                          <label class="form-label">运输条款 / 贸易条款</label>
+                          <a-input-group compact style="display: flex;">
+                            <a-select
+                              v-model:value="currentData.trafficTerm"
+                              :disabled="isTicketLocked"
+                              style="width: 50%;"
+                              @change="markDirty('basic')"
+                            >
+                              <a-select-option value="CY-CY">CY-CY</a-select-option>
+                              <a-select-option value="CFS-CFS">CFS-CFS</a-select-option>
+                              <a-select-option value="DOOR-CY">DOOR-CY</a-select-option>
+                              <a-select-option value="DOOR-DOOR">DOOR-DOOR</a-select-option>
+                            </a-select>
+                            <a-select
+                              v-model:value="currentData.tradeTerm"
+                              :disabled="isTicketLocked"
+                              style="width: 50%;"
+                              @change="markDirty('basic')"
+                            >
+                              <a-select-option value="FOB">FOB</a-select-option>
+                              <a-select-option value="CIF">CIF</a-select-option>
+                              <a-select-option value="CFR">CFR</a-select-option>
+                              <a-select-option value="EXW">EXW</a-select-option>
+                              <a-select-option value="DAP">DAP</a-select-option>
+                            </a-select>
+                          </a-input-group>
+                        </div>
+                      </div>
+
+                      <!-- 危险品专属参数区 (当货物类型为危险品时展开) -->
+                      <div v-if="currentData.goodsType === '危险品'" class="special-cargo-panel danger-goods">
+                        <div style="font-size: 12px; font-weight: 600; color: #b45309; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                          <iconify-icon icon="ant-design:warning-outlined"></iconify-icon>
+                          危险品 (DG) 申报扩展参数
+                        </div>
+                        <div class="form-grid-4">
+                          <div class="form-item">
+                            <label class="form-label required">联合国编号 (UN No.)</label>
+                            <a-input v-model:value="currentData.dgUnNo" placeholder="如 UN 1993" @change="markDirty('basic')" ></a-input>
+                          </div>
+                          <div class="form-item">
+                            <label class="form-label required">危规等级 (Class)</label>
+                            <a-input v-model:value="currentData.dgClass" placeholder="如 3 类易燃液体" @change="markDirty('basic')" ></a-input>
+                          </div>
+                          <div class="form-item">
+                            <label class="form-label">包装类别 (PG)</label>
+                            <a-select v-model:value="currentData.dgPkgGroup" style="width: 100%;" @change="markDirty('basic')">
+                              <a-select-option value="PG I">PG I (极高危险)</a-select-option>
+                              <a-select-option value="PG II">PG II (中度危险)</a-select-option>
+                              <a-select-option value="PG III">PG III (轻度危险)</a-select-option>
+                            </a-select>
+                          </div>
+                          <div class="form-item">
+                            <label class="form-label">闭杯闪点 (°C)</label>
+                            <a-input v-model:value="currentData.dgFlashPoint" placeholder="如 23°C" @change="markDirty('basic')" ></a-input>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- 冷藏货物专属参数区 (当货物类型为冷藏时展开) -->
+                      <div v-if="currentData.goodsType === '冷藏'" class="special-cargo-panel reefer-goods">
+                        <div style="font-size: 12px; font-weight: 600; color: #0e7490; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                          <iconify-icon icon="ant-design:thunderbolt-outlined"></iconify-icon>
+                          冷藏货温控与通风参数
+                        </div>
+                        <div class="form-grid-4">
+                          <div class="form-item">
+                            <label class="form-label required">设定温度 (°C)</label>
+                            <a-input v-model:value="currentData.rfTemperature" placeholder="如 -18.0" @change="markDirty('basic')" ></a-input>
+                          </div>
+                          <div class="form-item">
+                            <label class="form-label">通风量 (CBM/H)</label>
+                            <a-input v-model:value="currentData.rfVentilation" placeholder="如 15 CBM/H" @change="markDirty('basic')" ></a-input>
+                          </div>
+                          <div class="form-item">
+                            <label class="form-label">湿度要求 (%)</label>
+                            <a-input v-model:value="currentData.rfHumidity" placeholder="如 85%" @change="markDirty('basic')" ></a-input>
+                          </div>
+                          <div class="form-item">
+                            <label class="form-label">超温报警阈值 (°C)</label>
+                            <a-input v-model:value="currentData.rfAlarmLimit" placeholder="如 ±2.0°C" @change="markDirty('basic')" ></a-input>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 收发通折叠与并排对照区 -->
+                  <div class="section-card">
+                    <div class="section-header" style="cursor: pointer;" @click="isPartiesExpanded = !isPartiesExpanded">
+                      <div class="section-title">
+                        <iconify-icon icon="ant-design:team-outlined"></iconify-icon>
+                        <span>收发通 (Shipper / Consignee / Notify)</span>
+                        <span style="font-size: 11px; font-weight: normal; color: #64748b; margin-left: 8px;">
+                          {{ partiesSummary }}
+                        </span>
+                      </div>
+                      <a-space size="small">
+                        <a-button type="link" size="small" style="padding: 0; font-size: 12px;">
+                          {{ isPartiesExpanded ? '收起收发通 ▲' : '展开编辑 ▼' }}
+                        </a-button>
+                      </a-space>
+                    </div>
+
+                    <div v-show="isPartiesExpanded" class="section-body">
+                      <div class="parties-grid">
+                        <!-- 发货人 -->
+                        <div class="party-card">
+                          <div class="party-card-header">
+                            <span>发货人 (Shipper)</span>
+                            <a-space size="small">
+                              <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="copyText(currentData.shipperText)">复制</a-button>
+                              <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="openTextViewer('发货人内容', currentData.shipperText, 'shipperText')">大字查看</a-button>
+                            </a-space>
+                          </div>
+                          <a-select
+                            v-model:value="currentData.shipperCompany"
+                            :disabled="isTicketLocked"
+                            placeholder="常用发货人单位选择"
+                            allow-clear
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="QINGDAO HAIER LOGISTICS CO., LTD.">QINGDAO HAIER LOGISTICS CO., LTD.</a-select-option>
+                            <a-select-option value="SHANDONG TEXTILE IMPORT & EXPORT">SHANDONG TEXTILE IMPORT & EXPORT</a-select-option>
+                          </a-select>
+                          <a-textarea
+                            v-model:value="currentData.shipperText"
+                            :disabled="isTicketLocked"
+                            placeholder="发货人英文名称、地址、电话、税号 (最多1024字符)"
+                            :rows="4"
+                            @change="markDirty('basic')"
+                          ></a-textarea>
+                        </div>
+
+                        <!-- 收货人 -->
+                        <div class="party-card">
+                          <div class="party-card-header">
+                            <span>收货人 (Consignee)</span>
+                            <a-space size="small">
+                              <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="copyText(currentData.consigneeText)">复制</a-button>
+                              <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="openTextViewer('收货人内容', currentData.consigneeText, 'consigneeText')">大字查看</a-button>
+                            </a-space>
+                          </div>
+                          <a-select
+                            v-model:value="currentData.consigneeCompany"
+                            :disabled="isTicketLocked"
+                            placeholder="常用收货人单位选择"
+                            allow-clear
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="TO ORDER">TO ORDER</a-select-option>
+                            <a-select-option value="ROTTERDAM HARBOR LOGISTICS B.V.">ROTTERDAM HARBOR LOGISTICS B.V.</a-select-option>
+                          </a-select>
+                          <a-textarea
+                            v-model:value="currentData.consigneeText"
+                            :disabled="isTicketLocked"
+                            placeholder="收货人英文名称、地址、联系方式 (最多1024字符)"
+                            :rows="4"
+                            @change="markDirty('basic')"
+                          ></a-textarea>
+                        </div>
+
+                        <!-- 通知人 -->
+                        <div class="party-card">
+                          <div class="party-card-header">
+                            <span>通知人 (Notify Party)</span>
+                            <a-space size="small">
+                              <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="setNotifySameAsConsignee">同收货人</a-button>
+                              <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="openTextViewer('通知人内容', currentData.notifyText, 'notifyText')">大字查看</a-button>
+                            </a-space>
+                          </div>
+                          <a-select
+                            v-model:value="currentData.notifyCompany"
+                            :disabled="isTicketLocked"
+                            placeholder="常用通知人单位选择"
+                            allow-clear
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="SAME AS CONSIGNEE">SAME AS CONSIGNEE</a-select-option>
+                            <a-select-option value="EUROPE CUSTOMS CLEARANCE AGENT GMBH">EUROPE CUSTOMS CLEARANCE AGENT GMBH</a-select-option>
+                          </a-select>
+                          <a-textarea
+                            v-model:value="currentData.notifyText"
+                            :disabled="isTicketLocked"
+                            placeholder="通知人英文名称、地址、联系方式 (最多1024字符)"
+                            :rows="4"
+                            @change="markDirty('basic')"
+                          ></a-textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 船期节点与航线港口 (时效流转链条) -->
+                  <div class="section-card">
+                    <div class="section-header">
+                      <span class="section-title">
+                        <iconify-icon icon="ant-design:calendar-outlined"></iconify-icon>
+                        船期时效与航线港口
+                      </span>
+                      <span style="font-size: 11px; color: #64748b;">计划与实际离港分开，货好时间精确至分秒</span>
+                    </div>
+
+                    <div class="section-body">
+                      <!-- 船期 4 阶段流转链 -->
+                      <div class="schedule-flow" style="margin-bottom: 10px;">
+                        <div class="schedule-step">
+                          <div class="schedule-step-title">
+                            <span>1. 货好时间 (精确分秒)</span>
+                            <iconify-icon icon="ant-design:clock-circle-outlined" style="color: #0284c7;"></iconify-icon>
+                          </div>
+                          <a-input
+                            v-model:value="currentData.cargoReadyTime"
+                            :disabled="isTicketLocked"
+                            placeholder="YYYY-MM-DD HH:mm:ss"
+                            @change="markDirty('basic')"
+                          ></a-input>
+                        </div>
+
+                        <span class="flow-arrow">➔</span>
+
+                        <div class="schedule-step">
+                          <div class="schedule-step-title">
+                            <span>2. 计划开船 (ETD)</span>
+                            <iconify-icon icon="ant-design:compass-outlined" style="color: #64748b;"></iconify-icon>
+                          </div>
+                          <a-input
+                            v-model:value="currentData.etdDate"
+                            :disabled="isTicketLocked"
+                            placeholder="YYYY-MM-DD"
+                            @change="markDirty('basic')"
+                          ></a-input>
+                        </div>
+
+                        <span class="flow-arrow">➔</span>
+
+                        <div class="schedule-step">
+                          <div class="schedule-step-title">
+                            <span>3. 实际开船 (ATD)</span>
+                            <iconify-icon icon="ant-design:check-circle-outlined" style="color: #16a34a;"></iconify-icon>
+                          </div>
+                          <a-input
+                            v-model:value="currentData.atdDate"
+                            :disabled="isTicketLocked"
+                            placeholder="YYYY-MM-DD"
+                            @change="markDirty('basic')"
+                          ></a-input>
+                        </div>
+
+                        <span class="flow-arrow">➔</span>
+
+                        <div class="schedule-step">
+                          <div class="schedule-step-title">
+                            <span>4. 预抵日期 (ETA)</span>
+                            <iconify-icon icon="ant-design:flag-outlined" style="color: #0284c7;"></iconify-icon>
+                          </div>
+                          <a-input
+                            v-model:value="currentData.etaDate"
+                            :disabled="isTicketLocked"
+                            placeholder="YYYY-MM-DD"
+                            @change="markDirty('basic')"
+                          ></a-input>
+                        </div>
+                      </div>
+
+                      <!-- 港口起运与目的港 -->
+                      <div class="port-flow">
+                        <div class="port-box">
+                          <label class="form-label">起运港 (POL)</label>
+                          <a-select
+                            v-model:value="currentData.polPort"
+                            :disabled="isTicketLocked"
+                            placeholder="选择海运起运港"
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="CNQDG - QINGDAO, CHINA">CNQDG - QINGDAO, CHINA (中国青岛港)</a-select-option>
+                            <a-select-option value="CNSHA - SHANGHAI, CHINA">CNSHA - SHANGHAI, CHINA (中国上海港)</a-select-option>
+                            <a-select-option value="CNNBO - NINGBO, CHINA">CNNBO - NINGBO, CHINA (中国宁波港)</a-select-option>
+                          </a-select>
+                        </div>
+
+                        <iconify-icon icon="ant-design:swap-right-outlined" style="font-size: 20px; color: #64748b;"></iconify-icon>
+
+                        <div class="port-box">
+                          <label class="form-label">目的港 (POD)</label>
+                          <a-select
+                            v-model:value="currentData.podPort"
+                            :disabled="isTicketLocked"
+                            placeholder="选择海运目的港"
+                            style="width: 100%;"
+                            @change="markDirty('basic')"
+                          >
+                            <a-select-option value="NLRTM - ROTTERDAM, NETHERLANDS">NLRTM - ROTTERDAM, NETHERLANDS (荷兰鹿特丹)</a-select-option>
+                            <a-select-option value="DEHAM - HAMBURG, GERMANY">DEHAM - HAMBURG, GERMANY (德国汉堡)</a-select-option>
+                            <a-select-option value="USLAX - LOS ANGELES, USA">USLAX - LOS ANGELES, USA (美国洛杉矶)</a-select-option>
+                          </a-select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 货物明细与内外部备注 -->
+                  <div class="section-card">
+                    <div class="section-header">
+                      <span class="section-title">
+                        <iconify-icon icon="ant-design:inbox-outlined"></iconify-icon>
+                        货物数据与备注说明
+                      </span>
+                      <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="openGoodsSelector">
+                        + 选择商品品名 (已选: {{ currentData.goodsNameList.join(', ') || '未选' }})
+                      </a-button>
+                    </div>
+
+                    <div class="section-body">
+                      <div class="cargo-grid">
+                        <!-- 唛头 -->
+                        <div class="form-item">
+                          <label class="form-label">唛头 (Marks & Nos)</label>
+                          <a-textarea
+                            v-model:value="currentData.marks"
+                            :disabled="isTicketLocked"
+                            placeholder="N/M 或具体唛头"
+                            :rows="3"
+                            @change="markDirty('basic')"
+                          ></a-textarea>
+                        </div>
+
+                        <!-- 货物描述 -->
+                        <div class="form-item">
+                          <label class="form-label">货物描述 (Description)</label>
+                          <a-textarea
+                            v-model:value="currentData.goodsDesc"
+                            :disabled="isTicketLocked"
+                            placeholder="品名英文描述"
+                            :rows="3"
+                            @change="markDirty('basic')"
+                          ></a-textarea>
+                        </div>
+
+                        <!-- 件数包装 -->
+                        <div class="form-item">
+                          <label class="form-label">件数 / 包装</label>
+                          <a-input-group compact style="display: flex;">
+                            <a-input-number
+                              v-model:value="currentData.packageCount"
+                              :disabled="isTicketLocked"
+                              :min="0"
+                              placeholder="件数"
+                              style="width: 45%;"
+                              @change="markDirty('basic')"
+                            ></a-input>
+                            <a-select
+                              v-model:value="currentData.packageUnit"
+                              :disabled="isTicketLocked"
+                              style="width: 55%;"
+                              @change="markDirty('basic')"
+                            >
+                              <a-select-option value="WOODEN BOXES">WOODEN BOXES</a-select-option>
+                              <a-select-option value="CARTONS">CARTONS</a-select-option>
+                              <a-select-option value="PALLETS">PALLETS</a-select-option>
+                              <a-select-option value="BAGS">BAGS</a-select-option>
+                            </a-select>
+                          </a-input-group>
+                        </div>
+
+                        <!-- 毛重与体积 -->
+                        <div class="form-item">
+                          <label class="form-label">毛重 KGS / 体积 CBM</label>
+                          <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <a-input-number
+                              v-model:value="currentData.grossWeight"
+                              :disabled="isTicketLocked"
+                              :precision="4"
+                              placeholder="毛重 KGS"
+                              addon-after="KGS"
+                              style="width: 100%;"
+                              @change="markDirty('basic')"
+                            ></a-input>
+                            <a-input-number
+                              v-model:value="currentData.volume"
+                              :disabled="isTicketLocked"
+                              :precision="4"
+                              placeholder="体积 CBM"
+                              addon-after="CBM"
+                              style="width: 100%;"
+                              @change="markDirty('basic')"
+                            ></a-input>
+                          </div>
+                        </div>
+
+                        <!-- 备注子页签：内部备注 vs 外部备注 -->
+                        <div class="form-item">
+                          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+                            <a-radio-group v-model:value="currentNoteTab" size="small" button-style="solid">
+                              <a-radio-button value="internal">内部备注</a-radio-button>
+                              <a-radio-button value="external">外部备注</a-radio-button>
+                            </a-radio-group>
+                            <span v-if="currentNoteTab === 'internal'" style="font-size: 11px; color: #d97706;">
+                              <iconify-icon icon="ant-design:lock-outlined"></iconify-icon> 仅内部可见
+                            </span>
+                            <span v-else style="font-size: 11px; color: #0284c7;">
+                              <iconify-icon icon="ant-design:global-outlined"></iconify-icon> 单证流转可见
+                            </span>
+                          </div>
+
+                          <div v-if="currentNoteTab === 'internal'">
+                            <a-textarea
+                              v-model:value="currentData.internalNotes"
+                              :disabled="isTicketLocked"
+                              placeholder="记录公司内部操作备忘、成本预警等 (客户与外部不可见)"
+                              :rows="3"
+                              @change="markDirty('basic')"
+                            ></a-textarea>
+                          </div>
+                          <div v-else>
+                            <a-textarea
+                              v-model:value="currentData.externalNotes"
+                              :disabled="isTicketLocked"
+                              placeholder="随提单及结算单流转的对外部注"
+                              :rows="3"
+                              @change="markDirty('basic')"
+                            ></a-textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- 右侧干系人常驻卡片 (业务责任人矩阵 · 100% 保真) -->
+                <div class="stakeholder-rail">
+                  <div class="stakeholder-card">
+                    <div style="font-size: 12px; font-weight: 700; color: #1e293b; display: flex; align-items: center; justify-content: space-between;">
+                      <span style="display: inline-flex; align-items: center; gap: 4px;">
+                        <iconify-icon icon="ant-design:contacts-outlined" style="color: #1677ff;"></iconify-icon>
+                        业务干系人
+                      </span>
+                      <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="showAddStakeholderModal = true">
+                        + 加角色
+                      </a-button>
+                    </div>
+
+                    <!-- 销售 (固定且唯一必填) -->
+                    <div class="stakeholder-item">
+                      <div class="stakeholder-role">
+                        <span style="color: #ef4444; font-weight: bold;">*</span>
+                        <a-tag color="blue" style="margin-right: 0; font-size: 11px;">销售</a-tag>
+                      </div>
+                      <a-select
+                        v-model:value="currentData.salesUser"
+                        :disabled="isTicketLocked"
+                        size="small"
+                        style="width: 130px;"
+                        @change="onSalesUserChange"
+                      >
+                        <a-select-option value="张三 (佳越销售一部)">张三</a-select-option>
+                        <a-select-option value="李四 (佳越销售二部)">李四</a-select-option>
+                        <a-select-option value="王五 (华东大客户组)">王五</a-select-option>
+                      </a-select>
+                    </div>
+
+                    <!-- 操作 (责任操作) -->
+                    <div class="stakeholder-item">
+                      <div class="stakeholder-role">
+                        <a-tag color="cyan" style="margin-right: 0; font-size: 11px;">操作</a-tag>
+                      </div>
+                      <a-select
+                        v-model:value="currentData.opUser"
+                        :disabled="isTicketLocked"
+                        size="small"
+                        style="width: 130px;"
+                        @change="markDirty('basic')"
+                      >
+                        <a-select-option value="赵操作">赵操作</a-select-option>
+                        <a-select-option value="钱操作">钱操作</a-select-option>
+                        <a-select-option value="孙操作">孙操作</a-select-option>
+                      </a-select>
+                    </div>
+
+                    <!-- 单证 -->
+                    <div class="stakeholder-item">
+                      <div class="stakeholder-role">
+                        <a-tag color="purple" style="margin-right: 0; font-size: 11px;">单证</a-tag>
+                      </div>
+                      <a-select
+                        v-model:value="currentData.docUser"
+                        :disabled="isTicketLocked"
+                        size="small"
+                        placeholder="未分配"
+                        allow-clear
+                        style="width: 130px;"
+                        @change="markDirty('basic')"
+                      >
+                        <a-select-option value="周单证">周单证</a-select-option>
+                        <a-select-option value="吴单证">吴单证</a-select-option>
+                      </a-select>
+                    </div>
+
+                    <!-- 客服 -->
+                    <div class="stakeholder-item">
+                      <div class="stakeholder-role">
+                        <a-tag color="green" style="margin-right: 0; font-size: 11px;">客服</a-tag>
+                      </div>
+                      <a-select
+                        v-model:value="currentData.csUser"
+                        :disabled="isTicketLocked"
+                        size="small"
+                        placeholder="未分配"
+                        allow-clear
+                        style="width: 130px;"
+                        @change="markDirty('basic')"
+                      >
+                        <a-select-option value="郑客服">郑客服</a-select-option>
+                        <a-select-option value="王客服">王客服</a-select-option>
+                      </a-select>
+                    </div>
+
+                    <!-- 商务 -->
+                    <div class="stakeholder-item">
+                      <div class="stakeholder-role">
+                        <a-tag color="gold" style="margin-right: 0; font-size: 11px;">商务</a-tag>
+                      </div>
+                      <a-select
+                        v-model:value="currentData.commerceUser"
+                        :disabled="isTicketLocked"
+                        size="small"
+                        placeholder="未分配"
+                        allow-clear
+                        style="width: 130px;"
+                        @change="markDirty('basic')"
+                      >
+                        <a-select-option value="冯商务">冯商务</a-select-option>
+                      </a-select>
+                    </div>
+                  </div>
+
+                  <!-- 锁账与权限提示卡 -->
+                  <div class="stakeholder-card" style="background: #f0fdf4; border-color: #bbf7d0;">
+                    <div style="font-size: 11px; font-weight: 600; color: #166534; display: flex; align-items: center; gap: 4px;">
+                      <iconify-icon icon="ant-design:shield-check-outlined"></iconify-icon>
+                      权限与审计规则
+                    </div>
+                    <div style="font-size: 11px; color: #15803d; line-height: 1.5;">
+                      • 本票属于当前登录人员数据管辖范围<br>
+                      • 更改业务日期将联动重算会计期间与应结日期<br>
+                      • 更改单产生的所有调账均独立计入审计台账
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- ================================================================
+                 TAB 2: 应收应付 (Receivables & Payables Fees)
+                 ================================================================ -->
+            <div v-show="activeTab === 'fee'">
+              <div class="fee-workbench-layout">
+
+                <!-- 左侧常驻认票底账导轨 (Persistent Ticket Rail) -->
+                <div class="fee-ticket-rail">
+                  <div class="rail-title">
+                    <iconify-icon icon="ant-design:file-protect-outlined" style="color: #1677ff;"></iconify-icon>
+                    <span>认票底账基准</span>
+                  </div>
+
+                  <div class="rail-group">
+                    <span class="rail-label">主提单号:</span>
+                    <span class="rail-value" style="color: #0284c7;">{{ currentData.mblNum || '--' }}</span>
+                  </div>
+
+                  <div class="rail-group">
+                    <span class="rail-label">委托编号:</span>
+                    <span class="rail-value">{{ currentData.commissionNum }}</span>
+                  </div>
+
+                  <div class="rail-group">
+                    <span class="rail-label">委托单位:</span>
+                    <span class="rail-value">{{ currentData.clientName || '--' }}</span>
+                  </div>
+
+                  <div class="rail-group">
+                    <span class="rail-label">船名 / 航次:</span>
+                    <span class="rail-value">{{ currentData.vessel || '--' }} / {{ currentData.voyage || '--' }}</span>
+                  </div>
+
+                  <div class="rail-group">
+                    <span class="rail-label">起运港 ➔ 目的港:</span>
+                    <span class="rail-value">{{ (currentData.polPort || '').split(' - ')[0] || '--' }} ➔ {{ (currentData.podPort || '').split(' - ')[0] || '--' }}</span>
+                  </div>
+
+                  <div class="rail-group">
+                    <span class="rail-label">件毛体:</span>
+                    <span class="rail-value">{{ currentData.packageCount }} 件 / {{ currentData.grossWeight }} KGS / {{ currentData.volume }} CBM</span>
+                  </div>
+
+                  <div class="rail-group">
+                    <span class="rail-label">关联海运主单:</span>
+                    <span class="rail-value" style="color: #16a34a;">
+                      {{ currentData.relatedOrder ? currentData.relatedOrder.commissionNum : '未关联' }}
+                    </span>
+                  </div>
+
+                  <div style="margin-top: auto; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 11px; color: #64748b;">
+                    💡 无论右侧宽表格横向滚动至何处，本导轨始终固定，杜绝录错票。
+                  </div>
+                </div>
+
+                <!-- 右侧费用调度大工作台 -->
+                <div class="fee-main-workspace">
+                  
+                  <!-- 顶部调度栏 -->
+                  <div class="fee-top-action-bar">
+                    <a-space size="middle">
+                      <span style="font-weight: 600; font-size: 13px;">| 费用录入调度</span>
+                      
+                      <!-- 合并更改单开关 -->
+                      <a-checkbox v-model:checked="isMergeChangeOrder" @change="onToggleMergeMode">
+                        合并更改单查看
+                      </a-checkbox>
+                      <a-tag v-if="isMergeChangeOrder" color="orange">
+                        <template #icon><iconify-icon icon="ant-design:eye-outlined"></iconify-icon></template>
+                        合并查看·只读
+                      </a-tag>
+
+                      <span style="color: #64748b; font-size: 12px;">已选 {{ selectedFeeRowKeys.length }} 笔费用</span>
+                    </a-space>
+
+                    <a-space size="small">
+                      <a-button size="small" :disabled="isMergeReadOnly">
+                        结算申请 <iconify-icon icon="ant-design:down-outlined" style="font-size: 10px;"></iconify-icon>
+                      </a-button>
+                      <a-button size="small" type="primary" ghost :disabled="isMergeReadOnly">
+                        整票提交 <iconify-icon icon="ant-design:down-outlined" style="font-size: 10px;"></iconify-icon>
+                      </a-button>
+                    </a-space>
+                  </div>
+
+                  <!-- 合并模式横幅警示 -->
+                  <div v-if="isMergeChangeOrder" class="merge-mode-banner">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <iconify-icon icon="ant-design:info-circle-filled" style="font-size: 16px;"></iconify-icon>
+                      <span>
+                        <strong>当前处于「合并更改单·只读」查看模式：</strong>
+                        表格已汇入更改单所有调账记录并透出「来源」列。全量费用处于锁定保护状态，如需录入或修改原票费用，请取消勾选合并模式。
+                      </span>
+                    </div>
+                    <a-button size="small" type="link" @click="isMergeChangeOrder = false">恢复可编辑态</a-button>
+                  </div>
+
+                  <!-- 1. 应收费用表格 (Receivables) -->
+                  <div class="fee-table-container">
+                    <div class="fee-table-header">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: #0284c7; font-weight: 700;">● 应收费用 (Receivable)</span>
+                        <span style="color: #64748b; font-size: 11px;">共 {{ currentData.receivables.length }} 笔</span>
+                      </div>
+
+                      <a-space size="small">
+                        <a-button size="small" type="primary" :disabled="isMergeReadOnly" @click="addFeeRow('receivable')">
+                          <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                          新增费用
+                        </a-button>
+                        <a-button size="small" :disabled="isMergeReadOnly || selectedFeeRowKeys.length === 0" @click="copyFeeRows('receivable')">
+                          复制
+                        </a-button>
+                        <a-button size="small" danger :disabled="isMergeReadOnly || selectedFeeRowKeys.length === 0" @click="deleteFeeRows('receivable')">
+                          删除
+                        </a-button>
+                        <a-button size="small" :disabled="isMergeReadOnly">
+                          <template #icon><iconify-icon icon="ant-design:file-search-outlined"></iconify-icon></template>
+                          AI识别账单
+                        </a-button>
+                        <a-button size="small">
+                          <template #icon><iconify-icon icon="ant-design:printer-outlined"></iconify-icon></template>
+                          打印
+                        </a-button>
+                        <a-button size="small">列设置</a-button>
+                      </a-space>
+                    </div>
+
+                    <!-- 应收表格 (支持横向滚动，全量18列业务字段) -->
+                    <a-table
+                      :data-source="currentData.receivables"
+                      :columns="feeColumns"
+                      :pagination="false"
+                      size="small"
+                      row-key="id"
+                      :scroll="{ x: 1850, y: 160 }"
+                      :row-selection="{ selectedRowKeys: selectedFeeRowKeys, onChange: onFeeSelectChange }"
+                    >
+                      <template #bodyCell="{ column, record, index }">
+                        <template v-if="column.key === 'index'">{{ index + 1 }}</template>
+
+                        <template v-else-if="column.key === 'source'">
+                          <a-tag :color="record.source === '本票' ? 'blue' : 'orange'">{{ record.source }}</a-tag>
+                        </template>
+
+                        <template v-else-if="column.key === 'invoiceStatus'">
+                          <a-tag :color="record.invoiceStatus === '已开票' ? 'green' : 'default'" style="font-size: 11px;">
+                            {{ record.invoiceStatus || '未开票' }}
+                          </a-tag>
+                        </template>
+
+                        <template v-else-if="column.key === 'feeStatus'">
+                          <a-tag :color="record.feeStatus === '已确认' ? 'blue' : 'orange'" style="font-size: 11px;">
+                            {{ record.feeStatus || '录入中' }}
+                          </a-tag>
+                        </template>
+
+                        <template v-else-if="column.key === 'feeName'">
+                          <div v-if="!isMergeReadOnly">
+                            <a-input
+                              v-model:value="record.feeName"
+                              size="small"
+                              style="width: 100%;"
+                              @change="markDirty('fee')"
+                            ></a-input>
+                          </div>
+                          <div v-else>{{ record.feeName }}</div>
+                        </template>
+
+                        <template v-else-if="column.key === 'bizCategory'">
+                          <span style="font-size: 11px; color: #64748b;">{{ record.bizCategory || '综合服务' }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'settleClient'">
+                          <div v-if="!isMergeReadOnly">
+                            <a-input
+                              v-model:value="record.settleClient"
+                              size="small"
+                              style="width: 100%;"
+                              @change="markDirty('fee')"
+                            ></a-input>
+                          </div>
+                          <div v-else>{{ record.settleClient }}</div>
+                        </template>
+
+                        <template v-else-if="column.key === 'currency'">
+                          <a-tag color="cyan">{{ record.currency }}</a-tag>
+                        </template>
+
+                        <template v-else-if="column.key === 'unitPrice'">
+                          <span style="font-family: 'JetBrains Mono', monospace;">¥{{ (record.unitPrice || 0).toFixed(2) }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'totalAmount'">
+                          <strong style="color: #0284c7; font-family: 'JetBrains Mono', monospace;">¥{{ (record.totalAmount || 0).toFixed(2) }}</strong>
+                        </template>
+
+                        <template v-else-if="column.key === 'amountNoTax'">
+                          <span style="color: #64748b; font-family: 'JetBrains Mono', monospace;">¥{{ (record.amountNoTax || 0).toFixed(2) }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'unitPriceNoTax'">
+                          <span style="color: #64748b; font-family: 'JetBrains Mono', monospace;">¥{{ (record.unitPriceNoTax || 0).toFixed(2) }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'statementNo'">
+                          <span style="font-size: 11px;">{{ record.statementNo || '--' }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'applyPayAmount'">
+                          <span style="font-family: 'JetBrains Mono', monospace;">¥{{ (record.applyPayAmount || 0).toFixed(2) }}</span>
+                        </template>
+                      </template>
+                    </a-table>
+                  </div>
+
+                  <!-- 2. 应付费用表格 (Payables) -->
+                  <div class="fee-table-container">
+                    <div class="fee-table-header">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: #dc2626; font-weight: 700;">● 应付费用 (Payable)</span>
+                        <span style="color: #64748b; font-size: 11px;">共 {{ currentData.payables.length }} 笔</span>
+                      </div>
+
+                      <a-space size="small">
+                        <a-button size="small" type="primary" :disabled="isMergeReadOnly" @click="addFeeRow('payable')">
+                          <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                          新增费用
+                        </a-button>
+                        <a-button size="small" :disabled="isMergeReadOnly || selectedFeeRowKeys.length === 0" @click="copyFeeRows('payable')">
+                          复制
+                        </a-button>
+                        <a-button size="small" danger :disabled="isMergeReadOnly || selectedFeeRowKeys.length === 0" @click="deleteFeeRows('payable')">
+                          删除
+                        </a-button>
+                        <a-button size="small" :disabled="isMergeReadOnly">
+                          <template #icon><iconify-icon icon="ant-design:file-search-outlined"></iconify-icon></template>
+                          AI识别账单
+                        </a-button>
+                        <a-button size="small">
+                          <template #icon><iconify-icon icon="ant-design:printer-outlined"></iconify-icon></template>
+                          打印
+                        </a-button>
+                        <a-button size="small">列设置</a-button>
+                      </a-space>
+                    </div>
+
+                    <a-table
+                      :data-source="currentData.payables"
+                      :columns="feeColumns"
+                      :pagination="false"
+                      size="small"
+                      row-key="id"
+                      :scroll="{ x: 1850, y: 160 }"
+                      :row-selection="{ selectedRowKeys: selectedFeeRowKeys, onChange: onFeeSelectChange }"
+                    >
+                      <template #bodyCell="{ column, record, index }">
+                        <template v-if="column.key === 'index'">{{ index + 1 }}</template>
+
+                        <template v-else-if="column.key === 'source'">
+                          <a-tag :color="record.source === '本票' ? 'blue' : 'orange'">{{ record.source }}</a-tag>
+                        </template>
+
+                        <template v-else-if="column.key === 'invoiceStatus'">
+                          <a-tag :color="record.invoiceStatus === '已开票' ? 'green' : 'default'" style="font-size: 11px;">
+                            {{ record.invoiceStatus || '未开票' }}
+                          </a-tag>
+                        </template>
+
+                        <template v-else-if="column.key === 'feeStatus'">
+                          <a-tag :color="record.feeStatus === '已确认' ? 'blue' : 'orange'" style="font-size: 11px;">
+                            {{ record.feeStatus || '录入中' }}
+                          </a-tag>
+                        </template>
+
+                        <template v-else-if="column.key === 'feeName'">
+                          <div v-if="!isMergeReadOnly">
+                            <a-input
+                              v-model:value="record.feeName"
+                              size="small"
+                              style="width: 100%;"
+                              @change="markDirty('fee')"
+                            ></a-input>
+                          </div>
+                          <div v-else>{{ record.feeName }}</div>
+                        </template>
+
+                        <template v-else-if="column.key === 'bizCategory'">
+                          <span style="font-size: 11px; color: #64748b;">{{ record.bizCategory || '综合服务' }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'settleClient'">
+                          <div v-if="!isMergeReadOnly">
+                            <a-input
+                              v-model:value="record.settleClient"
+                              size="small"
+                              style="width: 100%;"
+                              @change="markDirty('fee')"
+                            ></a-input>
+                          </div>
+                          <div v-else>{{ record.settleClient }}</div>
+                        </template>
+
+                        <template v-else-if="column.key === 'currency'">
+                          <a-tag color="purple">{{ record.currency }}</a-tag>
+                        </template>
+
+                        <template v-else-if="column.key === 'unitPrice'">
+                          <span style="font-family: 'JetBrains Mono', monospace;">¥{{ (record.unitPrice || 0).toFixed(2) }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'totalAmount'">
+                          <strong style="color: #dc2626; font-family: 'JetBrains Mono', monospace;">¥{{ (record.totalAmount || 0).toFixed(2) }}</strong>
+                        </template>
+
+                        <template v-else-if="column.key === 'amountNoTax'">
+                          <span style="color: #64748b; font-family: 'JetBrains Mono', monospace;">¥{{ (record.amountNoTax || 0).toFixed(2) }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'unitPriceNoTax'">
+                          <span style="color: #64748b; font-family: 'JetBrains Mono', monospace;">¥{{ (record.unitPriceNoTax || 0).toFixed(2) }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'statementNo'">
+                          <span style="font-size: 11px;">{{ record.statementNo || '--' }}</span>
+                        </template>
+
+                        <template v-else-if="column.key === 'applyPayAmount'">
+                          <span style="font-family: 'JetBrains Mono', monospace;">¥{{ (record.applyPayAmount || 0).toFixed(2) }}</span>
+                        </template>
+                      </template>
+                    </a-table>
+                  </div>
+
+                  <!-- 3. 底部浮动利润核算条 -->
+                  <div class="profit-summary-bar">
+                    <div class="profit-items">
+                      <div class="profit-item">
+                        <span>应收合计 (折合RMB):</span>
+                        <strong style="color: #38bdf8;">¥{{ totalReceivablesRmb.toFixed(2) }}</strong>
+                      </div>
+                      <div class="profit-item">
+                        <span>应付合计 (折合RMB):</span>
+                        <strong style="color: #f87171;">¥{{ totalPayablesRmb.toFixed(2) }}</strong>
+                      </div>
+                      <div class="profit-item">
+                        <span>预估毛利润:</span>
+                        <strong :style="{ color: netProfitRmb >= 0 ? '#4ade80' : '#f87171' }">
+                          ¥{{ netProfitRmb.toFixed(2) }}
+                        </strong>
+                      </div>
+                      <div class="profit-item">
+                        <span>毛利率:</span>
+                        <strong :style="{ color: netProfitMargin >= 0 ? '#4ade80' : '#f87171' }">
+                          {{ netProfitMargin }}%
+                        </strong>
+                      </div>
+                    </div>
+
+                    <span style="font-size: 11px; color: #94a3b8;">
+                      <iconify-icon icon="ant-design:info-circle-outlined"></iconify-icon>
+                      汇总计算含本票原费用与更改单费用 (合并模式下实时重算)
+                    </span>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- ================================================================
+                 TAB 3: 更改单 (Change Order)
+                 ================================================================ -->
+            <div v-show="activeTab === 'changeOrder'">
+              
+              <!-- 前置条件拦截态 (当原票费用未锁定时展示) -->
+              <div v-if="!currentData.isFeeLocked" class="co-precondition-alert" style="margin-bottom: 12px;">
+                <iconify-icon icon="ant-design:exclamation-circle-filled" style="font-size: 20px; color: #d97706;"></iconify-icon>
+                <div style="flex: 1;">
+                  <div style="font-size: 13px; font-weight: 700; margin-bottom: 4px;">
+                    更改单前置条件不足：本票原始费用尚未锁定
+                  </div>
+                  <div style="font-size: 12px; line-height: 1.6; color: #78350f;">
+                    根据财务核算规范，更改单专门用于在原票费用锁定后记录后续补充调账。当前本票尚未锁费，如需录入或修改费用，请直接前往「应收应付」页签录入原票费用并执行锁费。
+                  </div>
+                  <div style="margin-top: 8px;">
+                    <a-button size="small" type="primary" @click="activeTab = 'fee'">
+                      前往「应收应付」锁定费用
+                    </a-button>
+                    <a-button size="small" style="margin-left: 8px;" @click="simulateFeeLock">
+                      模拟立即锁费 (调试)
+                    </a-button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 更改单管理主工作区 (当费用已锁定时正常录入) -->
+              <div v-else>
+                <div class="co-header-toolbar">
+                  <a-space size="middle">
+                    <span style="font-weight: 600;">选择更改单:</span>
+                    <a-select v-model:value="selectedChangeOrderId" style="width: 260px;" @change="onChangeOrderSwitch">
+                      <a-select-option v-for="co in currentData.changeOrders" :key="co.id" :value="co.id">
+                        {{ co.code }} ({{ co.status }} - {{ co.period }})
+                      </a-select-option>
+                    </a-select>
+
+                    <a-button size="small" type="primary" ghost @click="createNewChangeOrder">
+                      <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                      + 新建更改单
+                    </a-button>
+                  </a-space>
+
+                  <!-- 更改单侧别切换 -->
+                  <a-radio-group v-model:value="currentCoSide" size="small" button-style="solid" @change="onCoSideChange">
+                    <a-radio-button value="receivable">应收调账侧 ({{ currentCoReceivables.length }} 笔)</a-radio-button>
+                    <a-radio-button value="payable">应付调账侧 ({{ currentCoPayables.length }} 笔)</a-radio-button>
+                  </a-radio-group>
+                </div>
+
+                <!-- 更改单主属性表单 -->
+                                <!-- 更改单财务影响实时指标条 (财务审计重点) -->
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 6px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 12px;">
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <span style="font-weight: 600; color: #1e40af; display: inline-flex; align-items: center; gap: 4px;">
+                      <iconify-icon icon="ant-design:calculator-outlined"></iconify-icon>
+                      本次更改单财务影响:
+                    </span>
+                    <span>应收调账: <strong style="color: #0284c7; font-family: monospace;">+¥{{ coReceivablesSum.toFixed(2) }}</strong></span>
+                    <span>应付调账: <strong style="color: #dc2626; font-family: monospace;">+¥{{ coPayablesSum.toFixed(2) }}</strong></span>
+                    <span>净调账毛利: <strong :style="{ color: (coReceivablesSum - coPayablesSum) >= 0 ? '#16a34a' : '#dc2626', fontFamily: 'monospace' }">{{ (coReceivablesSum - coPayablesSum) >= 0 ? '+' : '' }}¥{{ (coReceivablesSum - coPayablesSum).toFixed(2) }}</strong></span>
+                  </div>
+                  <span style="color: #64748b; font-size: 11px;">
+                    💡 财务规范：保存严格按单侧提交，请确保双侧调账均完成保存
+                  </span>
+                </div>
+
+                <div class="section-card" style="margin-bottom: 8px;">
+                  <div class="section-body">
+                    <div class="form-grid-4">
+                      <div class="form-item">
+                        <label class="form-label required">更改单号</label>
+                        <a-input v-model:value="activeCo.code" disabled ></a-input>
+                      </div>
+                      <div class="form-item">
+                        <label class="form-label required">所属会计期间</label>
+                        <a-input v-model:value="activeCo.period" placeholder="YYYY-MM" @change="markDirty('changeOrder')" ></a-input>
+                      </div>
+                      <div class="form-item col-span-2">
+                        <label class="form-label required">
+                          <span>更改原因说明</span>
+                          <span class="label-hint">必填，财务审计重点</span>
+                        </label>
+                        <a-input
+                          v-model:value="activeCo.reason"
+                          placeholder="详细说明本次调账原因 (如客户补收滞港费、船代追加换单费等)"
+                          @change="markDirty('changeOrder')"
+                        ></a-input>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 调账明细表格 -->
+                <div class="fee-table-container">
+                  <div class="fee-table-header">
+                    <span style="font-weight: 600;">
+                      ● {{ currentCoSide === 'receivable' ? '应收调账费用明细' : '应付调账费用明细' }}
+                    </span>
+                    <a-space size="small">
+                      <a-button size="small" type="primary" @click="addCoFeeRow">
+                        + 添加调账费用
+                      </a-button>
+                    </a-space>
+                  </div>
+
+                  <a-table
+                    :data-source="currentCoSide === 'receivable' ? currentCoReceivables : currentCoPayables"
+                    :columns="feeColumns.filter(c => c.key !== 'source')"
+                    :pagination="false"
+                    size="small"
+                    row-key="id"
+                    :scroll="{ x: 1400, y: 180 }"
+                  >
+                    <template #bodyCell="{ column, record, index }">
+                      <template v-if="column.key === 'index'">{{ index + 1 }}</template>
+                      <template v-else-if="column.key === 'feeName'">
+                        <a-input v-model:value="record.feeName" size="small" @change="markDirty('changeOrder')" ></a-input>
+                      </template>
+                      <template v-else-if="column.key === 'settleClient'">
+                        <a-input v-model:value="record.settleClient" size="small" @change="markDirty('changeOrder')" ></a-input>
+                      </template>
+                      <template v-else-if="column.key === 'currency'">
+                        <a-tag color="cyan">{{ record.currency }}</a-tag>
+                      </template>
+                      <template v-else-if="column.key === 'totalAmount'">
+                        <strong style="color: #0284c7; font-family: monospace;">{{ record.totalAmount.toFixed(2) }}</strong>
+                      </template>
+                    </template>
+                  </a-table>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ================================================================
+                 TAB 4: 附件管理 (Attachments)
+                 ================================================================ -->
+            <div v-show="activeTab === 'attachment'">
+              
+              <!-- 附件空态 1: 未配置类型 (配置空态 · 还原交接截图 06) -->
+              <div v-if="currentData.attachmentGroups.length === 0" class="attachment-empty-config">
+                <div style="font-size: 48px; color: #cbd5e1;">
+                  <iconify-icon icon="ant-design:folder-open-outlined"></iconify-icon>
+                </div>
+                <div style="font-size: 14px; font-weight: 600; color: #475569;">暂无附件类型配置</div>
+                <div style="font-size: 12px; color: #94a3b8; max-width: 400px; line-height: 1.6;">
+                  系统未预设本票业务的默认附件分类。您可以点击下方按钮临时添加分类，或联系系统管理员在「基础配置」中统一配置。
+                </div>
+                <a-button type="primary" @click="showAddTypeModal = true">
+                  <template #icon><iconify-icon icon="ant-design:plus-outlined"></iconify-icon></template>
+                  添加其他类型
+                </a-button>
+              </div>
+
+              <!-- 附件分类卡片列表 (已配置类型 · 正常管理态) -->
+              <div v-else class="attachment-grid">
+                <div v-for="grp in currentData.attachmentGroups" :key="grp.typeCode" class="attachment-group-card">
+                  <div class="group-header">
+                    <span style="display: inline-flex; align-items: center; gap: 6px;">
+                      <iconify-icon icon="ant-design:folder-outlined" style="color: #1677ff;"></iconify-icon>
+                      {{ grp.typeName }}
+                      <span v-if="grp.isRequired" style="color: #ef4444; font-size: 11px;">*必传</span>
+                    </span>
+                    <span style="font-size: 11px; color: #64748b;">{{ grp.files.length }} 份文件</span>
+                  </div>
+
+                  <!-- 拖拽上传区域 -->
+                  <div class="group-upload-dropzone" @click="simulateFileUpload(grp)">
+                    <iconify-icon icon="ant-design:cloud-upload-outlined" style="font-size: 20px; color: #1677ff; margin-bottom: 4px;"></iconify-icon>
+                    <div>点击或拖拽文件到此处上传</div>
+                    <div style="font-size: 11px; color: #94a3b8;">支持 PDF, JPG, PNG, XLSX (≤50MB)</div>
+                  </div>
+
+                  <!-- 文件列表 -->
+                  <div class="file-item-list">
+                    <div v-for="file in grp.files" :key="file.id" class="file-item-row">
+                      <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+                        <iconify-icon
+                          :icon="file.name.endsWith('.pdf') ? 'ant-design:file-pdf-outlined' : 'ant-design:file-image-outlined'"
+                          style="font-size: 16px; color: #0284c7; flex-shrink: 0;"
+                        ></iconify-icon>
+                        <div style="display: flex; flex-direction: column;">
+                          <span style="font-weight: 500; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 180px;">
+                            {{ file.name }}
+                          </span>
+                          <span style="font-size: 10px; color: #94a3b8;">
+                            {{ file.size }} · {{ file.uploadUser }} · {{ file.uploadTime }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <a-space size="small">
+                        <a-button type="link" size="small" style="padding: 0; font-size: 11px;" @click="previewFile(file)">
+                          预览
+                        </a-button>
+                        <a-popconfirm
+                          title="确认解除该附件与本票业务的关联？"
+                          ok-text="确认"
+                          cancel-text="取消"
+                          @confirm="deleteFile(grp, file)"
+                        >
+                          <a-button type="link" size="small" danger style="padding: 0; font-size: 11px;">
+                            删除
+                          </a-button>
+                        </a-popconfirm>
+                      </a-space>
+                    </div>
+
+                    <div v-if="grp.files.length === 0" style="text-align: center; font-size: 11px; color: #cbd5e1; padding: 12px 0;">
+                      该类型下暂无文件
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ====================================================================
+           交互弹窗合集 (Modals)
+           ==================================================================== -->
+
+      <!-- 弹窗 1: 复制业务确认弹窗 (还原交接截图 08 并优化) -->
+      <a-modal
+        v-model:open="showCopyModal"
+        title="复制综合业务"
+        width="520px"
+        ok-text="确定"
+        cancel-text="取消"
+        @ok="handleConfirmCopy"
+      >
+        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+          <iconify-icon icon="ant-design:exclamation-circle-filled" style="font-size: 22px; color: #f59e0b;"></iconify-icon>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; margin-bottom: 6px;">确认以当前业务为模板开新票？</div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 8px 12px; font-size: 12px; line-height: 1.8;">
+              <div><strong>源票委托编号:</strong> {{ currentData.commissionNum }}</div>
+              <div><strong>源票主提单号:</strong> {{ currentData.mblNum || '--' }}</div>
+              <div><strong>源票委托单位:</strong> {{ currentData.clientName }}</div>
+              <div><strong>源票合同号:</strong> {{ currentData.contractNum || '--' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <a-checkbox v-model:checked="copyOptions.includeFees" style="margin-left: 34px;">
+          同时复制原票费用 (仅复制当前用户有权查看的录入态费用)
+        </a-checkbox>
+
+        <div style="margin-left: 34px; margin-top: 8px; font-size: 11px; color: #64748b; line-height: 1.5;">
+          💡 复制将自动清空原主提单号、订舱号、发票号与原关联主单；若源票业务日期所在期间已结转，系统将按当前期间自动重算。
+        </div>
+      </a-modal>
+
+      <!-- 弹窗 2: 更改单单侧保存防丢二次确认弹窗 (解决交接说明 4.5/256 核心痛点) -->
+      <a-modal
+        v-model:open="showCoSaveConfirmModal"
+        title="⚠️ 更改单单侧保存提醒"
+        width="560px"
+        @ok="confirmSaveCoCurrentSide"
+      >
+        <div style="display: flex; gap: 12px;">
+          <iconify-icon icon="ant-design:warning-filled" style="font-size: 24px; color: #ea580c;"></iconify-icon>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+              检测到另一侧（{{ currentCoSide === 'receivable' ? '应付费用' : '应收费用' }}）存在未保存草稿！
+            </div>
+            <div style="font-size: 12px; color: #475569; line-height: 1.6;">
+              后端架构当前仅支持按单侧提交保存。点击确定后，系统将<strong>仅保存当前侧（{{ currentCoSide === 'receivable' ? '应收费用' : '应付费用' }}）</strong>，另一侧未保存的调账草稿可能会在后续重载中丢失！
+            </div>
+            <div style="margin-top: 10px; background: #fff7ed; border: 1px solid #fed7aa; padding: 8px 12px; border-radius: 4px; font-size: 12px; color: #c2410c;">
+              <strong>建议操作：</strong> 点击「返回切换保存」先保存另一侧费用，再返回保存本侧。
+            </div>
+          </div>
+        </div>
+        <template #footer>
+          <a-button @click="showCoSaveConfirmModal = false">返回先保存另一侧</a-button>
+          <a-button type="primary" danger @click="confirmSaveCoCurrentSide">确认仅保存当前侧</a-button>
+        </template>
+      </a-modal>
+
+      <!-- 弹窗 3: 添加其他附件类型弹窗 (还原交接截图 07) -->
+      <a-modal
+        v-model:open="showAddTypeModal"
+        title="添加其他类型"
+        width="480px"
+        ok-text="确定"
+        cancel-text="取消"
+        @ok="confirmAddAttachmentType"
+      >
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;">
+          选择未在默认展示中的附件类型，确认后将立即出现对应的文件上传与管理卡片。
+        </div>
+
+        <a-select
+          v-model:value="newSelectedTypeCode"
+          placeholder="请选择附件类型"
+          style="width: 100%;"
+        >
+          <a-select-option value="MBL">海运提单 (MBL / HBL)</a-select-option>
+          <a-select-option value="CUSTOMS_DOC">报关单据与放行通知</a-select-option>
+          <a-select-option value="PACKING_LIST">装箱单 (Packing List)</a-select-option>
+          <a-select-option value="INVOICE">商业发票 (Commercial Invoice)</a-select-option>
+          <a-select-option value="CARGO_PHOTO">货物监装与到库照片</a-select-option>
+          <a-select-option value="TRUCK_NOTE">派车单 / 签收回单</a-select-option>
+          <a-select-option value="OTHER">其他业务佐证资料</a-select-option>
+        </a-select>
+      </a-modal>
+
+      <!-- 弹窗 4: 未保存离开保护弹窗 -->
+      <a-modal
+        v-model:open="showUnsavedGuardModal"
+        title="⚠️ 离开保护：检测到未保存的数据改动"
+        width="540px"
+        @ok="handleDiscardAndLeave"
+      >
+        <div style="font-size: 13px; color: #334155; margin-bottom: 10px;">
+          当前业务票存在以下未提交到服务器的本地草稿：
+        </div>
+        <ul style="font-size: 12px; color: #dc2626; line-height: 1.8; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 8px 24px;">
+          <li v-if="dirtyStates.basic">基础信息：修改了船名/航次、件毛体或备注字段</li>
+          <li v-if="dirtyStates.fee">应收应付：存在新增未保存或编辑中的费用行</li>
+          <li v-if="dirtyStates.changeOrder">更改单：调账原因或更改明细未落库</li>
+        </ul>
+        <div style="font-size: 12px; color: #64748b; margin-top: 8px;">
+          直接离开将丢失上述未保存修改，是否确认放弃并离开？
+        </div>
+        <template #footer>
+          <a-button type="primary" @click="showUnsavedGuardModal = false">留在本页并保存</a-button>
+          <a-button danger @click="handleDiscardAndLeave">放弃修改并离开</a-button>
+        </template>
+      </a-modal>
+
+      <!-- 弹窗 5: 关联海运/件杂货主单选择器弹窗 -->
+      <a-modal
+        v-model:open="showRelateModal"
+        title="关联主单 (海运出口 / 海运进口 / 件杂货)"
+        width="680px"
+        ok-text="确定关联"
+        cancel-text="取消"
+        @ok="confirmRelateMasterOrder"
+      >
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
+          按委托编号或主提单号搜索本公司有权查看的主单业务（不包含空运或已删除单据）：
+        </div>
+        <a-input-search
+          v-model:value="relateSearchKeyword"
+          placeholder="输入委托编号或主提单号搜索..."
+          style="margin-bottom: 12px;"
+        ></a-input>
+        <a-table
+          :data-source="relatableOrderCandidates"
+          :columns="relateColumns"
+          :pagination="{ pageSize: 4 }"
+          size="small"
+          row-key="id"
+          :row-selection="{ type: 'radio', selectedRowKeys: [selectedRelateId], onChange: (keys) => selectedRelateId = keys[0] }"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'bizType'">
+              <a-tag color="blue">{{ record.bizType }}</a-tag>
+            </template>
+          </template>
+        </a-table>
+      </a-modal>
+
+      <!-- 弹窗 6: 收发通/长文本大字阅读与就地编辑弹窗 (遵循 antd-in-place-ux) -->
+      <a-modal
+        v-model:open="showTextViewerModal"
+        :title="textViewerTitle + ' · 全屏就地编辑'"
+        width="640px"
+        ok-text="确认回填并更新"
+        cancel-text="取消"
+        @ok="saveTextViewerContent"
+      >
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
+          您可以在此大文本视口中直接编辑长地址或抬头信息，确认后将直接就地回填至表单：
+        </div>
+        <a-textarea
+          v-model:value="textViewerContent"
+          :rows="7"
+          placeholder="请输入完整长文本..."
+          style="font-family: monospace; font-size: 13px; line-height: 1.6;"
+        ></a-textarea>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+          <span style="font-size: 11px; color: #94a3b8;">已录入 {{ (textViewerContent || '').length }} / 1024 字符</span>
+          <a-button size="small" type="link" @click="copyText(textViewerContent)">复制当前内容</a-button>
+        </div>
+      </a-modal>
+
+    </a-config-provider>
+  </div>
+
+  <!-- ====================================================================
+       Vue 3 组合式应用逻辑
+       ==================================================================== -->
+  <script>
+    const { createApp, ref, computed, reactive } = Vue;
+    const { message } = antd;
+
+    // 配置全局消息：最多单条展示，避免堆叠
+    message.config({
+      maxCount: 1,
+      duration: 2.5
+    });
+
+    // 默认高保真实测样本数据
+    const createMockSample = (mode = 'standard') => {
+      const isStandard = mode === 'standard';
+
+      return {
+        commissionNum: 'TEST130-0003',
+        mblNum: isStandard ? '测试GH130-未关联C' : '',
+        bookingNum: isStandard ? 'TEST130-C-BOOK' : '',
+        contractNum: isStandard ? 'TEST130-C-CONTRACT' : '',
+        customsInvNum: isStandard ? 'INV130-C' : '',
+        clientName: '测试459票结 测试1000459票结验证客户',
+        clientContact: isStandard ? '张主管 (13800000000)' : '',
+        orgName: '青岛佳越/管理部',
+        bizSource: '自揽货',
+        accountPeriod: '2026-11',
+        settleDate: '2026-11-15',
+        isAccountLocked: mode === 'lockedAccount',
+        isFeeLocked: mode === 'coUnlocked',
+        relatedOrder: isStandard ? {
+          bizType: '海运出口',
+          commissionNum: 'QD202611001',
+          clientName: '青岛远洋物流'
+        } : null,
+
+        // 运输与干系人
+        carrier: isStandard ? 'SITC' : undefined,
+        vessel: isStandard ? 'TEST130 UNLINKED' : '',
+        voyage: isStandard ? 'C-REPAIR01-OK' : '',
+        truckFleet: isStandard ? '海丰船代' : undefined,
+        insuranceCo: undefined,
+        customsBroker: undefined,
+        warehouse: undefined,
+        paymentTerm: '到付',
+        paymentPlace: isStandard ? 'QINGDAO' : '',
+        trafficTerm: 'CY-CY',
+        tradeTerm: 'FOB',
+        goodsType: '普通货',
+
+        // 危险品与冷藏明细
+        dgUnNo: 'UN 1993',
+        dgClass: '3 类易燃液体',
+        dgPkgGroup: 'PG II',
+        dgFlashPoint: '23°C',
+        rfTemperature: '-18.0',
+        rfVentilation: '15 CBM/H',
+        rfHumidity: '85%',
+        rfAlarmLimit: '±2.0°C',
+
+        // 收发通
+        shipperCompany: isStandard ? 'QINGDAO HAIER LOGISTICS CO., LTD.' : undefined,
+        shipperText: isStandard ? 'QINGDAO HAIER LOGISTICS CO., LTD.\nNO.1 HAIER ROAD, QINGDAO, CHINA\nTEL: +86-532-88930000\nTAX ID: 91370200718000000X' : '',
+        consigneeCompany: isStandard ? 'ROTTERDAM HARBOR LOGISTICS B.V.' : undefined,
+        consigneeText: isStandard ? 'ROTTERDAM HARBOR LOGISTICS B.V.\nMAASVLAKTE 2, ROTTERDAM, NETHERLANDS\nATTN: MR. VAN DER BERG' : '',
+        notifyCompany: isStandard ? 'SAME AS CONSIGNEE' : undefined,
+        notifyText: isStandard ? 'SAME AS CONSIGNEE' : '',
+
+        // 船期与港口
+        cargoReadyTime: isStandard ? '2026-11-09 23:20:19' : '',
+        etdDate: isStandard ? '2026-11-10' : '',
+        atdDate: isStandard ? '2026-11-10' : '',
+        etaDate: isStandard ? '2026-11-20' : '',
+        polPort: isStandard ? 'CNQDG - QINGDAO, CHINA' : undefined,
+        podPort: isStandard ? 'NLRTM - ROTTERDAM, NETHERLANDS' : undefined,
+
+        // 货物
+        goodsNameList: isStandard ? ['汽车零部件', '精密模具'] : [],
+        marks: isStandard ? 'HAIER-EU\nN/M' : '',
+        goodsDesc: isStandard ? 'AUTO SPARE PARTS & MOULDS' : '',
+        packageCount: isStandard ? 12 : null,
+        packageUnit: 'WOODEN BOXES',
+        grossWeight: isStandard ? 33.3000 : null,
+        volume: isStandard ? 4.5000 : null,
+        internalNotes: isStandard ? '注意本票为大客户特需换单，需提前放行并核实到款。' : '',
+        externalNotes: isStandard ? 'PLEASE RELEASE GOODS ONLY AGAINST ORIGINAL BILL OF LADING.' : '',
+
+        // 人员
+        salesUser: '张三 (佳越销售一部)',
+        opUser: '赵操作',
+        docUser: isStandard ? '周单证' : undefined,
+        csUser: isStandard ? '郑客服' : undefined,
+        commerceUser: undefined,
+
+        // 费用明细 (标准态有费用，空态无费用)
+        receivables: isStandard ? [
+          { id: 'R1', source: '本票', invoiceStatus: '已开票', currency: 'CNY', taxRate: 6, feeStatus: '已确认', feeName: '海运拖车费', bizCategory: '陆运拖车', settleClient: '测试459票结', exchangeRate: 1.0, unitPrice: 2200, totalAmount: 2200, amountNoTax: 2075.47, unit: '票', count: 1, unitPriceNoTax: 2075.47, statementNo: 'DZ202611-001', applyPayAmount: 0 },
+          { id: 'R2', source: '本票', invoiceStatus: '未开票', currency: 'CNY', taxRate: 6, feeStatus: '已确认', feeName: '代办报关费', bizCategory: '综合代理', settleClient: '测试459票结', exchangeRate: 1.0, unitPrice: 350, totalAmount: 350, amountNoTax: 330.19, unit: '票', count: 1, unitPriceNoTax: 330.19, statementNo: 'DZ202611-002', applyPayAmount: 0 }
+        ] : [],
+        payables: isStandard ? [
+          { id: 'P1', source: '本票', invoiceStatus: '未开票', currency: 'CNY', taxRate: 6, feeStatus: '已确认', feeName: '车队拖运成本', bizCategory: '陆运拖车', settleClient: '海丰船代', exchangeRate: 1.0, unitPrice: 1650, totalAmount: 1650, amountNoTax: 1556.60, unit: '票', count: 1, unitPriceNoTax: 1556.60, statementNo: 'FK202611-001', applyPayAmount: 1650 }
+        ] : [],
+
+        // 更改单
+        changeOrders: isStandard ? [
+          { id: 'CO1', code: 'CO20261106-001', status: '已生效', period: '2026-11', reason: '客户追加港区查验与消杀调车费' }
+        ] : [],
+
+        // 附件分组 (empty 模式为空)
+        attachmentGroups: isStandard ? [
+          {
+            typeCode: 'MBL',
+            typeName: '海运提单 (MBL / HBL)',
+            isRequired: true,
+            files: [
+              { id: 'F1', name: 'MBL-TESTGH130-SIGNED.pdf', size: '1.2 MB', uploadUser: '赵操作', uploadTime: '2026-11-06 14:20' }
+            ]
+          },
+          {
+            typeCode: 'CUSTOMS_DOC',
+            typeName: '报关单据与放行通知',
+            isRequired: false,
+            files: [
+              { id: 'F2', name: 'CUSTOMS-DECLARATION-130.pdf', size: '850 KB', uploadUser: '赵操作', uploadTime: '2026-11-06 15:10' }
+            ]
+          },
+          {
+            typeCode: 'PACKING_LIST',
+            typeName: '装箱单 (Packing List)',
+            isRequired: false,
+            files: []
+          }
+        ] : []
+      };
+    };
+
+    const app = createApp({
+      setup() {
+        // 沙盘与场景控制
+        const currentScenario = ref('standard');
+        const activeTab = ref('basic');
+        const isPartiesExpanded = ref(true);
+        const currentNoteTab = ref('internal');
+        const ticketIndex = ref(2);
+
+        // 核心表单与数据实体
+        const currentData = reactive(createMockSample('standard'));
+
+        // 草稿脏标记状态 (Dirty States)
+        const dirtyStates = reactive({
+          basic: false,
+          fee: false,
+          changeOrder: false
+        });
+
+        // 费用页交互状态
+        const isMergeChangeOrder = ref(false);
+        const selectedFeeRowKeys = ref([]);
+        const savingBasic = ref(false);
+
+        // 更改单交互状态
+        const currentCoSide = ref('receivable');
+        const selectedChangeOrderId = ref('CO1');
+        const activeCo = reactive({
+          id: 'CO1',
+          code: 'CO20261106-001',
+          period: '2026-11',
+          reason: '客户追加港区查验与消杀调车费'
+        });
+        const currentCoReceivables = ref([
+          { id: 'COR1', source: '更改单', invoiceStatus: '未开票', currency: 'CNY', taxRate: 6, feeStatus: '待审核', feeName: '追加海关查验费', bizCategory: '综合代理', settleClient: '测试459票结', exchangeRate: 1.0, unitPrice: 600, totalAmount: 600, amountNoTax: 566.04, unit: '票', count: 1, unitPriceNoTax: 566.04, statementNo: '--', applyPayAmount: 0 }
+        ]);
+        const currentCoPayables = ref([
+          { id: 'COP1', source: '更改单', invoiceStatus: '未开票', currency: 'CNY', taxRate: 6, feeStatus: '待审核', feeName: '港区查验车队待时费', bizCategory: '陆运拖车', settleClient: '海丰船代', exchangeRate: 1.0, unitPrice: 400, totalAmount: 400, amountNoTax: 377.36, unit: '票', count: 1, unitPriceNoTax: 377.36, statementNo: '--', applyPayAmount: 400 }
+        ]);
+
+        // 弹窗可见性
+        const showCopyModal = ref(false);
+        const showCoSaveConfirmModal = ref(false);
+        const showAddTypeModal = ref(false);
+        const showUnsavedGuardModal = ref(false);
+        const showRelateModal = ref(false);
+        const showTextViewerModal = ref(false);
+        const textViewerTitle = ref('');
+        const textViewerContent = ref('');
+
+        const newSelectedTypeCode = ref(undefined);
+        const relateSearchKeyword = ref('');
+        const selectedRelateId = ref('MO1');
+
+        // 复制弹窗表单
+        const copyOptions = reactive({
+          includeFees: false
+        });
+
+        // 关联主单候选列表
+        const relatableOrderCandidates = [
+          { id: 'MO1', bizType: '海运出口', commissionNum: 'QD202611001', mblNum: 'COSU63001928', clientName: '青岛远洋物流供应链有限公司', etd: '2026-11-12' },
+          { id: 'MO2', bizType: '海运进口', commissionNum: 'QD202611008', mblNum: 'MAEU91823719', clientName: '青岛海尔国际供应链', etd: '2026-11-14' },
+          { id: 'MO3', bizType: '件杂货', commissionNum: 'BB202611002', mblNum: 'SITC82736152', clientName: '山东重工进出口贸易', etd: '2026-11-18' }
+        ];
+
+        // 费用表格列定义 (100% 对齐原系统 18 列全景财务要素)
+        const feeColumns = computed(() => {
+          const cols = [
+            { title: '序号', key: 'index', width: 50, fixed: 'left', align: 'center' }
+          ];
+          if (isMergeChangeOrder.value) {
+            cols.push({ title: '来源', key: 'source', width: 95, fixed: 'left' });
+          }
+          cols.push(
+            { title: '开票状态', key: 'invoiceStatus', dataIndex: 'invoiceStatus', width: 85, align: 'center' },
+            { title: '币别', key: 'currency', dataIndex: 'currency', width: 65, align: 'center' },
+            { title: '税率%', key: 'taxRate', dataIndex: 'taxRate', width: 65, align: 'right' },
+            { title: '费用状态', key: 'feeStatus', dataIndex: 'feeStatus', width: 85, align: 'center' },
+            { title: '费用名称', key: 'feeName', dataIndex: 'feeName', width: 135 },
+            { title: '行业类型', key: 'bizCategory', dataIndex: 'bizCategory', width: 85, align: 'center' },
+            { title: '结算对象', key: 'settleClient', dataIndex: 'settleClient', width: 180 },
+            { title: '汇率', key: 'exchangeRate', dataIndex: 'exchangeRate', width: 65, align: 'right' },
+            { title: '含税单价', key: 'unitPrice', dataIndex: 'unitPrice', width: 95, align: 'right' },
+            { title: '含税金额', key: 'totalAmount', dataIndex: 'totalAmount', width: 105, align: 'right' },
+            { title: '不含税金额', key: 'amountNoTax', dataIndex: 'amountNoTax', width: 105, align: 'right' },
+            { title: '单位', key: 'unit', dataIndex: 'unit', width: 60, align: 'center' },
+            { title: '数量', key: 'count', dataIndex: 'count', width: 60, align: 'right' },
+            { title: '不含税单价', key: 'unitPriceNoTax', dataIndex: 'unitPriceNoTax', width: 95, align: 'right' },
+            { title: '对账单', key: 'statementNo', dataIndex: 'statementNo', width: 120 },
+            { title: '申请付款金额', key: 'applyPayAmount', dataIndex: 'applyPayAmount', width: 110, align: 'right' }
+          );
+          return cols;
+        });
+
+        // 关联候选列表列
+        const relateColumns = [
+          { title: '业务类型', key: 'bizType', dataIndex: 'bizType', width: 90 },
+          { title: '委托编号', key: 'commissionNum', dataIndex: 'commissionNum', width: 130 },
+          { title: '主提单号', key: 'mblNum', dataIndex: 'mblNum', width: 130 },
+          { title: '委托单位', key: 'clientName', dataIndex: 'clientName' },
+          { title: '开船日期', key: 'etd', dataIndex: 'etd', width: 100 }
+        ];
+
+        // 计算属性
+        const isTicketLocked = computed(() => currentData.isAccountLocked);
+        const isMergeReadOnly = computed(() => isMergeChangeOrder.value);
+
+        const totalAttachmentCount = computed(() => {
+          return currentData.attachmentGroups.reduce((acc, grp) => acc + grp.files.length, 0);
+        });
+
+        const partiesSummary = computed(() => {
+          const sLen = currentData.shipperText ? currentData.shipperText.length : 0;
+          const cLen = currentData.consigneeText ? currentData.consigneeText.length : 0;
+          const nLen = currentData.notifyText ? currentData.notifyText.length : 0;
+          return `(发货人: ${sLen > 0 ? '已填 ' + sLen + ' 字' : '待录入'} | 收货人: ${cLen > 0 ? '已填 ' + cLen + ' 字' : '待录入'} | 通知人: ${nLen > 0 ? '已填 ' + nLen + ' 字' : '同收货人'})`;
+        });
+
+        // 利润汇总计算
+        const totalReceivablesRmb = computed(() => {
+          let sum = currentData.receivables.reduce((acc, r) => acc + (r.totalAmount * r.exchangeRate), 0);
+          if (isMergeChangeOrder.value) {
+            sum += currentCoReceivables.value.reduce((acc, r) => acc + (r.totalAmount * r.exchangeRate), 0);
+          }
+          return sum;
+        });
+
+        const totalPayablesRmb = computed(() => {
+          let sum = currentData.payables.reduce((acc, p) => acc + (p.totalAmount * p.exchangeRate), 0);
+          if (isMergeChangeOrder.value) {
+            sum += currentCoPayables.value.reduce((acc, p) => acc + (p.totalAmount * p.exchangeRate), 0);
+          }
+          return sum;
+        });
+
+        const netProfitRmb = computed(() => totalReceivablesRmb.value - totalPayablesRmb.value);
+
+                const coReceivablesSum = computed(() => {
+          return currentCoReceivables.value.reduce((acc, r) => acc + (r.totalAmount * r.exchangeRate), 0);
+        });
+
+        const coPayablesSum = computed(() => {
+          return currentCoPayables.value.reduce((acc, p) => acc + (p.totalAmount * p.exchangeRate), 0);
+        });
+
+        const netProfitMargin = computed(() => {
+          if (totalReceivablesRmb.value === 0) return 0;
+          return ((netProfitRmb.value / totalReceivablesRmb.value) * 100).toFixed(1);
+        });
+
+        // 场景切换
+        const onScenarioChange = (e) => {
+          const val = e.target.value;
+          currentScenario.value = val;
+
+          if (val === 'standard') {
+            Object.assign(currentData, createMockSample('standard'));
+            isMergeChangeOrder.value = false;
+            activeTab.value = 'basic';
+          } else if (val === 'empty') {
+            Object.assign(currentData, createMockSample('empty'));
+            isMergeChangeOrder.value = false;
+            activeTab.value = 'basic';
+          } else if (val === 'feeMerge') {
+            Object.assign(currentData, createMockSample('standard'));
+            activeTab.value = 'fee';
+            isMergeChangeOrder.value = true;
+          } else if (val === 'coBlocked') {
+            Object.assign(currentData, createMockSample('standard'));
+            currentData.isFeeLocked = false;
+            activeTab.value = 'changeOrder';
+          } else if (val === 'coUnlocked') {
+            Object.assign(currentData, createMockSample('standard'));
+            currentData.isFeeLocked = true;
+            activeTab.value = 'changeOrder';
+          } else if (val === 'attachEmpty') {
+            Object.assign(currentData, createMockSample('standard'));
+            currentData.attachmentGroups = [];
+            activeTab.value = 'attachment';
+          } else if (val === 'lockedAccount') {
+            Object.assign(currentData, createMockSample('lockedAccount'));
+            activeTab.value = 'basic';
+          }
+          resetDirty();
+          message.info(`已切换至: ${getScenarioName(val)}`);
+        };
+
+        const getScenarioName = (key) => {
+          const map = {
+            standard: '场景1: 完整录入标准态',
+            empty: '场景2: 实测空数据样本 (TEST130-0003)',
+            feeMerge: '场景3: 费用合并更改单只读态',
+            coBlocked: '场景4: 更改单前置未锁拦截态',
+            coUnlocked: '场景5: 更改单录入态',
+            attachEmpty: '场景6: 附件未配置类型态',
+            lockedAccount: '场景7: 财务锁账受限态'
+          };
+          return map[key] || key;
+        };
+
+        // 脏数据标记
+        const markDirty = (module) => {
+          dirtyStates[module] = true;
+        };
+        const resetDirty = () => {
+          dirtyStates.basic = false;
+          dirtyStates.fee = false;
+          dirtyStates.changeOrder = false;
+        };
+
+        // 页签切换保护
+        const switchTab = (tab) => {
+          activeTab.value = tab;
+        };
+
+        // 重新生成委托编号
+        const regenerateCommissionNum = () => {
+          const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+          currentData.commissionNum = `TEST130-${randomSuffix}`;
+          message.success(`委托编号已重新生成并保存落库: ${currentData.commissionNum}`);
+        };
+
+        // 解除主单关联
+        const unlinkMasterOrder = () => {
+          currentData.relatedOrder = null;
+          markDirty('basic');
+          message.warning('已解除与海运主单的关联，请点击「保存基础信息」生效。');
+        };
+
+        // 保存基础信息
+        const saveBasicInfo = () => {
+          savingBasic.value = true;
+          setTimeout(() => {
+            savingBasic.value = false;
+            dirtyStates.basic = false;
+            message.success('基础信息已成功保存落库！');
+          }, 400);
+        };
+
+        const revertBasicChanges = () => {
+          Object.assign(currentData, createMockSample(currentScenario.value));
+          dirtyStates.basic = false;
+          message.info('已恢复至本次打开时的原始数据。');
+        };
+
+        // 货物类型切换
+        const onGoodsTypeChange = (val) => {
+          markDirty('basic');
+          if (val === '危险品') {
+            message.info('已展开危险品 (DG) 专项申报参数');
+          } else if (val === '冷藏') {
+            message.info('已展开冷藏集装参数');
+          }
+        };
+
+        // 销售变更联动
+        const onSalesUserChange = (val) => {
+          markDirty('basic');
+          message.info(`销售已变更为 ${val}，系统已自动重算直属组织候选范围`);
+        };
+
+        // 委托单位变更联动
+        const onClientChange = (val) => {
+          markDirty('basic');
+          currentData.clientContact = '李经理 (13900001111)';
+          message.info(`委托单位已变更为 ${val}，默认联系人已联动`);
+        };
+
+        // 费用页交互
+        const onToggleMergeMode = () => {
+          if (isMergeChangeOrder.value) {
+            message.warning('已开启「合并更改单·只读」模式，所有费用行只读保护。');
+          } else {
+            message.success('已恢复原票费用独立编辑模式。');
+          }
+        };
+
+        const onFeeSelectChange = (keys) => {
+          selectedFeeRowKeys.value = keys;
+        };
+
+        const addFeeRow = (type) => {
+          const newRow = {
+            id: 'F_' + Date.now(),
+            source: '本票',
+            feeName: '新增杂费项',
+            settleClient: currentData.clientName || '待指定',
+            currency: 'CNY',
+            exchangeRate: 1.0,
+            unitPrice: 100,
+            count: 1,
+            unit: '票',
+            totalAmount: 100,
+            taxRate: 6
+          };
+          if (type === 'receivable') {
+            currentData.receivables.push(newRow);
+          } else {
+            currentData.payables.push(newRow);
+          }
+          markDirty('fee');
+          message.success('已新增费用行，请填入明细后保存');
+        };
+
+        const copyFeeRows = (type) => {
+          message.success(`已复制 ${selectedFeeRowKeys.value.length} 笔费用行`);
+          selectedFeeRowKeys.value = [];
+        };
+
+        const deleteFeeRows = (type) => {
+          if (type === 'receivable') {
+            currentData.receivables = currentData.receivables.filter(r => !selectedFeeRowKeys.value.includes(r.id));
+          } else {
+            currentData.payables = currentData.payables.filter(p => !selectedFeeRowKeys.value.includes(p.id));
+          }
+          selectedFeeRowKeys.value = [];
+          markDirty('fee');
+          message.success('已删除选中费用');
+        };
+
+        const saveFeeSide = (side) => {
+          dirtyStates.fee = false;
+          message.success(`保存成功：${side === 'receivable' ? '应收费用' : '应付费用'}已落库。`);
+        };
+
+        // 更改单单侧保存防丢机制 (交互核心创新点)
+        const saveChangeOrderSafeguard = () => {
+          // 检查另一侧是否有未保存数据
+          const otherSideDirty = true; // 模拟检测到另一侧有草稿
+          if (otherSideDirty) {
+            showCoSaveConfirmModal.value = true;
+          } else {
+            confirmSaveCoCurrentSide();
+          }
+        };
+
+        const confirmSaveCoCurrentSide = () => {
+          showCoSaveConfirmModal.value = false;
+          dirtyStates.changeOrder = false;
+          message.success(`已保存当前侧 (${currentCoSide.value === 'receivable' ? '应收调账' : '应付调账'}) 费用！`);
+        };
+
+        const onChangeOrderSwitch = (id) => {
+          message.info(`已切换查看更改单: ${id}`);
+        };
+
+        const createNewChangeOrder = () => {
+          message.success('已新建更改单草稿 CO20261106-002，请录入原因与调账费用');
+        };
+
+        const addCoFeeRow = () => {
+          const row = {
+            id: 'COR_' + Date.now(),
+            feeName: '追加特殊作业费',
+            settleClient: currentData.clientName,
+            currency: 'CNY',
+            exchangeRate: 1.0,
+            unitPrice: 500,
+            count: 1,
+            unit: '票',
+            totalAmount: 500,
+            taxRate: 6
+          };
+          if (currentCoSide.value === 'receivable') {
+            currentCoReceivables.value.push(row);
+          } else {
+            currentCoPayables.value.push(row);
+          }
+          markDirty('changeOrder');
+        };
+
+        const onCoSideChange = () => {
+          // 切换更改单侧别
+        };
+
+        const simulateFeeLock = () => {
+          currentData.isFeeLocked = true;
+          message.success('模拟费用锁定成功！现可添加更改单。');
+        };
+
+        // 附件交互
+        const confirmAddAttachmentType = () => {
+          if (!newSelectedTypeCode.value) {
+            message.warning('请先选择要添加的附件类型');
+            return;
+          }
+          const names = {
+            MBL: '海运提单 (MBL / HBL)',
+            CUSTOMS_DOC: '报关单据与放行通知',
+            PACKING_LIST: '装箱单 (Packing List)',
+            INVOICE: '商业发票 (Commercial Invoice)',
+            CARGO_PHOTO: '货物监装与到库照片',
+            TRUCK_NOTE: '派车单 / 签收回单',
+            OTHER: '其他业务佐证资料'
+          };
+          currentData.attachmentGroups.push({
+            typeCode: newSelectedTypeCode.value,
+            typeName: names[newSelectedTypeCode.value] || newSelectedTypeCode.value,
+            isRequired: false,
+            files: []
+          });
+          showAddTypeModal.value = false;
+          newSelectedTypeCode.value = undefined;
+          message.success('已成功添加附件类型，现可上传文件');
+        };
+
+        const simulateFileUpload = (grp) => {
+          const newFile = {
+            id: 'F_' + Date.now(),
+            name: `${grp.typeCode}_DOC_${Math.floor(100 + Math.random() * 900)}.pdf`,
+            size: '1.4 MB',
+            uploadUser: '赵操作',
+            uploadTime: '2026-11-06 16:30'
+          };
+          grp.files.push(newFile);
+          message.success(`文件 ${newFile.name} 上传成功并已关联至本票业务！`);
+        };
+
+        const deleteFile = (grp, file) => {
+          grp.files = grp.files.filter(f => f.id !== file.id);
+          message.success(`已解除文件 ${file.name} 与本票的关联`);
+        };
+
+        const previewFile = (file) => {
+          message.info(`正在打开文件预览: ${file.name}`);
+        };
+
+        // 复制弹窗交互
+        const handleConfirmCopy = () => {
+          showCopyModal.value = false;
+          message.loading({ content: '正在以本票为模板创建新业务...', key: 'copyMsg' });
+          setTimeout(() => {
+            message.success({ content: '复制成功！已生成新票 TEST130-9901 并打开。', key: 'copyMsg', duration: 3 });
+          }, 600);
+        };
+
+        // 离开保护测试
+        const triggerUnsavedGuard = () => {
+          dirtyStates.basic = true;
+          dirtyStates.fee = true;
+          showUnsavedGuardModal.value = true;
+        };
+
+        const handleDiscardAndLeave = () => {
+          showUnsavedGuardModal.value = false;
+          resetDirty();
+          message.info('已放弃所有未保存修改并退出。');
+        };
+
+        // 关联主单弹窗确认
+        const confirmRelateMasterOrder = () => {
+          const match = relatableOrderCandidates.find(o => o.id === selectedRelateId.value);
+          if (match) {
+            currentData.relatedOrder = {
+              bizType: match.bizType,
+              commissionNum: match.commissionNum,
+              clientName: match.clientName
+            };
+            markDirty('basic');
+            showRelateModal.value = false;
+            message.success(`已成功关联主单 ${match.commissionNum}，点击「保存基础信息」生效。`);
+          }
+        };
+
+        const textViewerField = ref('');
+        // 文本大字查看与就地编辑
+        const openTextViewer = (title, content, fieldName) => {
+          textViewerTitle.value = title;
+          textViewerContent.value = content || '';
+          textViewerField.value = fieldName || '';
+          showTextViewerModal.value = true;
+        };
+
+        const saveTextViewerContent = () => {
+          if (textViewerField.value && currentData[textViewerField.value] !== undefined) {
+            currentData[textViewerField.value] = textViewerContent.value;
+            markDirty('basic');
+            message.success();
+          }
+          showTextViewerModal.value = false;
+        };
+
+        const copyText = (txt) => {
+          if (!txt) {
+            message.warning('暂无内容可复制');
+            return;
+          }
+          navigator.clipboard.writeText(txt).then(() => {
+            message.success('已复制到剪贴板！');
+          }).catch(() => {
+            message.success('复制成功！');
+          });
+        };
+
+        const setNotifySameAsConsignee = () => {
+          currentData.notifyCompany = currentData.consigneeCompany;
+          currentData.notifyText = currentData.consigneeText;
+          markDirty('basic');
+          message.info('通知人已自动同步为收货人内容');
+        };
+
+        // 翻票
+        const prevTicket = () => {
+          if (ticketIndex.value > 1) {
+            ticketIndex.value--;
+            message.info(`已切换至上一票 (第 ${ticketIndex.value}/18 票)`);
+          }
+        };
+        const nextTicket = () => {
+          if (ticketIndex.value < 18) {
+            ticketIndex.value++;
+            message.info(`已切换至下一票 (第 ${ticketIndex.value}/18 票)`);
+          }
+        };
+
+        const resetCurrentData = () => {
+          Object.assign(currentData, createMockSample(currentScenario.value));
+          resetDirty();
+          message.success('沙盘数据已重置');
+        };
+
+        const openContactSelect = () => {
+          message.info('客户档案联系人选择弹窗');
+        };
+
+        const openGoodsSelector = () => {
+          message.info('品名商品资料选择器');
+        };
+
+        return {
+          currentScenario,
+          activeTab,
+          isPartiesExpanded,
+          currentNoteTab,
+          ticketIndex,
+          currentData,
+          dirtyStates,
+          isMergeChangeOrder,
+          selectedFeeRowKeys,
+          savingBasic,
+          currentCoSide,
+          selectedChangeOrderId,
+          activeCo,
+          currentCoReceivables,
+          currentCoPayables,
+          showCopyModal,
+          showCoSaveConfirmModal,
+          showAddTypeModal,
+          showUnsavedGuardModal,
+          showRelateModal,
+          showTextViewerModal,
+          textViewerTitle,
+          textViewerContent,
+          newSelectedTypeCode,
+          relateSearchKeyword,
+          selectedRelateId,
+          copyOptions,
+          relatableOrderCandidates,
+          feeColumns,
+          relateColumns,
+          isTicketLocked,
+          isMergeReadOnly,
+          totalAttachmentCount,
+          partiesSummary,
+          totalReceivablesRmb,
+          totalPayablesRmb,
+          netProfitRmb,
+          netProfitMargin,
+          coReceivablesSum,
+          coPayablesSum,
+          saveTextViewerContent,
+          onScenarioChange,
+          markDirty,
+          switchTab,
+          regenerateCommissionNum,
+          unlinkMasterOrder,
+          saveBasicInfo,
+          revertBasicChanges,
+          onGoodsTypeChange,
+          onSalesUserChange,
+          onClientChange,
+          onToggleMergeMode,
+          onFeeSelectChange,
+          addFeeRow,
+          copyFeeRows,
+          deleteFeeRows,
+          saveFeeSide,
+          saveChangeOrderSafeguard,
+          confirmSaveCoCurrentSide,
+          onChangeOrderSwitch,
+          createNewChangeOrder,
+          addCoFeeRow,
+          onCoSideChange,
+          simulateFeeLock,
+          confirmAddAttachmentType,
+          simulateFileUpload,
+          deleteFile,
+          previewFile,
+          handleConfirmCopy,
+          triggerUnsavedGuard,
+          handleDiscardAndLeave,
+          confirmRelateMasterOrder,
+          openTextViewer,
+          copyText,
+          setNotifySameAsConsignee,
+          prevTicket,
+          nextTicket,
+          resetCurrentData,
+          openContactSelect,
+          openGoodsSelector
+        };
+      }
+    });
+
+    app.use(antd);
+    app.mount('#app');
+  </script>
+</body>
+</html>

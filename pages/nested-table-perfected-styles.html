@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>嵌套表格终极重塑：去套娃·高级平整·保留清淡渐变色</title>
+  
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    
+    body {
+      background: #f1f5f9;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+      margin: 0;
+      padding: 24px 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page-wrap {
+      max-width: 1420px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .header-panel {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .header-panel h1 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .header-panel p {
+      margin: 0;
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* 方案大卡片 */
+    .showcase-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(15,23,42,0.03);
+      overflow: hidden;
+    }
+
+    .showcase-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .showcase-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .showcase-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .showcase-pill {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 7px;
+      border-radius: 3px;
+      background: #e6f4ff;
+      color: #0958d9;
+      border: 1px solid #bae0ff;
+    }
+
+    .showcase-summary {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    /* 基础表格规范 */
+    .base-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .base-table th,
+    .base-table td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mono-num {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      text-align: right;
+    }
+
+    .link-order {
+      color: #1677ff;
+      text-decoration: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .link-order:hover {
+      text-decoration: underline;
+    }
+
+    /* AntD 原生方角折叠小钮 (16×16px) */
+    .antd-square-toggle {
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border: 1px solid #d9d9d9;
+      border-radius: 3px;
+      background: #ffffff;
+      color: #595959;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.2s ease;
+    }
+    .antd-square-toggle:hover {
+      border-color: #1677ff;
+      color: #1677ff;
+    }
+    .antd-square-toggle.is-expanded {
+      background: #e6f4ff;
+      border-color: #91caff;
+      color: #1677ff;
+    }
+
+    /* 状态与收付徽标 */
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+    }
+    .status-tag::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .status-tag.warn { color: #b45309; }
+    .status-tag.warn::before { background: #fa8c16; }
+    .status-tag.success { color: #15803d; }
+    .status-tag.success::before { background: #52c41a; }
+
+    .tag-pay {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 5px;
+      height: 19px;
+      line-height: 17px;
+      border-radius: 3px;
+      font-size: 11px;
+      background: #fff1f0;
+      color: #cf1322;
+      border: 1px solid #ffa39e;
+    }
+
+    .seq-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .seq-cell input[type="checkbox"] {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    /* =========================================================================
+       方案 A：【Ant Design Pro 官方正统·无框满宽沉浸流 (Official Flush Inset)】⭐️⭐️⭐️
+       - 彻底删除套娃卡片外壳！右侧完全满宽平齐；
+       - 父行展开时底色为淡雅微光蓝渐变（#f0f7ff -> #f6faff）；
+       - 子表头背景采用微蓝灰 #edf3fa，首列自然缩进 44px 对齐外层展开列；
+       - 子行纯白紧凑（32px），下边沿无缝衔接，极为通透高级。
+       ========================================================================= */
+    .proto-a > thead > tr > th {
+      height: 38px;
+      padding: 0 10px;
+      background: linear-gradient(180deg, #f8faff 0%, #edf3fa 100%);
+      color: #334155;
+      font-weight: 600;
+      border-bottom: 1px solid #dbeafe;
+      text-align: left;
+    }
+
+    .proto-a > tbody > .outer-row > td {
+      height: 40px;
+      padding: 0 10px;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.15s ease;
+    }
+    .proto-a > tbody > .outer-row:hover > td {
+      background: #f8fbff;
+    }
+
+    .proto-a > tbody > .outer-row.is-open > td {
+      background: #f0f7ff !important;
+      border-top: 1px solid #cfe2fe;
+      border-bottom: 1px solid #e0edfe;
+    }
+    .proto-a > tbody > .outer-row.is-open > td:first-child {
+      border-left: 3px solid #1677ff; /* 品牌聚焦指示线 */
+    }
+
+    .proto-a .expand-cell {
+      padding: 0 !important; /* 满宽，零左右内边距，告别缝隙 */
+      background: #f8fbff;
+      border-left: 3px solid #1677ff;
+      border-bottom: 1px solid #dbeafe;
+    }
+
+    .proto-a-sub {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .proto-a-sub th {
+      height: 30px;
+      padding: 0 8px;
+      background: #edf4fa;
+      color: #475569;
+      font-size: 11.5px;
+      font-weight: 600;
+      border-bottom: 1px solid #dbeafe;
+      text-align: left;
+    }
+    .proto-a-sub th:first-child,
+    .proto-a-sub td:first-child {
+      padding-left: 44px; /* 精准对齐父表数据列 */
+    }
+    .proto-a-sub td {
+      height: 32px;
+      padding: 0 8px;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12px;
+    }
+    .proto-a-sub tr:hover td {
+      background: #f0f7ff;
+    }
+    .proto-a-sub tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* =========================================================================
+       方案 B：【财务全景连体账页 (Integrated Financial Sub-Sheet)】
+       - 满宽平铺，中间一道 25px 纤细雅致过渡小标尺，标出明细笔数与小计；
+       - 严谨的财务对账感。
+       ========================================================================= */
+    .proto-b > thead > tr > th {
+      height: 38px;
+      padding: 0 10px;
+      background: linear-gradient(180deg, #f8faff 0%, #edf3fa 100%);
+      color: #334155;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    .proto-b > tbody > .outer-row > td {
+      height: 40px;
+      padding: 0 10px;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .proto-b > tbody > .outer-row.is-open > td {
+      background: #f0f7ff !important;
+      border-bottom: 1px solid transparent;
+      font-weight: 500;
+    }
+
+    .proto-b .expand-cell {
+      padding: 0 !important;
+      background: #ffffff;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .proto-b-ribbon {
+      height: 25px;
+      padding: 0 12px 0 44px;
+      background: #eef4fc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #475569;
+      border-top: 1px solid #dbeafe;
+      border-bottom: 1px solid #dbeafe;
+    }
+
+    .proto-b-sub {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .proto-b-sub th {
+      height: 28px;
+      padding: 0 8px;
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .proto-b-sub th:first-child,
+    .proto-b-sub td:first-child {
+      padding-left: 44px;
+    }
+    .proto-b-sub td {
+      height: 32px;
+      padding: 0 8px;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12px;
+    }
+    .proto-b-sub tr:hover td {
+      background: #f8fbff;
+    }
+
+    /* =========================================================================
+       方案 C：【纯平极简骨架·Linear 工程师审美 (Linear Precision Grid)】
+       - 零彩色边框，靠中性微凹槽冷灰色阶（#f8fafc）自然下沉；
+       - 极致克制耐看，完全杜绝视觉疲劳。
+       ========================================================================= */
+    .proto-c > thead > tr > th {
+      height: 38px;
+      padding: 0 10px;
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    .proto-c > tbody > .outer-row > td {
+      height: 40px;
+      padding: 0 10px;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .proto-c > tbody > .outer-row.is-open > td {
+      background: #ffffff !important;
+      border-bottom: 1px solid #cbd5e1;
+      font-weight: 600;
+    }
+
+    .proto-c .expand-cell {
+      padding: 0 !important;
+      background: #f8fafc;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .proto-c-sub {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .proto-c-sub th {
+      height: 28px;
+      padding: 0 8px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .proto-c-sub th:first-child,
+    .proto-c-sub td:first-child {
+      padding-left: 44px;
+    }
+    .proto-c-sub td {
+      height: 32px;
+      padding: 0 8px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 12px;
+    }
+    .proto-c-sub tr:hover td {
+      background: #eef2f6;
+    }
+    .proto-c-sub tr:last-child td {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    
+    <div class="header-panel">
+      <h1>嵌套表格 3 款终极重塑方案：保留清淡渐变色 · 彻底解决“太丑/套娃”</h1>
+      <p>采纳了您的反馈（<b>保留清淡渐变色，去除臃肿套娃感</b>）：彻底删掉生硬的“单据档案卡片头”和层层嵌套的厚框，右侧满宽齐整无缝隙，回归纯正、开阔、干练的高级企业级表格形态。</p>
+    </div>
+
+    <!-- 方案 A：Ant Design Pro 官方正统·无框满宽沉浸流 -->
+    <div class="showcase-card">
+      <div class="showcase-header">
+        <div class="showcase-title-group">
+          <div class="showcase-title">
+            <iconify-icon icon="ant-design:layout-outlined" style="color: #1677ff; font-size: 16px;"></iconify-icon>
+            方案 A：【Ant Design Pro 官方正统·无框满宽沉浸流】（⭐️ 强烈推荐首选）
+          </div>
+          <span class="showcase-pill">彻底去套娃卡片·满宽平整</span>
+        </div>
+        <div class="showcase-summary">
+          <b>去丑核心</b>：彻底删掉中间生硬的“单据档案卡片头”！右侧满宽齐整无缝隙。父行展开浅蓝微光（#f0f7ff），子表直接以首列缩进 44px 展开，干净利落。
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="base-table proto-a">
+          <thead>
+            <tr>
+              <th style="width: 36px; text-align: center;"></th>
+              <th style="width: 50px;">序号</th>
+              <th style="width: 130px;">主提单号</th>
+              <th style="width: 90px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 80px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 父行 1 (展开态) -->
+            <tr class="outer-row is-open">
+              <td style="text-align: center;">
+                <button type="button" class="antd-square-toggle is-expanded" title="收起">
+                  <iconify-icon icon="ant-design:minus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>
+                <div class="seq-cell">
+                  <input type="checkbox" checked />
+                  <span>1</span>
+                </div>
+              </td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="status-tag warn">未结算</span></td>
+              <td><a class="link-order">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="mono-num" style="color: #1677ff; font-weight: 600;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <!-- 托盘 (满宽平整，无右侧缝隙，无多余卡片) -->
+            <tr>
+              <td colspan="9" class="expand-cell">
+                <table class="proto-a-sub">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px;"><input type="checkbox" checked /></th>
+                      <th style="width: 40px;">序号</th>
+                      <th style="width: 50px;">收付</th>
+                      <th style="width: 130px;">费用名称</th>
+                      <th style="width: 80px;">原始币别</th>
+                      <th style="width: 110px; text-align: right;">原始金额</th>
+                      <th style="width: 90px; text-align: right;">原始汇率</th>
+                      <th style="width: 110px; text-align: right;">已核销金额</th>
+                      <th style="width: 120px; text-align: right;">本次申请金额</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><input type="checkbox" checked /></td>
+                      <td>1</td>
+                      <td><span class="tag-pay">应付</span></td>
+                      <td><b>驳船费</b></td>
+                      <td>RMB</td>
+                      <td class="mono-num">60.00</td>
+                      <td class="mono-num">1.0000</td>
+                      <td class="mono-num">0.00</td>
+                      <td class="mono-num" style="color: #1677ff; font-weight: 600;">¥ 1.00</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>2</td>
+                      <td><span class="tag-pay">应付</span></td>
+                      <td><b>港杂费</b></td>
+                      <td>RMB</td>
+                      <td class="mono-num">120.00</td>
+                      <td class="mono-num">1.0000</td>
+                      <td class="mono-num">0.00</td>
+                      <td class="mono-num" style="color: #475569;">¥ 0.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            <!-- 父行 2 (收起态) -->
+            <tr class="outer-row">
+              <td style="text-align: center;">
+                <button type="button" class="antd-square-toggle" title="展开">
+                  <iconify-icon icon="ant-design:plus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>
+                <div class="seq-cell">
+                  <input type="checkbox" />
+                  <span>2</span>
+                </div>
+              </td>
+              <td>MSKU9821371</td>
+              <td><span class="status-tag success">已结算</span></td>
+              <td><a class="link-order">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="mono-num" style="font-weight: 600;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 方案 B：财务全景连体账页 -->
+    <div class="showcase-card">
+      <div class="showcase-header">
+        <div class="showcase-title-group">
+          <div class="showcase-title">
+            <iconify-icon icon="ant-design:account-book-outlined" style="color: #0958d9; font-size: 16px;"></iconify-icon>
+            方案 B：【财务全景连体账页 (Integrated Financial Sub-Sheet)】
+          </div>
+          <span class="showcase-pill" style="background: #f0fdf4; color: #15803d; border-color: #bbf7d0;">满宽连贯·财务严谨</span>
+        </div>
+        <div class="showcase-summary">
+          <b>去丑核心</b>：满宽平铺，中间仅隔一条 25px 纤细雅致浅蓝小标尺（标明子项数量与小计），犹如一本连贯的现代财务账册。
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="base-table proto-b">
+          <thead>
+            <tr>
+              <th style="width: 36px; text-align: center;"></th>
+              <th style="width: 50px;">序号</th>
+              <th style="width: 130px;">主提单号</th>
+              <th style="width: 90px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 80px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 父行 1 (展开态) -->
+            <tr class="outer-row is-open">
+              <td style="text-align: center;">
+                <button type="button" class="antd-square-toggle is-expanded" title="收起">
+                  <iconify-icon icon="ant-design:minus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>
+                <div class="seq-cell">
+                  <input type="checkbox" checked />
+                  <span>1</span>
+                </div>
+              </td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="status-tag warn">未结算</span></td>
+              <td><a class="link-order">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="mono-num" style="color: #1677ff; font-weight: 600;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <!-- 托盘 (满宽平铺 + 纤细缎带) -->
+            <tr>
+              <td colspan="9" class="expand-cell">
+                <div class="proto-b-ribbon">
+                  <span>单据明细：<b>JHTSE26102208</b> · 关联合同费用细项 (共 2 项)</span>
+                  <span>本次申请小计：<b style="color: #1677ff;">¥ 1.00</b></span>
+                </div>
+                <table class="proto-b-sub">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px;"><input type="checkbox" checked /></th>
+                      <th style="width: 40px;">序号</th>
+                      <th style="width: 50px;">收付</th>
+                      <th style="width: 130px;">费用名称</th>
+                      <th style="width: 80px;">原始币别</th>
+                      <th style="width: 110px; text-align: right;">原始金额</th>
+                      <th style="width: 90px; text-align: right;">原始汇率</th>
+                      <th style="width: 110px; text-align: right;">已核销金额</th>
+                      <th style="width: 120px; text-align: right;">本次申请金额</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><input type="checkbox" checked /></td>
+                      <td>1</td>
+                      <td><span class="tag-pay">应付</span></td>
+                      <td><b>驳船费</b></td>
+                      <td>RMB</td>
+                      <td class="mono-num">60.00</td>
+                      <td class="mono-num">1.0000</td>
+                      <td class="mono-num">0.00</td>
+                      <td class="mono-num" style="color: #1677ff; font-weight: 600;">¥ 1.00</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>2</td>
+                      <td><span class="tag-pay">应付</span></td>
+                      <td><b>港杂费</b></td>
+                      <td>RMB</td>
+                      <td class="mono-num">120.00</td>
+                      <td class="mono-num">1.0000</td>
+                      <td class="mono-num">0.00</td>
+                      <td class="mono-num" style="color: #475569;">¥ 0.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            <!-- 父行 2 (收起态) -->
+            <tr class="outer-row">
+              <td style="text-align: center;">
+                <button type="button" class="antd-square-toggle" title="展开">
+                  <iconify-icon icon="ant-design:plus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>
+                <div class="seq-cell">
+                  <input type="checkbox" />
+                  <span>2</span>
+                </div>
+              </td>
+              <td>MSKU9821371</td>
+              <td><span class="status-tag success">已结算</span></td>
+              <td><a class="link-order">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="mono-num" style="font-weight: 600;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 方案 C：纯平极简骨架·Linear 工程师审美 -->
+    <div class="showcase-card">
+      <div class="showcase-header">
+        <div class="showcase-title-group">
+          <div class="showcase-title">
+            <iconify-icon icon="ant-design:profile-outlined" style="color: #334155; font-size: 16px;"></iconify-icon>
+            方案 C：【纯平极简骨架·Linear 工程师审美 (Linear Precision Grid)】
+          </div>
+          <span class="showcase-pill" style="background: #f8fafc; color: #475569; border-color: #cbd5e1;">零彩色·极度耐看</span>
+        </div>
+        <div class="showcase-summary">
+          <b>去丑核心</b>：完全不用彩色边框，靠冷灰微凹槽色阶（#f8fafc）自然下沉，满宽齐整，克制高级。
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="base-table proto-c">
+          <thead>
+            <tr>
+              <th style="width: 36px; text-align: center;"></th>
+              <th style="width: 50px;">序号</th>
+              <th style="width: 130px;">主提单号</th>
+              <th style="width: 90px;">应收状态</th>
+              <th style="width: 140px;">委托编号</th>
+              <th style="width: 140px;">起运港</th>
+              <th style="width: 80px;">客服</th>
+              <th style="width: 120px; text-align: right;">RMB 申请合计</th>
+              <th style="width: 180px;">应收未结算</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 父行 1 (展开态) -->
+            <tr class="outer-row is-open">
+              <td style="text-align: center;">
+                <button type="button" class="antd-square-toggle is-expanded" title="收起">
+                  <iconify-icon icon="ant-design:minus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>
+                <div class="seq-cell">
+                  <input type="checkbox" checked />
+                  <span>1</span>
+                </div>
+              </td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td><span class="status-tag warn">未结算</span></td>
+              <td><a class="link-order">JHTSE26102208</a></td>
+              <td>QINGDAO, CHINA</td>
+              <td><span style="color: #94a3b8;">-</span></td>
+              <td class="mono-num" style="color: #0f172a; font-weight: 600;">¥ 1.00</td>
+              <td style="color: #64748b; font-size: 11px;">RMB 943.00 / USD 470.00</td>
+            </tr>
+
+            <!-- 托盘 (冷灰凹槽满宽) -->
+            <tr>
+              <td colspan="9" class="expand-cell">
+                <table class="proto-c-sub">
+                  <thead>
+                    <tr>
+                      <th style="width: 36px;"><input type="checkbox" checked /></th>
+                      <th style="width: 40px;">序号</th>
+                      <th style="width: 50px;">收付</th>
+                      <th style="width: 130px;">费用名称</th>
+                      <th style="width: 80px;">原始币别</th>
+                      <th style="width: 110px; text-align: right;">原始金额</th>
+                      <th style="width: 90px; text-align: right;">原始汇率</th>
+                      <th style="width: 110px; text-align: right;">已核销金额</th>
+                      <th style="width: 120px; text-align: right;">本次申请金额</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><input type="checkbox" checked /></td>
+                      <td>1</td>
+                      <td><span class="tag-pay">应付</span></td>
+                      <td><b>驳船费</b></td>
+                      <td>RMB</td>
+                      <td class="mono-num">60.00</td>
+                      <td class="mono-num">1.0000</td>
+                      <td class="mono-num">0.00</td>
+                      <td class="mono-num" style="color: #0f172a; font-weight: 600;">¥ 1.00</td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" /></td>
+                      <td>2</td>
+                      <td><span class="tag-pay">应付</span></td>
+                      <td><b>港杂费</b></td>
+                      <td>RMB</td>
+                      <td class="mono-num">120.00</td>
+                      <td class="mono-num">1.0000</td>
+                      <td class="mono-num">0.00</td>
+                      <td class="mono-num" style="color: #64748b;">¥ 0.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            <!-- 父行 2 (收起态) -->
+            <tr class="outer-row">
+              <td style="text-align: center;">
+                <button type="button" class="antd-square-toggle" title="展开">
+                  <iconify-icon icon="ant-design:plus-outlined"></iconify-icon>
+                </button>
+              </td>
+              <td>
+                <div class="seq-cell">
+                  <input type="checkbox" />
+                  <span>2</span>
+                </div>
+              </td>
+              <td>MSKU9821371</td>
+              <td><span class="status-tag success">已结算</span></td>
+              <td><a class="link-order">JHTSE26102245</a></td>
+              <td>QINGDAO / HAMBURG</td>
+              <td>李静</td>
+              <td class="mono-num" style="font-weight: 600;">¥ 4,250.00</td>
+              <td style="color: #64748b; font-size: 11px;">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
