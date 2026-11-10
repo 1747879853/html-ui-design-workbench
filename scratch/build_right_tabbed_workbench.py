@@ -291,61 +291,51 @@ html = '''<!DOCTYPE html>
       gap: 6px;
     }
 
-    /* 吸顶分舱导航与齐套度指示条 (Dossier Quick Anchor & Telemetry Bar) */
+    /* 吸顶分舱分段导航条 (Sleek Segmented Anchor Track) */
     .dossier-nav-strip {
-      height: 28px;
-      padding: 0 10px;
-      background: #f8fafc;
+      padding: 5px 8px;
+      background: #ffffff;
       border-bottom: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
-      justify-content: space-between;
       flex-shrink: 0;
     }
     .dossier-nav-pills {
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+      width: 100%;
+      background: #f1f5f9;
+      padding: 2.5px;
+      border-radius: 6px;
     }
     .dossier-nav-pill {
       font-size: 11px;
-      color: #475569;
-      padding: 1px 5px;
-      border-radius: 3px;
+      color: #64748b;
+      height: 22px;
+      border-radius: 4px;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: all 0.15s ease;
       font-weight: 500;
       display: inline-flex;
       align-items: center;
-      gap: 2px;
+      justify-content: center;
+      gap: 4px;
       user-select: none;
       white-space: nowrap;
-      flex-shrink: 0;
     }
     .dossier-nav-pill:hover {
-      background: #e2e8f0;
       color: #0f172a;
+      background: rgba(255, 255, 255, 0.55);
     }
     .dossier-nav-pill.is-active {
-      background: #eff6ff;
-      color: #1d4ed8;
+      background: #ffffff;
+      color: #0f172a;
       font-weight: 600;
-      border: 1px solid #bfdbfe;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04);
     }
-    .dossier-completeness {
-      font-size: 10px;
-      color: #059669;
-      background: #ecfdf5;
-      border: 1px solid #a7f3d0;
-      border-radius: 10px;
-      padding: 0 6px;
-      line-height: 16px;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      white-space: nowrap;
-      flex-shrink: 0;
+    .dossier-nav-pill.is-active iconify-icon {
+      color: #1677ff;
     }
 
     /* 左侧档案模块化画布滚动体 */
@@ -394,19 +384,35 @@ html = '''<!DOCTYPE html>
       align-items: center;
       gap: 6px;
     }
-    .sec-idx-badge {
+    .sec-icon-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 18px;
-      height: 16px;
-      border-radius: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .sec-icon-badge.is-blue {
       background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #1d4ed8;
-      font-size: 10px;
-      font-weight: 800;
-      font-family: monospace;
+      color: #2563eb;
+      border: 1px solid #dbeafe;
+    }
+    .sec-icon-badge.is-indigo {
+      background: #eef2ff;
+      color: #4f46e5;
+      border: 1px solid #e0e7ff;
+    }
+    .sec-icon-badge.is-teal {
+      background: #f0fdfa;
+      color: #0d9488;
+      border: 1px solid #ccfbf1;
+    }
+    .sec-icon-badge.is-amber {
+      background: #fffbeb;
+      color: #d97706;
+      border: 1px solid #fef3c7;
     }
     .dossier-card-extra {
       display: flex;
@@ -631,21 +637,107 @@ html = '''<!DOCTYPE html>
     .role-remove-icon:hover {
       color: #ef4444;
     }
+    /* 顶栏右侧精致一体化工具条 (Refined Segmented Switcher & Action Pill Bar) */
     .order-pager-wrap {
       display: inline-flex;
       align-items: center;
-      gap: 2px;
+      height: 28px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+      overflow: hidden;
+    }
+    .pager-seg-btn {
+      height: 100%;
+      padding: 0 10px;
+      border: none;
+      background: #ffffff;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .pager-seg-btn iconify-icon {
+      color: #64748b;
+      transition: color 0.15s ease;
+    }
+    .pager-seg-btn:hover:not(:disabled) {
+      background: #f8fafc;
+      color: #1677ff;
+    }
+    .pager-seg-btn:hover:not(:disabled) iconify-icon {
+      color: #1677ff;
+    }
+    .pager-seg-btn:active:not(:disabled) {
       background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-      padding: 1px 3px;
+    }
+    .pager-seg-btn:disabled {
+      color: #cbd5e1;
+      background: #ffffff;
+      cursor: not-allowed;
+    }
+    .pager-seg-btn:disabled iconify-icon {
+      color: #cbd5e1;
     }
     .order-pager-num {
+      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-size: 11px;
+      font-weight: 500;
+      color: #94a3b8;
+      padding: 0 10px;
+      background: #f8fafc;
+      border-left: 1px solid #f1f5f9;
+      border-right: 1px solid #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Mono", monospace;
+      user-select: none;
+    }
+    .order-pager-num strong {
+      color: #0f172a;
       font-weight: 700;
+    }
+    .header-ctrl-btn {
+      height: 28px;
+      padding: 0 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #ffffff;
       color: #334155;
-      padding: 0 6px;
-      font-family: monospace;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .header-ctrl-btn iconify-icon {
+      color: #64748b;
+      transition: color 0.15s ease;
+    }
+    .header-ctrl-btn:hover {
+      border-color: #93c5fd;
+      color: #1677ff;
+      background: #f8fafc;
+    }
+    .header-ctrl-btn:hover iconify-icon {
+      color: #1677ff;
+    }
+    .header-ctrl-btn.is-icon-only {
+      width: 28px;
+      padding: 0;
     }
 
     /* 🌟 创新 3: 团队协作胶囊矩阵 (In-Place Collaborative Team Capsule Matrix) */
@@ -796,11 +888,12 @@ html = '''<!DOCTYPE html>
     }
     .spine-track-line {
       width: 100%;
+      height: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      margin: 3px 0;
+      margin: 4px 0 2px 0;
     }
     .spine-track-line::before {
       content: '';
@@ -1193,7 +1286,8 @@ html = '''<!DOCTYPE html>
     }
 
     /* ==========================================================================
-       TAB 3: 附件凭证与单证齐套工作台 (Attachment & Voucher Cockpit)
+       TAB 3: 综合业务附件工作台 (分类导航卡 + 左栏列表/行内改名/客户可见 + 右栏同屏预览)
+       兼顾高密度视觉质感与 100% 真实业务边界（零虚构 OCR/提取）
        ========================================================================== */
     .attachment-view {
       flex: 1;
@@ -1208,24 +1302,79 @@ html = '''<!DOCTYPE html>
       background: #ffffff;
       border: 1px solid #dbe2ea;
       border-radius: 6px;
-      padding: 12px;
+      padding: 16px;
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    /* 顶部 5 大单证分类齐套核对卡 (Document Category Checklist Grid) */
+    /* 只读提示横幅 */
+    .att-readonly-banner {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-left: 3px solid #d97706;
+      border-radius: 5px;
+      padding: 5px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #92400e;
+      flex-shrink: 0;
+    }
+
+    /* 串行上传队列与部分失败反馈条 */
+    .att-queue-bar {
+      background: #ffffff;
+      border: 1px solid #93c5fd;
+      border-radius: 6px;
+      padding: 6px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(22, 119, 255, 0.05);
+    }
+    .att-queue-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .att-queue-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px 10px;
+    }
+    .att-queue-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    .att-queue-item.is-ok { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .att-queue-item.is-err { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+    .att-queue-item.is-reject { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+
+    /* 顶部附件类型导航矩阵 (按 sortNo 降序 + 尾部「+添加其他类型」) */
     .att-category-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 8px;
       flex-shrink: 0;
     }
     .att-cat-card {
       background: #ffffff;
       border: 1px solid #dbe2ea;
-      border-radius: 5px;
+      border-radius: 6px;
       padding: 7px 10px;
       cursor: pointer;
       transition: all 0.15s;
@@ -1244,6 +1393,19 @@ html = '''<!DOCTYPE html>
       border-color: #1677ff;
       box-shadow: 0 0 0 1px rgba(22, 119, 255, 0.15);
     }
+    .att-cat-card.is-add-dashed {
+      border-style: dashed;
+      border-color: #93c5fd;
+      background: rgba(255, 255, 255, 0.75);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 2px;
+    }
+    .att-cat-card.is-add-dashed:hover {
+      background: #eff6ff;
+      border-color: #1677ff;
+    }
     .att-cat-top {
       display: flex;
       align-items: center;
@@ -1261,23 +1423,19 @@ html = '''<!DOCTYPE html>
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .att-req-tag {
-      font-size: 9px;
+    .att-count-badge {
+      font-size: 10px;
       font-weight: 700;
-      padding: 0 4px;
-      border-radius: 2px;
-      line-height: 15px;
+      padding: 0 5px;
+      border-radius: 999px;
+      line-height: 16px;
       flex-shrink: 0;
-    }
-    .att-req-tag.is-must {
-      background: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
-    .att-req-tag.is-opt {
       background: #f1f5f9;
       color: #64748b;
-      border: 1px solid #e2e8f0;
+    }
+    .att-count-badge.has-files {
+      background: #dbeafe;
+      color: #1d4ed8;
     }
     .att-cat-bottom {
       display: flex;
@@ -1286,21 +1444,18 @@ html = '''<!DOCTYPE html>
       font-size: 10px;
       color: #64748b;
     }
-    .att-status-pill {
+    .att-vis-mini-dot {
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      font-weight: 600;
       font-size: 10px;
+      font-weight: 600;
     }
-    .att-status-pill.is-done {
-      color: #059669;
-    }
-    .att-status-pill.is-pending {
-      color: #d97706;
-    }
+    .att-vis-mini-dot.is-all { color: #059669; }
+    .att-vis-mini-dot.is-mix { color: #0284c7; }
+    .att-vis-mini-dot.is-none { color: #64748b; }
 
-    /* 主体左右分栏：左侧列表与拖拽上传 (58%) + 右侧同屏单证预览与智能核对 (42%) */
+    /* 主体左右双栏：左侧分类上传与结构化文件列表 (58%) + 右侧同屏文件查看器 (42%) */
     .att-split-body {
       flex: 1;
       display: flex;
@@ -1327,7 +1482,7 @@ html = '''<!DOCTYPE html>
       overflow: hidden;
     }
 
-    /* 紧凑型拖拽快传条 (Compact Drag-and-Drop Upload Bar) */
+    /* 左栏顶部：当前分类批量客户可见 + 拖拽/粘贴快传条 */
     .att-upload-dropbar {
       margin: 8px 10px 6px 10px;
       padding: 7px 12px;
@@ -1341,7 +1496,8 @@ html = '''<!DOCTYPE html>
       flex-shrink: 0;
       transition: all 0.15s;
     }
-    .att-upload-dropbar:hover {
+    .att-upload-dropbar:hover,
+    .att-upload-dropbar.is-dragover {
       border-color: #1677ff;
       background: #eff6ff;
     }
@@ -1378,11 +1534,25 @@ html = '''<!DOCTYPE html>
     .dropbar-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       flex-shrink: 0;
     }
+    .batch-vis-pill {
+      display: inline-flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 2px 8px;
+      height: 24px;
+    }
+    .batch-vis-pill .ant-checkbox-wrapper {
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+    }
 
-    /* 原生高密度凭证表格 (Native High-Density Voucher Table) */
+    /* 原生高密度附件列表 (支持行内铅笔改名、单条客户可见开关、32x32缩略图) */
     .att-table-wrap {
       flex: 1;
       overflow-y: auto;
@@ -1425,43 +1595,89 @@ html = '''<!DOCTYPE html>
     .att-row-item.is-selected td:first-child {
       border-left: 3px solid #1677ff;
     }
-    .file-ext-badge {
+
+    /* 32x32 缩略图与格式徽章 */
+    .att-file-thumb {
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      flex-shrink: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 26px;
-      height: 22px;
-      border-radius: 3px;
       font-size: 9px;
       font-weight: 800;
       font-family: monospace;
-      flex-shrink: 0;
+      overflow: hidden;
     }
-    .file-ext-badge.is-pdf {
-      background: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
-    .file-ext-badge.is-img {
-      background: #eff6ff;
-      color: #2563eb;
-      border: 1px solid #bfdbfe;
-    }
-    .ocr-match-pill {
+    .att-file-thumb.is-pdf { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .att-file-thumb.is-doc { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .att-file-thumb.is-xls { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .att-file-thumb.is-zip { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .att-file-thumb.is-img-thumb { border: 1px solid #fda4af; background: #fff1f2; }
+
+    /* 铅笔改名按钮与行内输入框 */
+    .att-pencil-btn {
+      border: none;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+      line-height: 1;
       display: inline-flex;
       align-items: center;
-      gap: 3px;
-      font-size: 10px;
-      color: #059669;
-      background: #ecfdf5;
-      border: 1px solid #a7f3d0;
+      opacity: 0.65;
+      transition: all 0.12s;
+    }
+    .att-row-item:hover .att-pencil-btn {
+      opacity: 1;
+    }
+    .att-pencil-btn:hover {
+      color: #1677ff;
+      background: #dbeafe;
+    }
+    .att-pencil-btn.is-disabled {
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+    .att-rename-box {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+    }
+    .att-ext-readonly {
+      background: #e2e8f0;
+      color: #475569;
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
       padding: 1px 6px;
       border-radius: 3px;
-      font-weight: 500;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .att-rename-err {
+      font-size: 10px;
+      color: #dc2626;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .ro-vis-tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-weight: 600;
       white-space: nowrap;
     }
+    .ro-vis-tag.is-vis { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .ro-vis-tag.is-internal { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
     .att-list-footer {
-      height: 30px;
+      height: 28px;
       padding: 0 12px;
       background: #f8fafc;
       border-top: 1px solid #e2e8f0;
@@ -1473,7 +1689,7 @@ html = '''<!DOCTYPE html>
       flex-shrink: 0;
     }
 
-    /* 右侧同屏单证预览器与智能比对台 (In-Place Voucher Preview & Cross-Check Inspector) */
+    /* 右侧同屏文件查看器 (无任何虚构 OCR/提取，纯正文件票面预览 + 真实附件属性卡) */
     .inspector-header {
       height: 34px;
       padding: 0 10px;
@@ -1494,35 +1710,6 @@ html = '''<!DOCTYPE html>
       justify-content: flex-start;
       align-items: center;
       gap: 10px;
-    }
-    .ocr-verify-card {
-      width: 100%;
-      max-width: 480px;
-      background: #1e293b;
-      border: 1px solid #475569;
-      border-radius: 5px;
-      padding: 9px 12px;
-      color: #e2e8f0;
-      font-size: 11px;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
-    }
-    .ocr-verify-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px 8px;
-      margin-top: 7px;
-    }
-    .ocr-field-row {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid #334155;
-      border-radius: 3px;
-      padding: 4px 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      font-size: 10px;
-      white-space: nowrap;
     }
     .voucher-sheet {
       width: 100%;
@@ -1571,16 +1758,47 @@ html = '''<!DOCTYPE html>
       color: #0f172a;
       font-family: -apple-system, BlinkMacSystemFont, "SF Mono", monospace;
     }
-    .inspector-crosscheck-footer {
-      padding: 6px 10px;
-      background: #f0fdf4;
-      border-top: 1px solid #bbf7d0;
+
+    /* 真实附件归属与属性卡 (替代原先虚构的 OCR 提取卡) */
+    .att-meta-inspector-card {
+      width: 100%;
+      max-width: 480px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 5px;
+      padding: 9px 12px;
+      color: #e2e8f0;
+      font-size: 11px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+    }
+    .att-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 8px;
+      margin-top: 7px;
+    }
+    .att-meta-row {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      border-radius: 3px;
+      padding: 4px 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 6px;
       font-size: 10px;
-      color: #166534;
+      white-space: nowrap;
+    }
+    .inspector-footer-bar {
+      padding: 6px 10px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 10px;
+      color: #475569;
       flex-shrink: 0;
     }
 
@@ -1697,25 +1915,32 @@ html = '''<!DOCTYPE html>
     </div>
 
     <div class="wb-header-right">
-      <!-- 翻票控制器 (带当前序号指示，杜绝歧义) -->
+      <!-- 一体化分段翻票控制器 (消灭双重边框，等高对齐) -->
       <div class="order-pager-wrap">
-        <a-button size="small" :disabled="orderIndex <= 0" @click="handlePrevOrder" title="上一票">
-          <iconify-icon icon="ant-design:left-outlined"></iconify-icon> 上一票
-        </a-button>
-        <span class="order-pager-num">{{ orderIndex + 1 }} / {{ totalOrders }}</span>
-        <a-button size="small" :disabled="orderIndex >= totalOrders - 1" @click="handleNextOrder" title="下一票">
-          下一票 <iconify-icon icon="ant-design:right-outlined"></iconify-icon>
-        </a-button>
+        <button type="button" class="pager-seg-btn" :disabled="orderIndex <= 0" @click="handlePrevOrder" title="切换到上一票">
+          <iconify-icon icon="ant-design:left-outlined" style="font-size: 10px;"></iconify-icon>
+          <span>上一票</span>
+        </button>
+        <span class="order-pager-num">
+          <strong>{{ orderIndex + 1 }}</strong>
+          <span style="color: #cbd5e1; margin: 0 3px;">/</span>
+          <span>{{ totalOrders }}</span>
+        </span>
+        <button type="button" class="pager-seg-btn" :disabled="orderIndex >= totalOrders - 1" @click="handleNextOrder" title="切换到下一票">
+          <span>下一票</span>
+          <iconify-icon icon="ant-design:right-outlined" style="font-size: 10px;"></iconify-icon>
+        </button>
       </div>
 
-      <!-- 独立业务动作 -->
-      <a-button size="small" @click="openCopyModal" title="复制本票业务与费用">
-        <iconify-icon icon="ant-design:copy-outlined"></iconify-icon> 复制业务
-      </a-button>
-      <a-tooltip title="重新读取本票最新数据">
-        <a-button size="small" @click="reloadTicket">
-          <iconify-icon icon="ant-design:reload-outlined"></iconify-icon>
-        </a-button>
+      <!-- 等高精致动作按钮 -->
+      <button type="button" class="header-ctrl-btn" @click="openCopyModal" title="复制本票业务与费用">
+        <iconify-icon icon="ant-design:copy-outlined" style="font-size: 13px; color: #64748b;"></iconify-icon>
+        <span>复制业务</span>
+      </button>
+      <a-tooltip title="刷新本票数据">
+        <button type="button" class="header-ctrl-btn is-icon-only" @click="reloadTicket">
+          <iconify-icon icon="ant-design:reload-outlined" style="font-size: 13px;"></iconify-icon>
+        </button>
       </a-tooltip>
     </div>
   </div>
@@ -1763,53 +1988,53 @@ html = '''<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- 2. 吸顶分舱快捷锚点与字段齐套度指示条 -->
+      <!-- 2. 吸顶分段导航条 (去掉 01/02/03 编号与齐套 17/17，采用现代分段式语义图标导航) -->
       <div class="dossier-nav-strip">
         <div class="dossier-nav-pills">
           <span 
             class="dossier-nav-pill" 
             :class="{ 'is-active': activeDossierSec === 'sec1' }" 
             @click="scrollToDossierSec('dossier-sec-1', 'sec1')">
-            01 归属主单
+            <iconify-icon icon="ant-design:file-text-outlined" style="font-size: 12px;"></iconify-icon>
+            单据归属
           </span>
           <span 
             class="dossier-nav-pill" 
             :class="{ 'is-active': activeDossierSec === 'sec2' }" 
             @click="scrollToDossierSec('dossier-sec-2', 'sec2')">
-            02 客户团队
+            <iconify-icon icon="ant-design:team-outlined" style="font-size: 12px;"></iconify-icon>
+            客户协同
           </span>
           <span 
             class="dossier-nav-pill" 
             :class="{ 'is-active': activeDossierSec === 'sec3' }" 
             @click="scrollToDossierSec('dossier-sec-3', 'sec3')">
-            03 航程船期
+            <iconify-icon icon="ant-design:compass-outlined" style="font-size: 12px;"></iconify-icon>
+            航程船期
           </span>
           <span 
             class="dossier-nav-pill" 
             :class="{ 'is-active': activeDossierSec === 'sec4' }" 
             @click="scrollToDossierSec('dossier-sec-4', 'sec4')">
-            04 货量计费
+            <iconify-icon icon="ant-design:inbox-outlined" style="font-size: 12px;"></iconify-icon>
+            货量计费
           </span>
         </div>
-        <span class="dossier-completeness">
-          <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon> 齐套 17/17
-        </span>
       </div>
 
       <!-- 3. 模块化分舱滚动体 (4张高内聚交互子卡片，告别平铺表单堆砌) -->
       <div class="business-form-scroll">
 
         <!-- ================================================================
-             分舱卡 01: 单据归属与主单联动 (Identification, Period & Master Order)
+             分舱卡 1: 单据归属与主单联动 (Identification, Period & Master Order)
              ================================================================ -->
         <div id="dossier-sec-1" class="dossier-card">
           <div class="dossier-card-header">
             <div class="dossier-card-title">
-              <span class="sec-idx-badge">01</span>
+              <span class="sec-icon-badge is-blue">
+                <iconify-icon icon="ant-design:file-text-outlined"></iconify-icon>
+              </span>
               <span>单据归属与主单联动</span>
-            </div>
-            <div class="dossier-card-extra">
-              <span>组织隔离与账期</span>
             </div>
           </div>
 
@@ -1847,7 +2072,6 @@ html = '''<!DOCTYPE html>
                 </div>
                 <div class="ledger-cell-val" style="color: #1d4ed8;">
                   <span>{{ form.accountingPeriod }}</span>
-                  <span style="font-size: 9px; font-weight: 500; color: #64748b;">当前期</span>
                 </div>
               </div>
 
@@ -1867,7 +2091,6 @@ html = '''<!DOCTYPE html>
             <div class="biz-form-item grid-col-2">
               <div class="biz-form-label">
                 <span class="biz-label-title">提单号 (BL No.)</span>
-                <span class="biz-label-hint">外部主运单识别号 · 自动大写</span>
               </div>
               <a-input 
                 v-model:value="form.blNo" 
@@ -1889,7 +2112,7 @@ html = '''<!DOCTYPE html>
             <!-- 所属公司 (销售直属组织) - 全宽 -->
             <div class="biz-form-item grid-col-2">
               <div class="biz-form-label">
-                <span class="biz-label-title is-required">所属公司 (销售直属组织)</span>
+                <span class="biz-label-title is-required">所属公司</span>
                 <a-tooltip title="当前选择的是销售直属组织路径；切换销售将联动更新组织">
                   <iconify-icon icon="ant-design:info-circle-outlined" style="color: #1677ff; font-size: 11px;"></iconify-icon>
                 </a-tooltip>
@@ -1907,8 +2130,7 @@ html = '''<!DOCTYPE html>
             <!-- 🌟 创新 2: 关联主单交互式存根票卡 (支持一键同步主单船期与港口) -->
             <div class="biz-form-item grid-col-2">
               <div class="biz-form-label">
-                <span class="biz-label-title">关联主单 (海出/海进/件杂货)</span>
-                <span class="biz-label-hint">同公司校验 · 最多1票</span>
+                <span class="biz-label-title">关联主单</span>
               </div>
               <div v-if="form.relatedMasterOrder" class="master-ticket-stub">
                 <div class="stub-main-row">
@@ -1954,7 +2176,9 @@ html = '''<!DOCTYPE html>
         <div id="dossier-sec-2" class="dossier-card">
           <div class="dossier-card-header">
             <div class="dossier-card-title">
-              <span class="sec-idx-badge">02</span>
+              <span class="sec-icon-badge is-indigo">
+                <iconify-icon icon="ant-design:team-outlined"></iconify-icon>
+              </span>
               <span>客户委托与协作团队</span>
             </div>
             <div class="dossier-card-extra">
@@ -1968,10 +2192,10 @@ html = '''<!DOCTYPE html>
             <!-- 委托单位 - 全宽 -->
             <div class="biz-form-item grid-col-2">
               <div class="biz-form-label">
-                <span class="biz-label-title is-required">委托单位 (客户)</span>
+                <span class="biz-label-title is-required">委托单位</span>
                 <span class="customer-credit-pill">
                   <iconify-icon icon="ant-design:safety-certificate-outlined"></iconify-icon>
-                  信用 AAA · 协议账期 30天
+                  信用 AAA · 账期 30天
                 </span>
               </div>
               <a-select 
@@ -2005,7 +2229,6 @@ html = '''<!DOCTYPE html>
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
                 <span class="biz-label-title">客户本票应收</span>
-                <span class="biz-label-hint">实时联动</span>
               </div>
               <div style="height: 24px; padding: 0 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
                 <span style="color: #166534; font-weight: 700; font-family: monospace;">RMB {{ receivableTotalRmb }}</span>
@@ -2091,7 +2314,9 @@ html = '''<!DOCTYPE html>
         <div id="dossier-sec-3" class="dossier-card">
           <div class="dossier-card-header">
             <div class="dossier-card-title">
-              <span class="sec-idx-badge">03</span>
+              <span class="sec-icon-badge is-teal">
+                <iconify-icon icon="ant-design:compass-outlined"></iconify-icon>
+              </span>
               <span>航程与船期路径</span>
             </div>
             <div class="dossier-card-extra">
@@ -2114,11 +2339,7 @@ html = '''<!DOCTYPE html>
                     <iconify-icon icon="ant-design:compass-outlined" style="color: #0284c7;"></iconify-icon>
                     <span>{{ form.carrier || '-' }} · {{ form.vesselName || '-' }} / {{ form.voyage || '-' }}</span>
                   </div>
-                  <div class="spine-track-line">
-                    <button type="button" class="port-swap-btn" :disabled="ticketData.isLocked" @click="swapPorts" title="一键互换起运港与目的港">
-                      <iconify-icon icon="ant-design:swap-outlined"></iconify-icon> 互换港口
-                    </button>
-                  </div>
+                  <div class="spine-track-line"></div>
                 </div>
 
                 <div class="route-port-col is-pod">
@@ -2154,7 +2375,7 @@ html = '''<!DOCTYPE html>
             <!-- 船公司 - 半宽 (1列) -->
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
-                <span class="biz-label-title">船公司 (Carrier)</span>
+                <span class="biz-label-title">船公司</span>
               </div>
               <a-select 
                 v-model:value="form.carrier" 
@@ -2172,7 +2393,6 @@ html = '''<!DOCTYPE html>
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
                 <span class="biz-label-title">业务日期</span>
-                <span class="biz-label-hint">联动会计期</span>
               </div>
               <a-date-picker 
                 v-model:value="form.bizDate" 
@@ -2188,13 +2408,12 @@ html = '''<!DOCTYPE html>
             <!-- 船名 - 半宽 (1列) -->
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
-                <span class="biz-label-title">船名 (Vessel)</span>
-                <span class="biz-label-hint">限64字</span>
+                <span class="biz-label-title">船名</span>
               </div>
               <a-input 
                 v-model:value="form.vesselName" 
                 size="small"
-                placeholder="船名 (Vessel)" 
+                placeholder="船名" 
                 :maxlength="64"
                 :disabled="ticketData.isLocked"
                 @change="markDirty('basic')"></a-input>
@@ -2203,13 +2422,12 @@ html = '''<!DOCTYPE html>
             <!-- 航次 - 半宽 (1列，与船名严格水平对齐) -->
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
-                <span class="biz-label-title">航次 (Voyage)</span>
-                <span class="biz-label-hint">限64字</span>
+                <span class="biz-label-title">航次</span>
               </div>
               <a-input 
                 v-model:value="form.voyage" 
                 size="small"
-                placeholder="航次 (Voyage)" 
+                placeholder="航次" 
                 :maxlength="64"
                 :disabled="ticketData.isLocked"
                 @change="markDirty('basic')"></a-input>
@@ -2223,7 +2441,9 @@ html = '''<!DOCTYPE html>
         <div id="dossier-sec-4" class="dossier-card">
           <div class="dossier-card-header">
             <div class="dossier-card-title">
-              <span class="sec-idx-badge">04</span>
+              <span class="sec-icon-badge is-amber">
+                <iconify-icon icon="ant-design:inbox-outlined"></iconify-icon>
+              </span>
               <span>货物规格与计费联动</span>
             </div>
             <div class="dossier-card-extra">
@@ -2249,8 +2469,7 @@ html = '''<!DOCTYPE html>
             <!-- 品名 - 全宽 (商品档案多选) -->
             <div class="biz-form-item grid-col-2">
               <div class="biz-form-label">
-                <span class="biz-label-title">品名 (Commodities)</span>
-                <span class="biz-label-hint">商品档案多选</span>
+                <span class="biz-label-title">品名</span>
               </div>
               <a-select 
                 v-model:value="form.commodities" 
@@ -2266,7 +2485,7 @@ html = '''<!DOCTYPE html>
             <!-- 件数 - 半宽 (1列) -->
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
-                <span class="biz-label-title">件数 (Pieces)</span>
+                <span class="biz-label-title">件数</span>
               </div>
               <a-input-number 
                 v-model:value="form.pieces" 
@@ -2282,7 +2501,7 @@ html = '''<!DOCTYPE html>
             <!-- 包装字典 - 半宽 (1列，与件数严格水平对齐) -->
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
-                <span class="biz-label-title">包装 (Package)</span>
+                <span class="biz-label-title">包装</span>
               </div>
               <a-select 
                 v-model:value="form.packageType" 
@@ -2297,8 +2516,7 @@ html = '''<!DOCTYPE html>
             <!-- 毛重(KGS) - 半宽 (1列) -->
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
-                <span class="biz-label-title">毛重 (Weight)</span>
-                <span class="biz-label-hint">KGS</span>
+                <span class="biz-label-title">毛重</span>
               </div>
               <a-input-number 
                 v-model:value="form.weight" 
@@ -2315,8 +2533,7 @@ html = '''<!DOCTYPE html>
             <!-- 尺码(CBM 体积) - 半宽 (1列，与毛重严格水平对齐) -->
             <div class="biz-form-item grid-col-1">
               <div class="biz-form-label">
-                <span class="biz-label-title">尺码 (Volume)</span>
-                <span class="biz-label-hint">4位小数</span>
+                <span class="biz-label-title">尺码</span>
               </div>
               <a-input-number 
                 v-model:value="form.volume" 
@@ -2333,8 +2550,7 @@ html = '''<!DOCTYPE html>
             <!-- 业务备注 + 货代常用快捷词条一键点选 -->
             <div class="biz-form-item grid-col-2" style="margin-top: 2px;">
               <div class="biz-form-label">
-                <span class="biz-label-title">业务备注 (最多1024字符)</span>
-                <span class="biz-label-hint">点击下方词条可快捷追加</span>
+                <span class="biz-label-title">业务备注</span>
               </div>
               <a-textarea 
                 v-model:value="form.remark" 
@@ -2390,8 +2606,8 @@ html = '''<!DOCTYPE html>
             <template #tab>
               <span>
                 <iconify-icon icon="ant-design:paper-clip-outlined"></iconify-icon>
-                附件凭证
-                <a-badge v-if="attachmentList.length > 0" :count="attachmentList.length" :number-style="{ backgroundColor: '#52c41a', marginLeft: '6px' }"></a-badge>
+                附件
+                <a-badge v-if="totalAttachmentCount > 0" :count="totalAttachmentCount" :number-style="{ backgroundColor: '#52c41a', marginLeft: '6px' }"></a-badge>
               </span>
             </template>
           </a-tab-pane>
@@ -2419,7 +2635,7 @@ html = '''<!DOCTYPE html>
             </a-tooltip>
 
             <!-- 利润预警状态标签 -->
-            <a-badge status="success" text="利润正常 (预警线 > 0.00)"></a-badge>
+            <a-badge status="success" text="利润正常"></a-badge>
 
             <!-- 结算申请下拉菜单 (未选择费用时置灰禁用，选择后激活) -->
             <a-dropdown :disabled="selectedFeeCount === 0">
@@ -2485,18 +2701,18 @@ html = '''<!DOCTYPE html>
           </template>
 
           <template v-else-if="activeTabKey === 'attachment'">
-            <span class="status-glow-pill is-editable" style="font-size: 10px;">
-              <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon> 必传单证齐套 3/3
-            </span>
-            <a-radio-group v-model:value="attachmentScenario" size="small">
-              <a-radio-button value="configured">单证工作台 (有配置)</a-radio-button>
-              <a-radio-button value="empty_no_config">无类型配置空态 (图05)</a-radio-button>
-            </a-radio-group>
-            <a-button size="small" :disabled="ticketData.isLocked" @click="openAddOtherAttachmentType">
-              <iconify-icon icon="ant-design:AppstoreAddOutlined"></iconify-icon> 添加其他类型
-            </a-button>
-            <a-button size="small" @click="downloadAllAttachments">
-              <iconify-icon icon="ant-design:CloudDownloadOutlined"></iconify-icon> 打包下载 ({{ attachmentList.length }})
+            <a-select v-model:value="attachmentScenario" size="small" style="width: 140px;">
+              <a-select-option value="configured">状态: 标准视图</a-select-option>
+              <a-select-option value="queue_demo">状态: 上传队列/失败</a-select-option>
+              <a-select-option value="readonly_locked">状态: 只读/锁账</a-select-option>
+              <a-select-option value="empty_no_config">状态: 无类型空态</a-select-option>
+              <a-select-option value="load_error">状态: 读取失败</a-select-option>
+            </a-select>
+            <a-button 
+              v-if="!isAttachmentReadonly && unshownAttachmentTypes.length > 0" 
+              size="small" 
+              @click="openAddOtherAttachmentType">
+              <iconify-icon icon="ant-design:plus-outlined"></iconify-icon> 添加其他类型
             </a-button>
           </template>
         </div>
@@ -2527,7 +2743,7 @@ html = '''<!DOCTYPE html>
             <div class="fee-table-header">
               <div class="fee-table-title">
                 <iconify-icon icon="ant-design:arrow-down-outlined" style="color: #1677ff;"></iconify-icon>
-                <span>应收明细 (Receivables)</span>
+                <span>应收明细</span>
                 <a-badge :count="receivableList.length" :overflow-count="99" :number-style="{ backgroundColor: '#e6f4ff', color: '#1677ff' }"></a-badge>
                 <span style="font-weight: 400; color: #64748b; font-size: 11px;">合计: RMB {{ receivableTotalRmb }}</span>
               </div>
@@ -2796,7 +3012,7 @@ html = '''<!DOCTYPE html>
             <div class="fee-table-header">
               <div class="fee-table-title">
                 <iconify-icon icon="ant-design:arrow-up-outlined" style="color: #fa8c16;"></iconify-icon>
-                <span>应付明细 (Payables)</span>
+                <span>应付明细</span>
                 <a-badge :count="payableList.length" :overflow-count="99" :number-style="{ backgroundColor: '#fff7e6', color: '#fa8c16' }"></a-badge>
                 <span style="font-weight: 400; color: #64748b; font-size: 11px;">合计: RMB {{ payableTotalRmb }}</span>
               </div>
@@ -3223,273 +3439,319 @@ html = '''<!DOCTYPE html>
       </div>
 
       <!-- ==================================================================
-           TAB 3 内容: 附件凭证与单证齐套工作台 (右侧切换，左侧业务底账持续常驻！)
+           TAB 3 内容: 综合业务附件工作台 (分类导航卡 + 左栏列表/改名/可见性 + 右栏同屏查看器)
+           100% 剔除虚构 OCR/提取，完整落地客户可见、行内铅笔改名、添加类型与移除关联
            ================================================================== -->
       <div v-show="activeTabKey === 'attachment'" class="attachment-view">
 
-        <!-- 分支 1: 暂无附件类型配置空态 (100% 还原图05 + 4种空态诊断说明) -->
-        <div v-if="attachmentScenario === 'empty_no_config'" class="attachment-card" style="align-items: center; justify-content: center; text-align: center;">
-          <a-empty description="暂无附件类型配置">
-            <template #image>
-              <iconify-icon icon="ant-design:inbox-outlined" style="font-size: 56px; color: #94a3b8;"></iconify-icon>
-            </template>
-            <div style="color: #64748b; font-size: 12px; max-width: 520px; margin: 0 auto 14px auto; line-height: 1.6;">
-              当前业务类型尚未在系统基础档案中预设标准附件分类（非系统故障或无权限）。您可以点击下方<strong>「添加其他类型」</strong>临时扩展分类上传，或切换至已配置单证工作台预览。
-            </div>
-            <a-space size="middle">
-              <a-button type="primary" @click="openAddOtherAttachmentType">
-                <iconify-icon icon="ant-design:plus-outlined"></iconify-icon> 添加其他类型
-              </a-button>
-              <a-button @click="attachmentScenario = 'configured'">
-                <iconify-icon icon="ant-design:eye-outlined"></iconify-icon> 切换为标准单证齐套工作台
-              </a-button>
-            </a-space>
-          </a-empty>
+        <!-- 只读提示条 (仅在只读或锁账态出现) -->
+        <div v-if="isAttachmentReadonly" class="att-readonly-banner">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <iconify-icon icon="ant-design:lock-filled" style="color: #d97706;"></iconify-icon>
+            <span>当前为只读模式（已锁账或仅查看权限），已隐藏上传、改名与移除入口，仅开放预览与下载。</span>
+          </div>
+          <a-button v-if="attachmentScenario === 'readonly_locked'" size="small" type="link" style="padding: 0;" @click="attachmentScenario = 'configured'">
+            恢复编辑
+          </a-button>
+        </div>
 
-          <!-- 4类空态与权限边界清晰说明卡 (对齐交接文档第7节优化建议) -->
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 820px; margin-top: 28px; text-align: left;">
-            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 5px; padding: 8px 10px;">
-              <div style="font-size: 11px; font-weight: 700; color: #0284c7; margin-bottom: 3px;">● 状态 A：未配置类型 (当前)</div>
-              <div style="font-size: 10px; color: #64748b;">后台未预设分类字典，允许通过「添加其他类型」补充自定义单证类别。</div>
+        <!-- 串行上传队列反馈条 (仅在队列演示或有上传异常时出现) -->
+        <div v-if="attachmentScenario === 'queue_demo' || uploadQueueItems.length > 0" class="att-queue-bar">
+          <div class="att-queue-header">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <iconify-icon icon="ant-design:cloud-upload-outlined" style="color: #2563eb;"></iconify-icon>
+              <span>串行上传队列 ({{ activeQueueDisplayList.length }})</span>
             </div>
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 8px 10px;">
-              <div style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 3px;">○ 状态 B：已配置但暂未上传</div>
-              <div style="font-size: 10px; color: #64748b;">展示必传/选传单证清单槽位（如提单、报关单），引导拖拽对号上传。</div>
+            <div style="display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 11px;">
+              <span style="color: #16a34a;">✓ 已完成 2</span>
+              <span style="color: #dc2626;">✕ 关联失败 1</span>
+              <span style="color: #d97706;">🚫 格式拦截 1 (.ofd)</span>
             </div>
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 8px 10px;">
-              <div style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 3px;">○ 状态 C：锁账受限只读态</div>
-              <div style="font-size: 10px; color: #64748b;">单据锁账后禁止删除已归档凭证，仅锁账白名单分类允许补充上传。</div>
-            </div>
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 5px; padding: 8px 10px;">
-              <div style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 3px;">○ 状态 D：请求异常可重试</div>
-              <div style="font-size: 10px; color: #64748b;">网络失败时独立局部重试，绝不与「无类型配置」混淆且不丢失左栏草稿。</div>
+          </div>
+          <div class="att-queue-list">
+            <div v-for="q in activeQueueDisplayList" :key="q.id" class="att-queue-item" :class="'is-' + q.status">
+              <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
+                <span style="font-weight: 600; flex-shrink: 0;">{{ q.badge }}</span>
+                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="q.fileName">{{ q.fileName }}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                <a-button v-if="q.status === 'err'" size="small" type="link" danger style="height: 20px; font-size: 11px; padding: 0 4px;" @click="retryFailedQueueItem(q)">
+                  重试关联
+                </a-button>
+                <a-button v-if="q.status === 'err' || q.status === 'reject'" size="small" type="text" style="height: 20px; font-size: 11px; padding: 0 4px; color: #94a3b8;" @click="dismissQueueItem(q.id)">
+                  ×
+                </a-button>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 分支 2: 标准单证齐套与同屏预览工作台 (5大单证分类卡 + 左表拖拽快传 + 右侧同屏预览与OCR比对) -->
+        <!-- 分支 A: 读取失败重试态 -->
+        <div v-if="attachmentScenario === 'load_error'" class="attachment-card" style="align-items: center; justify-content: center; text-align: center;">
+          <iconify-icon icon="ant-design:disconnect-outlined" style="font-size: 44px; color: #ef4444; margin-bottom: 8px;"></iconify-icon>
+          <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">加载附件失败</div>
+          <div style="color: #64748b; font-size: 12px; margin-bottom: 14px;">获取本票附件分组或类型配置异常，请点击重试</div>
+          <a-button type="primary" size="small" @click="attachmentScenario = 'configured'">立即重试</a-button>
+        </div>
+
+        <!-- 分支 B: 全无分组空态 -->
+        <div v-else-if="attachmentScenario === 'empty_no_config'" class="attachment-card" style="align-items: center; justify-content: center; text-align: center;">
+          <a-empty description="暂无附件类型配置">
+            <a-space style="margin-top: 8px;">
+              <a-button v-if="!isAttachmentReadonly" type="primary" size="small" @click="openAddOtherAttachmentType">
+                <iconify-icon icon="ant-design:plus-outlined"></iconify-icon> 添加其他类型
+              </a-button>
+              <a-button size="small" @click="attachmentScenario = 'configured'">
+                返回标准视图
+              </a-button>
+            </a-space>
+          </a-empty>
+        </div>
+
+        <!-- 分支 C: 标准驾驶舱视图 (顶部按 sortNo 降序分类导航卡 + 左栏列表与快传 + 右栏同屏查看器) -->
         <template v-else>
-          <!-- 1. 顶部 5 大单证分类齐套核对矩阵 -->
+          <!-- 1. 顶部附件分类导航矩阵 (客户可见性严格收敛在分类/类型这一层) -->
           <div class="att-category-grid">
+            <!-- 总览卡：全部附件 -->
             <div 
               class="att-cat-card" 
-              :class="{ 'is-active': attachmentCategoryFilter === 'all' }"
-              @click="selectAttachmentCategory('all')">
+              :class="{ 'is-active': selectedAttGroupId === 'all' }"
+              @click="selectedAttGroupId = 'all'">
               <div class="att-cat-top">
                 <span class="att-cat-name">
-                  <iconify-icon icon="ant-design:folder-open-outlined" style="color: #1677ff;"></iconify-icon>
-                  全部单证凭证
+                  <iconify-icon icon="ant-design:appstore-outlined" style="color: #1677ff;"></iconify-icon>
+                  全部附件
                 </span>
-                <span class="att-req-tag is-opt">总览</span>
+                <span class="att-count-badge has-files">{{ totalAttachmentCount }}</span>
               </div>
               <div class="att-cat-bottom">
-                <span class="att-status-pill is-done">已传 {{ attachmentList.length }} 份</span>
-                <span>共 4.35 MB</span>
+                <span class="att-vis-mini-dot is-all">
+                  客户可见 {{ sortedAttachmentGroups.filter(g => !g.isUncategorized && g.defaultClientVisible).length }} 类
+                </span>
               </div>
             </div>
 
+            <!-- 各附件类型卡 (按类型维度控制并展示「客户可见」) -->
             <div 
+              v-for="group in sortedAttachmentGroups.slice(0, 4)" 
+              :key="group.typeId" 
               class="att-cat-card" 
-              :class="{ 'is-active': attachmentCategoryFilter === 'bl' }"
-              @click="selectAttachmentCategory('bl')">
+              :class="{ 'is-active': selectedAttGroupId === group.typeId }"
+              @click="selectedAttGroupId = group.typeId">
               <div class="att-cat-top">
-                <span class="att-cat-name">
-                  <iconify-icon icon="ant-design:container-outlined" style="color: #0284c7;"></iconify-icon>
-                  提单/运单 (MBL)
+                <span class="att-cat-name" :title="group.typeName">
+                  <iconify-icon :icon="group.typeId === 'type-bl' ? 'ant-design:container-outlined' : (group.typeId === 'type-customs' ? 'ant-design:safety-certificate-outlined' : (group.typeId === 'type-invoice' ? 'ant-design:account-book-outlined' : 'ant-design:reconciliation-outlined'))" :style="{ color: group.typeId === 'type-bl' ? '#0284c7' : (group.typeId === 'type-customs' ? '#0d9488' : (group.typeId === 'type-invoice' ? '#d97706' : '#7c3aed')) }"></iconify-icon>
+                  {{ group.typeName }}
                 </span>
-                <span class="att-req-tag is-must">必传*</span>
+                <span class="att-count-badge" :class="{ 'has-files': group.files.length > 0 }">
+                  {{ group.files.length }}
+                </span>
               </div>
-              <div class="att-cat-bottom">
-                <span class="att-status-pill is-done">
-                  <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon> 已齐备 ({{ getCategoryCount('bl') }})
+              <div class="att-cat-bottom" @click.stop>
+                <a-checkbox 
+                  v-if="!isAttachmentReadonly"
+                  :checked="group.defaultClientVisible" 
+                  :disabled="group.updatingBatchVisible"
+                  style="font-size: 11px; color: #475569;"
+                  @change="(e) => handleGroupVisibleChange(group, e.target.checked)">
+                  <span :style="{ color: group.defaultClientVisible ? '#059669' : '#64748b', fontWeight: group.defaultClientVisible ? 600 : 400 }">客户可见</span>
+                </a-checkbox>
+                <span v-else class="att-vis-mini-dot" :class="group.defaultClientVisible ? 'is-all' : 'is-none'">
+                  {{ group.defaultClientVisible ? '● 客户可见' : '○ 仅内部' }}
                 </span>
-                <span>正本扫描</span>
               </div>
             </div>
 
+            <!-- 尾部卡片：未分类 或 +添加其他类型 -->
             <div 
-              class="att-cat-card" 
-              :class="{ 'is-active': attachmentCategoryFilter === 'customs' }"
-              @click="selectAttachmentCategory('customs')">
-              <div class="att-cat-top">
-                <span class="att-cat-name">
-                  <iconify-icon icon="ant-design:audit-outlined" style="color: #0d9488;"></iconify-icon>
-                  报关/放行凭证
-                </span>
-                <span class="att-req-tag is-must">必传*</span>
+              v-if="!isAttachmentReadonly && unshownAttachmentTypes.length > 0" 
+              class="att-cat-card is-add-dashed" 
+              @click="openAddOtherAttachmentType">
+              <div style="font-size: 12px; font-weight: 700; color: #1677ff; display: flex; align-items: center; gap: 4px;">
+                <iconify-icon icon="ant-design:plus-circle-outlined"></iconify-icon>
+                添加其他类型
               </div>
-              <div class="att-cat-bottom">
-                <span class="att-status-pill is-done">
-                  <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon> 已齐备 ({{ getCategoryCount('customs') }})
-                </span>
-                <span>海关放行</span>
+              <div style="font-size: 10px; color: #64748b;">
+                剩余 {{ unshownAttachmentTypes.length }} 类可选
               </div>
             </div>
-
             <div 
+              v-else 
               class="att-cat-card" 
-              :class="{ 'is-active': attachmentCategoryFilter === 'invoice' }"
-              @click="selectAttachmentCategory('invoice')">
+              :class="{ 'is-active': selectedAttGroupId === 'type-uncategorized' }"
+              @click="selectedAttGroupId = 'type-uncategorized'">
               <div class="att-cat-top">
                 <span class="att-cat-name">
-                  <iconify-icon icon="ant-design:account-book-outlined" style="color: #d97706;"></iconify-icon>
-                  应收应付发票/账单
+                  <iconify-icon icon="ant-design:folder-outlined" style="color: #64748b;"></iconify-icon>
+                  未分类
                 </span>
-                <span class="att-req-tag is-must">必传*</span>
+                <span class="att-count-badge">1</span>
               </div>
               <div class="att-cat-bottom">
-                <span class="att-status-pill is-done">
-                  <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon> 已齐备 ({{ getCategoryCount('invoice') }})
-                </span>
-                <span>匹配应付THC</span>
-              </div>
-            </div>
-
-            <div 
-              class="att-cat-card" 
-              :class="{ 'is-active': attachmentCategoryFilter === 'other' }"
-              @click="selectAttachmentCategory('other')">
-              <div class="att-cat-top">
-                <span class="att-cat-name">
-                  <iconify-icon icon="ant-design:file-add-outlined" style="color: #7c3aed;"></iconify-icon>
-                  保函/装箱单/其他
-                </span>
-                <span class="att-req-tag is-opt">选传</span>
-              </div>
-              <div class="att-cat-bottom">
-                <span v-if="getCategoryCount('other') > 0" class="att-status-pill is-done">
-                  <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon> 已上传 ({{ getCategoryCount('other') }})
-                </span>
-                <span v-else class="att-status-pill is-pending">
-                  <iconify-icon icon="ant-design:clock-circle-outlined"></iconify-icon> 待补充 (0)
-                </span>
-                <span style="color: #1677ff;" @click.stop="mockQuickUploadTelex">+快传保函</span>
+                <span>待归类</span>
               </div>
             </div>
           </div>
 
-          <!-- 2. 下方双栏工作区：左栏拖拽上传与结构化清单 (58%) + 右栏足不出户同屏单证预览与智能核对 (42%) -->
+          <!-- 2. 下方双栏工作区：左栏分类快传与列表 (58%) + 右栏同屏文件查看器 (42%) -->
           <div class="att-split-body">
 
-            <!-- 左栏：快传区 + 高密度原生单证表格 -->
+            <!-- 左栏：当前分类拖拽上传条 + 原生高密度文件列表 -->
             <div class="att-left-list-pane">
-              <!-- 紧凑拖拽上传栏 -->
-              <div class="att-upload-dropbar">
+              <!-- 紧凑拖拽/粘贴上传条 -->
+              <div v-if="!isAttachmentReadonly" class="att-upload-dropbar">
                 <div class="dropbar-left">
                   <div class="dropbar-icon">
                     <iconify-icon icon="ant-design:cloud-upload-outlined"></iconify-icon>
                   </div>
                   <div style="min-width: 0;">
                     <div class="dropbar-text-main">
-                      拖拽 PDF / JPG / PNG / Excel 单证至此，或选择归属分类上传
+                      拖拽文件至此，或按 Ctrl+V 粘贴上传
                     </div>
                     <div class="dropbar-text-sub">
-                      单文件上限 10MB · 支持提单、报关单、增值税发票自动识别比对
+                      支持 PDF、图片、Office、压缩包等 · 单文件 ≤ 10MB
                     </div>
                   </div>
                 </div>
 
                 <div class="dropbar-actions">
-                  <a-select v-model:value="uploadTargetCategory" size="small" style="width: 112px;" :disabled="ticketData.isLocked">
-                    <a-select-option value="bl">提单/运单</a-select-option>
-                    <a-select-option value="customs">报关/放行单</a-select-option>
-                    <a-select-option value="invoice">费用发票</a-select-option>
-                    <a-select-option value="other">保函/其他</a-select-option>
+                  <!-- 目标上传分类选择 -->
+                  <a-select :value="activeUploadGroup.typeId" size="small" style="width: 132px;" @change="(val) => selectedAttGroupId = val">
+                    <a-select-option v-for="g in sortedAttachmentGroups.filter(x => !x.isUncategorized)" :key="g.typeId" :value="g.typeId">
+                      {{ g.typeName.split(' ')[0] }}
+                    </a-select-option>
                   </a-select>
 
-                  <a-upload :show-upload-list="false" :before-upload="handleFileUpload">
-                    <a-button type="primary" size="small" :disabled="ticketData.isLocked">
-                      <iconify-icon icon="ant-design:upload-outlined"></iconify-icon> 上传凭证
+                  <a-upload 
+                    :multiple="true" 
+                    :show-upload-list="false" 
+                    :before-upload="(file) => handleGroupFileUpload(file, activeUploadGroup)">
+                    <a-button type="primary" size="small" :loading="activeUploadGroup.isUploading">
+                      <iconify-icon icon="ant-design:upload-outlined"></iconify-icon> 上传
                     </a-button>
                   </a-upload>
-
-                  <a-tooltip title="一键模拟上传一份「电放保函_青岛万达.pdf」并实时预览">
-                    <a-button size="small" :disabled="ticketData.isLocked" @click="mockQuickUploadTelex">
-                      <iconify-icon icon="ant-design:thunderbolt-outlined" style="color: #0284c7;"></iconify-icon> 模拟传保函
-                    </a-button>
-                  </a-tooltip>
                 </div>
               </div>
 
-              <!-- 高密度原生单证列表 (点击任意行即可在右侧同屏预览！) -->
+              <!-- 高密度原生附件列表 (不展示单条客户可见列，可见性只体现在上方附件类型层) -->
               <div class="att-table-wrap">
                 <table class="att-native-table">
                   <thead>
                     <tr>
-                      <th style="width: 28px; text-align: center;">#</th>
-                      <th>凭证文件名称 (点击行同屏预览)</th>
-                      <th style="width: 78px;">所属分类</th>
-                      <th style="width: 162px;">左栏/费用联动核对</th>
-                      <th style="width: 62px; text-align: right;">大小</th>
-                      <th style="width: 108px;">上传人 / 时间</th>
-                      <th style="width: 116px; text-align: center;">操作</th>
+                      <th style="width: 32px; text-align: center;">#</th>
+                      <th>文件名称</th>
+                      <th style="width: 116px;">附件类型</th>
+                      <th style="width: 72px; text-align: right;">大小</th>
+                      <th style="width: 124px;">上传人 / 时间</th>
+                      <th style="width: 112px; text-align: center;">操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr 
-                      v-for="(att, idx) in filteredAttachments" 
-                      :key="att.id" 
+                      v-for="(item, idx) in displayedCockpitFiles" 
+                      :key="item.file.id" 
                       class="att-row-item"
-                      :class="{ 'is-selected': activePreviewAtt && activePreviewAtt.id === att.id }"
-                      @click="selectPreviewAttachment(att)">
+                      :class="{ 'is-selected': activePreviewFile && activePreviewFile.id === item.file.id }"
+                      @click="renamingFileId !== item.file.id && selectCockpitPreview(item.file, item.group)">
                       <td style="text-align: center; color: #94a3b8;">{{ idx + 1 }}</td>
                       <td>
-                        <div style="display: flex; align-items: center; gap: 7px;">
-                          <span class="file-ext-badge" :class="att.fileName.endsWith('.pdf') ? 'is-pdf' : 'is-img'">
-                            {{ att.fileName.endsWith('.pdf') ? 'PDF' : 'JPG' }}
-                          </span>
+                        <!-- 正常态 -->
+                        <div v-if="renamingFileId !== item.file.id" style="display: flex; align-items: center; gap: 7px;">
+                          <div v-if="isImageExt(item.file.ext)" class="att-file-thumb is-img-thumb">
+                            <svg viewBox="0 0 32 32" width="28" height="28">
+                              <rect width="32" height="32" fill="#fff1f2"/>
+                              <rect x="4" y="5" width="24" height="22" rx="2" fill="#ffffff" stroke="#fda4af" stroke-width="1"/>
+                              <line x1="7" y1="10" x2="25" y2="10" stroke="#e11d48" stroke-width="1.5"/>
+                              <circle cx="21" cy="20" r="3" fill="none" stroke="#e11d48" stroke-width="1.2"/>
+                            </svg>
+                          </div>
+                          <div v-else class="att-file-thumb" :class="getExtThumbClass(item.file.ext)">
+                            <span>{{ item.file.ext.toUpperCase() }}</span>
+                          </div>
+
                           <div style="min-width: 0; flex: 1;">
-                            <div style="font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
-                              <span style="overflow: hidden; text-overflow: ellipsis;">{{ att.fileName }}</span>
-                              <span v-if="activePreviewAtt && activePreviewAtt.id === att.id" style="font-size: 9px; background: #dbeafe; color: #1d4ed8; padding: 0 5px; line-height: 16px; border-radius: 2px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">
-                                预览中
+                            <div style="font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+                              <span style="overflow: hidden; text-overflow: ellipsis;" :title="item.file.baseName + '.' + item.file.ext">
+                                {{ item.file.baseName }}.{{ item.file.ext }}
+                              </span>
+                              <button 
+                                v-if="!isAttachmentReadonly && !item.file.isSystemInvoice" 
+                                type="button" 
+                                class="att-pencil-btn" 
+                                title="重命名 (扩展名只读)"
+                                @click.stop="startInlineRename(item.file)">
+                                <iconify-icon icon="ant-design:edit-outlined"></iconify-icon>
+                              </button>
+                              <span v-else-if="!isAttachmentReadonly && item.file.isSystemInvoice" class="att-pencil-btn is-disabled" title="系统生成发票不可改名">
+                                <iconify-icon icon="ant-design:lock-outlined"></iconify-icon>
                               </span>
                             </div>
-                            <div style="font-size: 10px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                              {{ att.docNoText || '单证编号: TEST-GH178-20261109' }}
-                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 行内铅笔改名态 (主体可改 + 扩展名单独只读 + 错误保留草稿) -->
+                        <div v-else @click.stop>
+                          <div class="att-rename-box">
+                            <a-input 
+                              v-model:value="renameDraftBase" 
+                              size="small" 
+                              :disabled="isSubmittingRename"
+                              style="flex: 1; font-size: 11px;"
+                              @keydown.enter.prevent="submitInlineRename(item.file)"
+                              @keydown.esc.prevent="cancelInlineRename"></a-input>
+                            <span class="att-ext-readonly">.{{ item.file.ext }}</span>
+                            <a-button size="small" type="primary" :loading="isSubmittingRename" style="height: 22px; padding: 0 7px; font-size: 10px;" @click="submitInlineRename(item.file)">
+                              保存
+                            </a-button>
+                            <a-button size="small" style="height: 22px; padding: 0 6px; font-size: 10px;" @click="cancelInlineRename">
+                              取消
+                            </a-button>
+                          </div>
+                          <div v-if="renameErrorMsg" class="att-rename-err">
+                            {{ renameErrorMsg }}
                           </div>
                         </div>
                       </td>
                       <td>
-                        <a-tag :color="getCategoryTagColor(att.fileType)" style="font-size: 10px; margin: 0;">
-                          {{ getCategoryLabel(att.fileType) }}
+                        <a-tag :color="item.group.isUncategorized ? 'default' : (item.group.typeId === 'type-bl' ? 'blue' : (item.group.typeId === 'type-customs' ? 'cyan' : 'orange'))" style="font-size: 10px; margin: 0;">
+                          {{ item.group.typeName.split(' ')[0] }}
                         </a-tag>
                       </td>
+                      <td style="text-align: right; font-family: monospace; color: #475569;">{{ item.file.fileSize }}</td>
                       <td>
-                        <span class="ocr-match-pill">
-                          <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon>
-                          {{ att.verifyNote || '与左侧档案一致' }}
-                        </span>
-                      </td>
-                      <td style="text-align: right; font-family: monospace; color: #475569;">{{ att.fileSize }}</td>
-                      <td>
-                        <div style="font-size: 11px; color: #334155;">{{ att.uploader }}</div>
-                        <div style="font-size: 10px; color: #94a3b8; font-family: monospace;">{{ att.uploadTime }}</div>
+                        <template v-if="item.file.uploader || item.file.uploadTime">
+                          <div v-if="item.file.uploader" style="font-size: 11px; color: #334155;">{{ item.file.uploader }}</div>
+                          <div v-if="item.file.uploadTime" style="font-size: 10px; color: #94a3b8; font-family: monospace;">{{ item.file.uploadTime }}</div>
+                        </template>
+                        <span v-else style="color: #cbd5e1;">-</span>
                       </td>
                       <td style="text-align: center; white-space: nowrap;" @click.stop>
-                        <a-button type="link" size="small" style="padding: 0 4px; font-size: 11px;" @click="selectPreviewAttachment(att)">
+                        <a-button type="link" size="small" style="padding: 0 4px; font-size: 11px;" @click="openGlobalViewer(item.file, item.group)">
                           预览
                         </a-button>
-                        <a-button type="link" size="small" style="padding: 0 4px; font-size: 11px;" @click="downloadAttachment(att)">
+                        <a-button type="link" size="small" style="padding: 0 4px; font-size: 11px;" @click="downloadSingleAttachment(item.file)">
                           下载
                         </a-button>
-                        <a-popconfirm title="确认从本票单据中删除此附件凭证？" @confirm="deleteAttachment(att.id)">
-                          <a-button type="link" size="small" danger style="padding: 0 4px; font-size: 11px;" :disabled="ticketData.isLocked">
-                            删除
-                          </a-button>
-                        </a-popconfirm>
+                        <a-button 
+                          v-if="!isAttachmentReadonly" 
+                          type="link" 
+                          size="small" 
+                          danger 
+                          style="padding: 0 4px; font-size: 11px;" 
+                          @click="openRemoveConfirmModal(item.file, item.group)">
+                          移除
+                        </a-button>
                       </td>
                     </tr>
 
-                    <!-- 当选定分类下无文件时的引导空态 -->
-                    <tr v-if="filteredAttachments.length === 0">
-                      <td colspan="7" style="text-align: center; padding: 36px 16px; color: #64748b;">
-                        <iconify-icon icon="ant-design:folder-open-outlined" style="font-size: 28px; color: #cbd5e1; display: block; margin: 0 auto 6px auto;"></iconify-icon>
-                        <div style="font-size: 12px; font-weight: 600; color: #334155;">当前「{{ getCategoryLabel(attachmentCategoryFilter) }}」分类下暂无文件</div>
-                        <div style="font-size: 11px; color: #94a3b8; margin: 4px 0 10px 0;">可点击上方上传按钮或点击下方快捷按钮生成测试凭证</div>
-                        <a-button type="dashed" size="small" :disabled="ticketData.isLocked" @click="mockQuickUploadTelex">
-                          <iconify-icon icon="ant-design:plus-outlined"></iconify-icon> 立即补充上传「电放保函」样本
+                    <!-- 当选中空分类（如「装箱单 / 委托书」）时的补交引导空态 -->
+                    <tr v-if="displayedCockpitFiles.length === 0">
+                      <td colspan="6" style="text-align: center; padding: 38px 16px; color: #64748b;">
+                        <iconify-icon icon="ant-design:cloud-upload-outlined" style="font-size: 28px; color: #93c5fd; display: block; margin: 0 auto 6px auto;"></iconify-icon>
+                        <div style="font-size: 12px; font-weight: 600; color: #334155;">当前分类「{{ activeUploadGroup.typeName }}」暂无附件</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin: 4px 0 10px 0;">可点击上方上传、拖拽文件至此，或按 Ctrl+V 粘贴上传</div>
+                        <a-button v-if="!isAttachmentReadonly" type="dashed" size="small" @click="mockQuickUploadToGroup(activeUploadGroup)">
+                          <iconify-icon icon="ant-design:plus-outlined"></iconify-icon> 模拟上传「{{ activeUploadGroup.typeName.split(' ')[0] }}」样本
                         </a-button>
                       </td>
                     </tr>
@@ -3497,41 +3759,42 @@ html = '''<!DOCTYPE html>
                 </table>
               </div>
 
-              <!-- 底部权限与归档规则说明条 -->
+              <!-- 底部简洁状态条 -->
               <div class="att-list-footer">
                 <span>
-                  <iconify-icon icon="ant-design:safety-certificate-outlined" style="color: #059669;"></iconify-icon>
-                  归档规则：同公司数据隔离校验 · 锁账后受白名单保护
+                  <iconify-icon icon="ant-design:check-circle-filled" style="color: #059669;"></iconify-icon>
+                  上传、改名、可见性与移除均实时生效
                 </span>
-                <span>当前展示 {{ filteredAttachments.length }} / {{ attachmentList.length }} 份凭证</span>
+                <span>共 {{ displayedCockpitFiles.length }} 份文件</span>
               </div>
             </div>
 
-            <!-- 右栏：足不出户同屏单证预览与智能比对台 (In-Place Live Document Inspector) -->
+            <!-- 右栏：同屏文件查看器 (In-Place Document Viewer，零虚构 OCR/提取，展示真实票面与附件属性) -->
             <div class="att-right-preview-pane">
               <div class="inspector-header">
                 <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
-                  <iconify-icon icon="ant-design:file-search-outlined" style="color: #1677ff; font-size: 14px;"></iconify-icon>
+                  <iconify-icon icon="ant-design:eye-outlined" style="color: #1677ff; font-size: 14px;"></iconify-icon>
                   <strong style="font-size: 11px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    同屏凭证预览: {{ activePreviewAtt ? activePreviewAtt.fileName : '请选择左侧凭证' }}
+                    {{ activePreviewFile ? (activePreviewFile.baseName + '.' + activePreviewFile.ext) : '请选择左侧附件' }}
                   </strong>
                 </div>
-                <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
-                  <a-tag color="blue" style="font-size: 10px; margin: 0;">100% 适宽</a-tag>
-                  <a-button v-if="activePreviewAtt" type="text" size="small" style="padding: 0 4px; height: 22px; font-size: 11px;" @click="downloadAttachment(activePreviewAtt)">
-                    <iconify-icon icon="ant-design:download-outlined"></iconify-icon> 原件
+                <div v-if="activePreviewFile" style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                  <a-button type="text" size="small" style="padding: 0 5px; height: 22px; font-size: 11px;" @click="openGlobalViewer(activePreviewFile, activePreviewGroup)">
+                    <iconify-icon icon="ant-design:fullscreen-outlined"></iconify-icon> 全屏
+                  </a-button>
+                  <a-button type="text" size="small" style="padding: 0 5px; height: 22px; font-size: 11px;" @click="downloadSingleAttachment(activePreviewFile)">
+                    <iconify-icon icon="ant-design:download-outlined"></iconify-icon> 下载
                   </a-button>
                 </div>
               </div>
 
-              <!-- 仿真单证票面预览画布 (随所选提单/报关单/发票动态切换票面！) -->
               <div class="inspector-paper-scroll">
-                <!-- 预览模板 1: 海运提单 (BL) -->
-                <div v-if="activePreviewAtt && activePreviewAtt.fileType === 'bl'" class="voucher-sheet">
-                  <div class="voucher-stamp">ORIGINAL · 正本已核</div>
+                <!-- 票面 1: 提单 PDF -->
+                <div v-if="activePreviewFile && activePreviewGroup && activePreviewGroup.typeId === 'type-bl'" class="voucher-sheet">
+                  <div class="voucher-stamp">ORIGINAL · 提单扫描件</div>
                   <div style="border-bottom: 2px solid #0f172a; padding-bottom: 5px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
-                      <div style="font-size: 13px; font-weight: 800; letter-spacing: 0.5px; color: #0f172a;">MAERSK LINE · BILL OF LADING</div>
+                      <div style="font-size: 13px; font-weight: 800; color: #0f172a;">MAERSK LINE · BILL OF LADING</div>
                       <div style="font-size: 9px; color: #64748b;">COMBINED TRANSPORT OR PORT TO PORT SHIPMENT</div>
                     </div>
                     <div style="text-align: right;">
@@ -3539,238 +3802,134 @@ html = '''<!DOCTYPE html>
                       <div style="font-size: 11px; font-weight: 800; color: #1d4ed8; font-family: monospace;">{{ form.blNo }}</div>
                     </div>
                   </div>
-
                   <table class="voucher-grid-table">
                     <tr>
                       <td colspan="2">
-                        <span class="voucher-grid-lbl">SHIPPER (托运人/委托单位)</span>
+                        <span class="voucher-grid-lbl">SHIPPER</span>
                         <span class="voucher-grid-val">{{ ticketData.customerName }}</span>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <span class="voucher-grid-lbl">OCEAN VESSEL (船名)</span>
+                        <span class="voucher-grid-lbl">OCEAN VESSEL</span>
                         <span class="voucher-grid-val">{{ form.vesselName }}</span>
                       </td>
                       <td>
-                        <span class="voucher-grid-lbl">VOYAGE NO. (航次)</span>
+                        <span class="voucher-grid-lbl">VOYAGE NO.</span>
                         <span class="voucher-grid-val">{{ form.voyage }}</span>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <span class="voucher-grid-lbl">PORT OF LOADING (起运港)</span>
+                        <span class="voucher-grid-lbl">PORT OF LOADING</span>
                         <span class="voucher-grid-val">{{ form.pol }} ({{ getPortCnName(form.pol) }})</span>
                       </td>
                       <td>
-                        <span class="voucher-grid-lbl">PORT OF DISCHARGE (目的港)</span>
+                        <span class="voucher-grid-lbl">PORT OF DISCHARGE</span>
                         <span class="voucher-grid-val">{{ form.pod }} ({{ getPortCnName(form.pod) }})</span>
                       </td>
                     </tr>
                     <tr>
                       <td colspan="2">
-                        <span class="voucher-grid-lbl">PARTICULARS FURNISHED BY SHIPPER (件数 · 毛重 · 体积 · 品名)</span>
+                        <span class="voucher-grid-lbl">PARTICULARS</span>
                         <div style="display: flex; justify-content: space-between; margin-top: 2px; font-weight: 700; color: #0f172a; font-family: monospace;">
                           <span>{{ form.pieces }} {{ form.packageType }}</span>
                           <span>G.W.: {{ form.weight }} KGS</span>
                           <span>MEAS.: {{ form.volume }} CBM</span>
                         </div>
-                        <div style="color: #475569; margin-top: 2px;">DESCRIPTION: {{ form.commodities.join(' / ') }} · FREIGHT PREPAID</div>
                       </td>
                     </tr>
                   </table>
                 </div>
 
-                <!-- 预览模板 2: 出口报关单 (Customs) -->
-                <div v-else-if="activePreviewAtt && activePreviewAtt.fileType === 'customs'" class="voucher-sheet">
-                  <div class="voucher-stamp" style="border-color: #059669; color: #059669; background: rgba(236, 253, 245, 0.9);">海关已放行 · 查验通过</div>
+                <!-- 票面 2: 报关单 PDF -->
+                <div v-else-if="activePreviewFile && activePreviewGroup && activePreviewGroup.typeId === 'type-customs'" class="voucher-sheet">
+                  <div class="voucher-stamp" style="border-color: #059669; color: #059669; background: rgba(236, 253, 245, 0.9);">海关放行回执</div>
                   <div style="text-align: center; border-bottom: 1.5px solid #0f172a; padding-bottom: 5px; margin-bottom: 6px;">
                     <div style="font-size: 12px; font-weight: 800; color: #0f172a;">中华人民共和国海关出口货物报关单</div>
-                    <div style="font-size: 9px; color: #475569; font-family: monospace; margin-top: 2px;">预录入编号: 425820260001892041 · 申报口岸: 青岛大港海关 (4258)</div>
+                    <div style="font-size: 9px; color: #475569; font-family: monospace;">预录入编号: 425820260001892041 · 青岛大港海关</div>
                   </div>
-
                   <table class="voucher-grid-table">
                     <tr>
-                      <td>
-                        <span class="voucher-grid-lbl">境内发货人</span>
-                        <span class="voucher-grid-val">{{ ticketData.customerName }}</span>
-                      </td>
-                      <td>
-                        <span class="voucher-grid-lbl">出境关别 / 申报日期</span>
-                        <span class="voucher-grid-val">青岛海关 · {{ form.bizDate }}</span>
-                      </td>
+                      <td><span class="voucher-grid-lbl">境内发货人</span><span class="voucher-grid-val">{{ ticketData.customerName }}</span></td>
+                      <td><span class="voucher-grid-lbl">申报日期</span><span class="voucher-grid-val">{{ form.bizDate }}</span></td>
                     </tr>
                     <tr>
-                      <td>
-                        <span class="voucher-grid-lbl">运输工具名称及航次号</span>
-                        <span class="voucher-grid-val">{{ form.vesselName }} / {{ form.voyage }}</span>
-                      </td>
-                      <td>
-                        <span class="voucher-grid-lbl">提运单号 (B/L No.)</span>
-                        <span class="voucher-grid-val">{{ form.blNo }}</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <span class="voucher-grid-lbl">贸易国 / 运抵国(地区)</span>
-                        <span class="voucher-grid-val">美国 (USLAX 洛杉矶)</span>
-                      </td>
-                      <td>
-                        <span class="voucher-grid-lbl">件数 / 包装种类 / 毛重</span>
-                        <span class="voucher-grid-val">{{ form.pieces }} {{ form.packageType }} · {{ form.weight }} KG</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colspan="2">
-                        <span class="voucher-grid-lbl">商品名称及规格型号 (HS编码核对)</span>
-                        <span class="voucher-grid-val">01. 8708999990 {{ form.commodities.join(' / ') }} · 监管方式: 一般贸易</span>
-                      </td>
+                      <td><span class="voucher-grid-lbl">运输工具及航次</span><span class="voucher-grid-val">{{ form.vesselName }} / {{ form.voyage }}</span></td>
+                      <td><span class="voucher-grid-lbl">提运单号</span><span class="voucher-grid-val">{{ form.blNo }}</span></td>
                     </tr>
                   </table>
                 </div>
 
-                <!-- 预览模板 3: 增值税专用发票 (Invoice) -->
-                <div v-else-if="activePreviewAtt && activePreviewAtt.fileType === 'invoice'" class="voucher-sheet" style="border-color: #fda4af;">
-                  <div class="voucher-stamp">真伪查验通过 · 匹配应付</div>
+                <!-- 票面 3: 账单与发票 -->
+                <div v-else-if="activePreviewFile && activePreviewGroup && activePreviewGroup.typeId === 'type-invoice'" class="voucher-sheet" style="border-color: #fda4af;">
+                  <div class="voucher-stamp">发票影像原件</div>
                   <div style="text-align: center; border-bottom: 1.5px double #be123c; padding-bottom: 4px; margin-bottom: 6px;">
-                    <div style="font-size: 12px; font-weight: 800; color: #9f1239; letter-spacing: 1px;">山东增值税专用发票 (电子发票)</div>
-                    <div style="font-size: 9px; color: #64748b; font-family: monospace;">发票号码: No.263702000001928371 · 开票日期: 2026-11-09</div>
+                    <div style="font-size: 12px; font-weight: 800; color: #9f1239;">山东增值税专用发票</div>
+                    <div style="font-size: 9px; color: #64748b; font-family: monospace;">No.263702000001928371 · 2026-11-09</div>
                   </div>
-
                   <table class="voucher-grid-table">
                     <tr>
-                      <td>
-                        <span class="voucher-grid-lbl">购买方名称</span>
-                        <span class="voucher-grid-val">青岛佳越国际物流有限公司</span>
-                      </td>
-                      <td>
-                        <span class="voucher-grid-lbl">销售方名称 (应付结算对象)</span>
-                        <span class="voucher-grid-val">青岛中远海运集装箱运输有限公司</span>
-                      </td>
+                      <td><span class="voucher-grid-lbl">购买方</span><span class="voucher-grid-val">青岛佳越国际物流有限公司</span></td>
+                      <td><span class="voucher-grid-lbl">销售方</span><span class="voucher-grid-val">青岛中远海运集装箱运输有限公司</span></td>
                     </tr>
                     <tr>
-                      <td colspan="2">
-                        <span class="voucher-grid-lbl">项目名称 / 规格型号 / 数量 / 单价</span>
-                        <div style="display: flex; justify-content: space-between; font-weight: 700; color: #0f172a; margin-top: 2px;">
-                          <span>*港口码头服务* 码头操作费 (THC)</span>
-                          <span style="font-family: monospace;">1 票 × ¥7.36</span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <span class="voucher-grid-lbl">不含税金额 / 税率 / 税额</span>
-                        <span class="voucher-grid-val">¥7.36 · 税率 6% · 税额 ¥0.44</span>
-                      </td>
-                      <td style="background: #fff1f2;">
-                        <span class="voucher-grid-lbl" style="color: #be123c;">价税合计 (小写)</span>
-                        <span class="voucher-grid-val" style="color: #be123c; font-size: 12px;">RMB 7.80</span>
-                      </td>
+                      <td><span class="voucher-grid-lbl">费用项目</span><span class="voucher-grid-val">*港口码头服务* 码头操作费 (THC)</span></td>
+                      <td style="background: #fff1f2;"><span class="voucher-grid-lbl" style="color: #be123c;">价税合计</span><span class="voucher-grid-val" style="color: #be123c;">RMB 7.80</span></td>
                     </tr>
                   </table>
                 </div>
 
-                <!-- 预览模板 4: 其他保函/通用单证 -->
-                <div v-else class="voucher-sheet">
-                  <div class="voucher-stamp" style="border-color: #2563eb; color: #2563eb; background: rgba(239, 246, 255, 0.9);">保函已归档</div>
-                  <div style="text-align: center; border-bottom: 1.5px solid #0f172a; padding-bottom: 5px; margin-bottom: 6px;">
-                    <div style="font-size: 12px; font-weight: 800; color: #0f172a;">海运出口货物电放保函 (TELEX RELEASE LOI)</div>
-                    <div style="font-size: 9px; color: #64748b;">致：青岛佳越国际物流有限公司 / 承运船东 {{ form.carrier }}</div>
-                  </div>
-                  <table class="voucher-grid-table">
-                    <tr>
-                      <td>
-                        <span class="voucher-grid-lbl">对应提单号 (B/L No.)</span>
-                        <span class="voucher-grid-val">{{ form.blNo }}</span>
-                      </td>
-                      <td>
-                        <span class="voucher-grid-lbl">船名 / 航次</span>
-                        <span class="voucher-grid-val">{{ form.vesselName }} / {{ form.voyage }}</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colspan="2">
-                        <span class="voucher-grid-lbl">保函声明内容</span>
-                        <div style="color: #334155; line-height: 1.4;">
-                          兹有我司（{{ ticketData.customerName }}）出运至 {{ form.pod }} 货物共 {{ form.pieces }} {{ form.packageType }}，因贸易交单需要申请安排电放放货，一切法律责任由我司承担。
-                        </div>
-                      </td>
-                    </tr>
-                  </table>
+                <!-- 票面 4: 不支持浏览器内嵌渲染的格式 (.docx 等) 引导下载 -->
+                <div v-else-if="activePreviewFile && !canInlinePreview(activePreviewFile.ext)" class="voucher-sheet" style="text-align: center; padding: 24px 16px;">
+                  <iconify-icon icon="ant-design:file-word-outlined" style="font-size: 36px; color: #2563eb; margin-bottom: 6px;"></iconify-icon>
+                  <div style="font-size: 12px; font-weight: 700; color: #0f172a;">{{ activePreviewFile.baseName }}.{{ activePreviewFile.ext }}</div>
+                  <div style="font-size: 10px; color: #64748b; margin: 4px 0 10px 0;">当前格式 (.{{ activePreviewFile.ext }}) 不支持内嵌预览，请下载原文件查看</div>
+                  <a-button type="primary" size="small" @click="downloadSingleAttachment(activePreviewFile)">
+                    <iconify-icon icon="ant-design:download-outlined"></iconify-icon> 下载原文件
+                  </a-button>
                 </div>
 
-                <!-- 票面关键字段智能提取与底账比对矩阵 (消除下方暗色空白，提供直观字段核对价值) -->
-                <div class="ocr-verify-card" v-if="activePreviewAtt">
+                <!-- 真实附件归属与属性卡 (100% 真实元数据，不重复单条可见性) -->
+                <div class="att-meta-inspector-card" v-if="activePreviewFile">
                   <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; padding-bottom: 4px;">
                     <span style="font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 4px;">
-                      <iconify-icon icon="ant-design:scan-outlined"></iconify-icon>
-                      票面关键字段提取 vs 当前工作台底账比对
+                      <iconify-icon icon="ant-design:info-circle-outlined"></iconify-icon>
+                      文件属性
                     </span>
-                    <span style="color: #4ade80; font-weight: 600;">✓ 4/4 字段完全一致</span>
                   </div>
-                  <div class="ocr-verify-grid" v-if="activePreviewAtt.fileType !== 'invoice'">
-                    <div class="ocr-field-row">
-                      <span style="color: #94a3b8;">提单号:</span>
-                      <span style="font-family: monospace; font-weight: 600; color: #f8fafc;">{{ form.blNo }}</span>
-                      <span style="color: #4ade80;">✓一致</span>
+                  <div class="att-meta-grid">
+                    <div class="att-meta-row">
+                      <span style="color: #94a3b8;">关联单号:</span>
+                      <span style="font-family: monospace; font-weight: 600; color: #f8fafc;">{{ ticketData.jobNo }}</span>
                     </div>
-                    <div class="ocr-field-row">
-                      <span style="color: #94a3b8;">船名/航次:</span>
-                      <span style="font-family: monospace; font-weight: 600; color: #f8fafc;">{{ form.vesselName }}/{{ form.voyage }}</span>
-                      <span style="color: #4ade80;">✓一致</span>
+                    <div class="att-meta-row">
+                      <span style="color: #94a3b8;">附件类型:</span>
+                      <span style="font-weight: 600; color: #f8fafc;">{{ activePreviewGroup ? activePreviewGroup.typeName.split(' ')[0] : '-' }}</span>
                     </div>
-                    <div class="ocr-field-row">
-                      <span style="color: #94a3b8;">起运/目的港:</span>
-                      <span style="font-family: monospace; font-weight: 600; color: #f8fafc;">{{ form.pol }}→{{ form.pod }}</span>
-                      <span style="color: #4ade80;">✓一致</span>
+                    <div class="att-meta-row">
+                      <span style="color: #94a3b8;">文件大小:</span>
+                      <span style="font-family: monospace; font-weight: 600; color: #f8fafc;">{{ activePreviewFile.fileSize }} (.{{ activePreviewFile.ext }})</span>
                     </div>
-                    <div class="ocr-field-row">
-                      <span style="color: #94a3b8;">件毛体:</span>
-                      <span style="font-family: monospace; font-weight: 600; color: #f8fafc;">{{ form.pieces }}件/{{ form.volume }}CBM</span>
-                      <span style="color: #4ade80;">✓一致</span>
-                    </div>
-                  </div>
-                  <div class="ocr-verify-grid" v-else>
-                    <div class="ocr-field-row">
-                      <span style="color: #94a3b8;">匹配费用项:</span>
-                      <span style="font-weight: 600; color: #f8fafc;">码头操作费 (THC)</span>
-                      <span style="color: #4ade80;">✓应付表</span>
-                    </div>
-                    <div class="ocr-field-row">
-                      <span style="color: #94a3b8;">销方结算对象:</span>
-                      <span style="font-weight: 600; color: #f8fafc;">青岛中远海运</span>
-                      <span style="color: #4ade80;">✓一致</span>
-                    </div>
-                    <div class="ocr-field-row">
-                      <span style="color: #94a3b8;">发票价税合计:</span>
-                      <span style="font-family: monospace; font-weight: 600; color: #fbbf24;">RMB 7.80</span>
-                      <span style="color: #4ade80;">✓一致</span>
-                    </div>
-                    <div class="ocr-field-row">
-                      <span style="color: #94a3b8;">税率 / 不含税:</span>
-                      <span style="font-family: monospace; font-weight: 600; color: #f8fafc;">6% / RMB 7.36</span>
-                      <span style="color: #4ade80;">✓一致</span>
+                    <div class="att-meta-row">
+                      <span style="color: #94a3b8;">上传信息:</span>
+                      <span style="font-family: monospace; color: #f8fafc;">{{ activePreviewFile.uploader || '-' }} {{ activePreviewFile.uploadTime ? ('· ' + activePreviewFile.uploadTime.split(' ')[0]) : '' }}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- 底部智能比对与一键同步栏 -->
-              <div class="inspector-crosscheck-footer">
-                <div style="display: flex; align-items: center; gap: 5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-                  <iconify-icon icon="ant-design:check-circle-filled" style="color: #16a34a; font-size: 13px;"></iconify-icon>
-                  <span>
-                    <strong>智能比对通过：</strong>单证提单号、船名航次、件毛体与左栏底账 100% 吻合
-                  </span>
+              <!-- 查看器底栏：快捷重命名与新窗口打开 -->
+              <div class="inspector-footer-bar" v-if="activePreviewFile">
+                <span>{{ activePreviewFile.fileSize }} · {{ activePreviewFile.ext.toUpperCase() }}</span>
+                <div style="display: flex; gap: 6px;">
+                  <a-button v-if="!isAttachmentReadonly && !activePreviewFile.isSystemInvoice" size="small" style="height: 22px; font-size: 10px;" @click="startInlineRename(activePreviewFile)">
+                    <iconify-icon icon="ant-design:edit-outlined"></iconify-icon> 重命名
+                  </a-button>
+                  <a-button size="small" type="primary" ghost style="height: 22px; font-size: 10px;" @click="openGlobalViewer(activePreviewFile, activePreviewGroup)">
+                    <iconify-icon icon="ant-design:expand-outlined"></iconify-icon> 全屏预览
+                  </a-button>
                 </div>
-                <a-button 
-                  type="primary" 
-                  size="small" 
-                  style="height: 22px; font-size: 10px; padding: 0 8px; background: #16a34a; border-color: #16a34a; flex-shrink: 0;"
-                  :disabled="ticketData.isLocked"
-                  @click="syncVoucherToWorkbench(activePreviewAtt)">
-                  <iconify-icon icon="ant-design:retweet-outlined"></iconify-icon> 提取单证数据至左栏
-                </a-button>
               </div>
             </div>
 
@@ -3782,6 +3941,141 @@ html = '''<!DOCTYPE html>
     </div>
 
   </div>
+
+  <!-- ========================================================================
+       附件专属弹窗 1：添加其他类型弹窗
+       ======================================================================== -->
+  <a-modal 
+    v-model:open="showAddAttTypeModal" 
+    title="添加其他类型" 
+    width="420px" 
+    ok-text="确定"
+    cancel-text="取消"
+    @ok="confirmAddOtherAttachmentType">
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 8px 0;">
+      <a-select 
+        v-model:value="selectedNewAttTypeId" 
+        show-search 
+        allow-clear 
+        option-filter-prop="label"
+        placeholder="搜索或选择附件类型..." 
+        style="width: 100%;">
+        <a-select-option 
+          v-for="t in unshownAttachmentTypes" 
+          :key="t.typeId" 
+          :value="t.typeId" 
+          :label="t.typeName">
+          {{ t.typeName }}
+        </a-select-option>
+      </a-select>
+      <div style="font-size: 12px; color: #94a3b8;">
+        添加后可直接在该分类卡片下上传文件（未上传文件的空分类刷新后不保留）。
+      </div>
+    </div>
+  </a-modal>
+
+  <!-- ========================================================================
+       附件专属弹窗 2：移除本票附件关联确认框
+       ======================================================================== -->
+  <a-modal 
+    v-model:open="showRemoveAttModal" 
+    title="移除附件" 
+    width="420px"
+    ok-text="确认移除"
+    :ok-button-props="{ danger: true }"
+    cancel-text="取消"
+    @ok="confirmRemoveAttachmentLink">
+    <div v-if="removingTargetFile" style="padding: 6px 0; font-size: 13px; color: #334155; line-height: 1.6;">
+      确认从当前业务单（<strong>{{ ticketData.jobNo }}</strong>）中移除「<strong>{{ removingTargetFile.baseName }}.{{ removingTargetFile.ext }}</strong>」吗？
+      <div style="margin-top: 6px; font-size: 12px; color: #64748b;">
+        仅解除与本票业务的关联，不会删除原文件或其他单据的引用。
+      </div>
+    </div>
+  </a-modal>
+
+  <!-- ========================================================================
+       附件专属弹窗 3：全局附件查看器 (Global Attachment Viewer，支持上传人/时间、全屏、新窗口、下载)
+       ======================================================================== -->
+  <a-modal 
+    v-model:open="showGlobalViewerModal" 
+    :width="isViewerFullscreen ? '96vw' : '840px'" 
+    :footer="null"
+    style="top: 32px;">
+    <template #title>
+      <div v-if="viewerActiveFile" style="display: flex; align-items: center; gap: 8px; padding-right: 32px; overflow: hidden;">
+        <span class="att-ticket-pill" style="font-size: 10px;">全局附件查看器</span>
+        <strong style="font-size: 13px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="viewerActiveFile.baseName + '.' + viewerActiveFile.ext">
+          {{ viewerActiveFile.baseName }}.{{ viewerActiveFile.ext }}
+        </strong>
+      </div>
+    </template>
+
+    <!-- 查看器内部顶栏：上传人/时间（有值才显示）+ 全屏 + 新窗口独立预览 + 原文件下载 -->
+    <div v-if="viewerActiveFile" style="background: #0f172a; color: #e2e8f0; padding: 8px 14px; border-radius: 6px 6px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 11px;">
+      <div style="display: flex; align-items: center; gap: 10px; color: #cbd5e1; white-space: nowrap;">
+        <span>大小: <strong style="color: #ffffff; font-family: monospace;">{{ viewerActiveFile.fileSize }}</strong></span>
+        <span v-if="viewerActiveFile.uploader">上传人: <strong style="color: #ffffff;">{{ viewerActiveFile.uploader }}</strong></span>
+        <span v-if="viewerActiveFile.uploadTime">上传时间: <strong style="color: #ffffff; font-family: monospace;">{{ viewerActiveFile.uploadTime }}</strong></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+        <a-button size="small" ghost style="height: 24px; font-size: 11px; color: #e2e8f0; border-color: #475569;" @click="isViewerFullscreen = !isViewerFullscreen">
+          <iconify-icon :icon="isViewerFullscreen ? 'ant-design:fullscreen-exit-outlined' : 'ant-design:fullscreen-outlined'"></iconify-icon>
+          {{ isViewerFullscreen ? '退出全屏' : '全屏' }}
+        </a-button>
+        <a-button size="small" ghost style="height: 24px; font-size: 11px; color: #e2e8f0; border-color: #475569;" @click="antd.message.info('已在新浏览器窗口打开独立预览流')">
+          <iconify-icon icon="ant-design:export-outlined"></iconify-icon> 新窗口独立预览
+        </a-button>
+        <a-button size="small" type="primary" style="height: 24px; font-size: 11px;" @click="downloadSingleAttachment(viewerActiveFile)">
+          <iconify-icon icon="ant-design:download-outlined"></iconify-icon> 原文件下载
+        </a-button>
+      </div>
+    </div>
+
+    <div v-if="viewerActiveFile" style="background: #1e293b; border-radius: 0 0 6px 6px; padding: 20px; min-height: 390px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <!-- 支持内嵌预览的格式 (PDF / 图片) -->
+      <div v-if="canInlinePreview(viewerActiveFile.ext)" style="width: 100%; max-width: 680px; background: #ffffff; border-radius: 4px; padding: 24px 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.35); color: #0f172a;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 14px;">
+          <div>
+            <div style="font-size: 15px; font-weight: 800; color: #0f172a;">{{ viewerActiveFile.baseName }}.{{ viewerActiveFile.ext }}</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+              归属综合业务子单：{{ ticketData.jobNo }} · 所属类型：{{ viewerActiveGroup ? viewerActiveGroup.typeName : '-' }}
+            </div>
+          </div>
+          <span class="ro-vis-tag" :class="viewerActiveFile.clientVisible ? 'is-vis' : 'is-internal'">
+            {{ viewerActiveFile.clientVisible ? '客户可见: 是' : '客户可见: 否 (仅内部)' }}
+          </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 12px; font-size: 12px;">
+          <div><span style="color: #64748b;">关联提单号：</span><strong style="font-family: monospace;">{{ form.blNo }}</strong></div>
+          <div><span style="color: #64748b;">委托单位：</span><strong>{{ ticketData.customerName }}</strong></div>
+          <div><span style="color: #64748b;">船名 / 航次：</span><strong style="font-family: monospace;">{{ form.vesselName }} / {{ form.voyage }}</strong></div>
+          <div><span style="color: #64748b;">起运港 → 目的港：</span><strong style="font-family: monospace;">{{ form.pol }} → {{ form.pod }}</strong></div>
+          <div><span style="color: #64748b;">件数 / 毛重 / 体积：</span><strong style="font-family: monospace;">{{ form.pieces }} {{ form.packageType }} / {{ form.weight }} KGS / {{ form.volume }} CBM</strong></div>
+          <div><span style="color: #64748b;">文件存储大小：</span><strong style="font-family: monospace;">{{ viewerActiveFile.fileSize }}</strong></div>
+        </div>
+
+        <div style="margin-top: 14px; font-size: 11px; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
+          <span>全局附件查看器内嵌渲染视图 (支持图片、PDF、OFD 及部分 Office 格式)</span>
+          <span>关闭查看器后直接回到原附件卡片位置</span>
+        </div>
+      </div>
+
+      <!-- 不支持浏览器内嵌渲染的格式 (.doc / .docx / .ppt / .rar / .zip) 明确引导下载 -->
+      <div v-else style="text-align: center; color: #f8fafc; max-width: 440px; padding: 32px 16px;">
+        <iconify-icon icon="ant-design:file-unknown-outlined" style="font-size: 52px; color: #94a3b8; margin-bottom: 12px;"></iconify-icon>
+        <div style="font-size: 15px; font-weight: 700; margin-bottom: 6px;">
+          当前格式 (.{{ viewerActiveFile.ext }}) 需下载后查看
+        </div>
+        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
+          全局查看器对 <code>.doc / .docx / .ppt / .rar / .zip</code> 等格式不提供浏览器内嵌渲染，请点击下方按钮以显示名称下载原文件（优先 blob 方式保存，失败自动回退直链）。
+        </div>
+        <a-button type="primary" @click="downloadSingleAttachment(viewerActiveFile)">
+          <iconify-icon icon="ant-design:download-outlined"></iconify-icon> 下载原文件 ({{ viewerActiveFile.baseName }}.{{ viewerActiveFile.ext }})
+        </a-button>
+      </div>
+    </div>
+  </a-modal>
 
   <!-- ========================================================================
        4. 弹窗与抽屉矩阵 (关联主单、复制业务、整票提交确认、干系人追加、设计规范)
@@ -4396,56 +4690,282 @@ html = '''<!DOCTYPE html>
         { title: '操作', key: 'action', width: 140, align: 'center' }
       ];
 
-      // 附件凭证模型 (默认 configured，沙盘第 6 项切换为 empty_no_config 还原图05)
-      const attachmentScenario = ref('configured'); // 'configured' | 'empty_no_config'
-      const attachmentCategoryFilter = ref('all');
-      const uploadTargetCategory = ref('bl');
-      const attachmentList = ref([
+      // =========================================================================
+      // 附件页签状态模型 (严格对齐《综合业务附件：UI / 交互设计交接说明》)
+      // 分类来源：模块默认类型 + 本会话手动添加的类型 + 已有附件实际使用的类型，按 sortNo 降序排列
+      // =========================================================================
+      const attachmentScenario = ref('configured');
+      const selectedAttGroupId = ref('all'); // 'configured' | 'queue_demo' | 'readonly_locked' | 'empty_no_config' | 'load_error'
+      const hoveredGroupId = ref('');
+      const dragOverGroupId = ref('');
+
+      // 附件分组数据 (含默认类型、混合可见性、图片32x32缩略图、系统生成发票不可改名、空类型、历史无类型ID「未分类」)
+      const attachmentGroups = ref([
         {
-          id: 'att-1',
-          fileName: '提单正本扫描件_TEST-GH178.pdf',
-          fileType: 'bl',
-          fileSize: '2.4 MB',
-          uploader: '李操作',
-          uploadTime: '2026-11-09 11:20',
-          docNoText: 'MBL: TEST-GH178-20261109 · 500 CTNS',
-          verifyNote: '提单号/件重尺与左栏一致'
+          typeId: 'type-bl',
+          typeName: '提单 / 海运单',
+          sortNo: 90,
+          defaultClientVisible: true,
+          isManualSession: false,
+          isUncategorized: false,
+          isUploading: false,
+          updatingBatchVisible: false,
+          files: [
+            {
+              id: 'file-101',
+              linkId: 'link-9001',
+              baseName: '提单正本扫描件_TEST-GH178',
+              ext: 'pdf',
+              fileSize: '2.4 MB',
+              uploader: '李操作',
+              uploadTime: '2026-11-09 11:20',
+              clientVisible: true,
+              updatingVisible: false,
+              isSystemInvoice: false,
+              sharedRefCount: 2
+            },
+            {
+              id: 'file-102',
+              linkId: 'link-9002',
+              baseName: '货代分单草稿_HBL',
+              ext: 'pdf',
+              fileSize: '1.1 MB',
+              uploader: '李操作',
+              uploadTime: '2026-11-09 11:45',
+              clientVisible: true,
+              updatingVisible: false,
+              isSystemInvoice: false,
+              sharedRefCount: 1
+            }
+          ]
         },
         {
-          id: 'att-2',
-          fileName: '出口报关预录单_CNTAO.pdf',
-          fileType: 'customs',
-          fileSize: '1.1 MB',
-          uploader: '孙报关',
-          uploadTime: '2026-11-09 13:45',
-          docNoText: '报关单: 42582026000189 · 青岛海关',
-          verifyNote: '船名航次/起目港核对一致'
+          typeId: 'type-customs',
+          typeName: '报关放行资料',
+          sortNo: 80,
+          defaultClientVisible: true,
+          isManualSession: false,
+          isUncategorized: false,
+          isUploading: false,
+          updatingBatchVisible: false,
+          files: [
+            {
+              id: 'file-201',
+              linkId: 'link-9003',
+              baseName: '出口货物报关单_CNTAO',
+              ext: 'pdf',
+              fileSize: '1.05 MB',
+              uploader: '孙报关',
+              uploadTime: '2026-11-09 13:45',
+              clientVisible: true,
+              updatingVisible: false,
+              isSystemInvoice: false,
+              sharedRefCount: 1
+            }
+          ]
         },
         {
-          id: 'att-3',
-          fileName: '码头THC增值税发票.jpg',
-          fileType: 'invoice',
-          fileSize: '850 KB',
-          uploader: '王经理',
-          uploadTime: '2026-11-09 15:10',
-          docNoText: '专票: No.26370200 · 税率6%',
-          verifyNote: '匹配应付 THC ¥7.80'
+          typeId: 'type-invoice',
+          typeName: '账单与发票凭证',
+          sortNo: 70,
+          defaultClientVisible: false,
+          isManualSession: false,
+          isUncategorized: false,
+          isUploading: false,
+          updatingBatchVisible: false,
+          files: [
+            {
+              id: 'file-301',
+              linkId: 'link-9004',
+              baseName: '码头THC增值税专用发票',
+              ext: 'jpg',
+              fileSize: '850 KB',
+              uploader: '王经理',
+              uploadTime: '2026-11-09 15:10',
+              clientVisible: false,
+              updatingVisible: false,
+              isSystemInvoice: false,
+              sharedRefCount: 1
+            },
+            {
+              id: 'file-302',
+              linkId: 'link-9005',
+              baseName: '应收海运费电子发票_INV09',
+              ext: 'pdf',
+              fileSize: '420 KB',
+              uploader: '系统开票引擎',
+              uploadTime: '2026-11-09 16:00',
+              clientVisible: false,
+              updatingVisible: false,
+              isSystemInvoice: true, // 系统生成发票文件不能改名
+              sharedRefCount: 1
+            }
+          ]
+        },
+        {
+          typeId: 'type-packing',
+          typeName: '装箱单 / 委托书',
+          sortNo: 60,
+          defaultClientVisible: false,
+          isManualSession: false,
+          isUncategorized: false,
+          isUploading: false,
+          updatingBatchVisible: false,
+          files: [] // 已配置类型但无文件（保留空卡片）
+        },
+        {
+          typeId: 'type-uncategorized',
+          typeName: '未分类',
+          sortNo: 0,
+          defaultClientVisible: false,
+          isManualSession: false,
+          isUncategorized: true, // 空类型 ID 的历史已有附件显示「未分类」
+          isUploading: false,
+          updatingBatchVisible: false,
+          files: [
+            {
+              id: 'file-501',
+              linkId: 'link-9006',
+              baseName: '客户原始装箱补充说明_202611',
+              ext: 'docx',
+              fileSize: '310 KB',
+              uploader: '', // 演示上传人/时间缺失时不编造，仅显示大小
+              uploadTime: '',
+              clientVisible: false,
+              updatingVisible: false,
+              isSystemInvoice: false,
+              sharedRefCount: 1
+            }
+          ]
         }
       ]);
-      const activePreviewAtt = ref(attachmentList.value[0]);
 
-      const attachmentColumns = [
-        { title: '文件名称', dataIndex: 'fileName', key: 'fileName' },
-        { title: '文件大小', dataIndex: 'fileSize', key: 'fileSize', width: 100 },
-        { title: '上传人', dataIndex: 'uploader', key: 'uploader', width: 100 },
-        { title: '上传时间', dataIndex: 'uploadTime', key: 'uploadTime', width: 160 },
-        { title: '操作', key: 'action', width: 150, align: 'center' }
-      ];
+      // 系统字典中所有可选的扩展附件类型（用于「添加其他类型」弹窗）
+      const allOptionalAttTypes = ref([
+        { typeId: 'type-loi', typeName: '电放保函 (Telex Release LOI)', sortNo: 55 },
+        { typeId: 'type-co', typeName: '原产地证 (CO / FORM E)', sortNo: 50 },
+        { typeId: 'type-inspect', typeName: '海关查验 / 港区过磅单', sortNo: 45 },
+        { typeId: 'type-contract', typeName: '线下运输代理协议', sortNo: 40 }
+      ]);
 
-      const filteredAttachments = computed(() => {
-        if (attachmentCategoryFilter.value === 'all') return attachmentList.value;
-        return attachmentList.value.filter(item => item.fileType === attachmentCategoryFilter.value);
+      // 尚未展示的可选类型
+      const unshownAttachmentTypes = computed(() => {
+        const shownIds = new Set(attachmentGroups.value.map(g => g.typeId));
+        return allOptionalAttTypes.value.filter(t => !shownIds.has(t.typeId));
       });
+
+      // 前端按类型排序号 sortNo 降序排列卡片
+      const sortedAttachmentGroups = computed(() => {
+        return [...attachmentGroups.value].sort((a, b) => b.sortNo - a.sortNo);
+      });
+
+      // 整票附件总数
+      const totalAttachmentCount = computed(() => {
+        if (attachmentScenario.value === 'empty_no_config' || attachmentScenario.value === 'load_error') return 0;
+        return attachmentGroups.value.reduce((acc, g) => acc + g.files.length, 0);
+      });
+
+      // 兼容旧引用
+      const attachmentList = computed(() => {
+        return attachmentGroups.value.flatMap(g => g.files);
+      });
+
+      // 当前选中用于上传/批改的分类组
+      const activeUploadGroup = computed(() => {
+        if (selectedAttGroupId.value !== 'all') {
+          const found = attachmentGroups.value.find(g => g.typeId === selectedAttGroupId.value);
+          if (found) return found;
+        }
+        return sortedAttachmentGroups.value[0];
+      });
+
+      // 左栏列表展示的文件集合
+      const displayedCockpitFiles = computed(() => {
+        const list = [];
+        const groups = selectedAttGroupId.value === 'all'
+          ? sortedAttachmentGroups.value
+          : sortedAttachmentGroups.value.filter(g => g.typeId === selectedAttGroupId.value);
+        groups.forEach(g => {
+          g.files.forEach(f => {
+            list.push({ file: f, group: g });
+          });
+        });
+        return list;
+      });
+
+      const activePreviewFile = ref(attachmentGroups.value[0].files[0]);
+      const activePreviewGroup = ref(attachmentGroups.value[0]);
+
+      const selectCockpitPreview = (file, group) => {
+        activePreviewFile.value = file;
+        activePreviewGroup.value = group;
+      };
+
+      // 是否只读受限态
+      const isAttachmentReadonly = computed(() => {
+        return ticketData.isLocked || attachmentScenario.value === 'readonly_locked';
+      });
+
+      // 串行上传队列与部分失败演示列表
+      const uploadQueueItems = ref([]);
+      const defaultQueueDemoList = ref([
+        {
+          id: 'q-1',
+          badge: '✓ 已完成',
+          fileName: '海关放行通知书_CNTAO.pdf',
+          detail: '1.2 MB → 已存盘并关联至「报关放行资料」',
+          status: 'ok',
+          targetTypeId: 'type-customs'
+        },
+        {
+          id: 'q-2',
+          badge: '✓ 已完成',
+          fileName: '装箱单明细表_V2.xlsx',
+          detail: '480 KB → 已存盘并关联至「装箱单 / 货运委托书」',
+          status: 'ok',
+          targetTypeId: 'type-packing'
+        },
+        {
+          id: 'q-3',
+          badge: '✕ 关联失败',
+          fileName: '船东电放保函_万达盖章版.pdf',
+          detail: '890 KB → 文件已存盘，但本票关联 (AddAttachmentsAsync) 失败',
+          status: 'err',
+          targetTypeId: 'type-bl'
+        },
+        {
+          id: 'q-4',
+          badge: '🚫 格式拦截',
+          fileName: '电子税票原件_263702.ofd',
+          detail: '本页上传白名单不含 .ofd (仅查看器支持预览)，未发起上传',
+          status: 'reject',
+          targetTypeId: 'type-invoice'
+        }
+      ]);
+
+      const activeQueueDisplayList = computed(() => {
+        if (uploadQueueItems.value.length > 0) return uploadQueueItems.value;
+        return defaultQueueDemoList.value;
+      });
+
+      // 行内铅笔改名状态
+      const renamingFileId = ref('');
+      const renameDraftBase = ref('');
+      const renameErrorMsg = ref('');
+      const isSubmittingRename = ref(false);
+
+      // 附件弹窗状态：1. 添加其他类型 2. 移除确认 3. 全局查看器
+      const showAddAttTypeModal = ref(false);
+      const selectedNewAttTypeId = ref(undefined);
+
+      const showRemoveAttModal = ref(false);
+      const removingTargetFile = ref(null);
+      const removingTargetGroup = ref(null);
+
+      const showGlobalViewerModal = ref(false);
+      const isViewerFullscreen = ref(false);
+      const viewerActiveFile = ref(null);
+      const viewerActiveGroup = ref(null);
 
       // 弹窗状态
       const showMasterOrderModal = ref(false);
@@ -4877,67 +5397,316 @@ html = '''<!DOCTYPE html>
         antd.message.info('已获取总账最新外币牌价并完成折合试算。');
       };
 
-      const getCategoryCount = (cat) => {
-        return attachmentList.value.filter(a => a.fileType === cat).length;
+      // =========================================================================
+      // 附件核心交互方法 (分类可见性、单条可见性、铅笔改名、串行上传、移除关联、全局查看器)
+      // =========================================================================
+      const ALLOWED_UPLOAD_EXTS = new Set([
+        'bmp', 'csv', 'doc', 'docx', 'gif', 'jpeg', 'jpg', 'pdf', 'png',
+        'ppt', 'pptx', 'rar', 'svg', 'tif', 'tiff', 'webp', 'xls', 'xlsx', 'zip'
+      ]);
+
+      const isImageExt = (ext) => {
+        return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes((ext || '').toLowerCase());
       };
-      const getCategoryLabel = (cat) => {
-        const map = { all: '全部单证', bl: '提单/运单', customs: '报关凭证', invoice: '费用发票', other: '保函/其他' };
-        return map[cat] || '其他单证';
+
+      const canInlinePreview = (ext) => {
+        return ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ofd'].includes((ext || '').toLowerCase());
       };
-      const getCategoryTagColor = (cat) => {
-        const map = { bl: 'blue', customs: 'cyan', invoice: 'orange', other: 'purple' };
-        return map[cat] || 'default';
+
+      const getExtThumbClass = (ext) => {
+        const e = (ext || '').toLowerCase();
+        if (e === 'pdf') return 'is-pdf';
+        if (['doc', 'docx'].includes(e)) return 'is-doc';
+        if (['xls', 'xlsx', 'csv'].includes(e)) return 'is-xls';
+        return 'is-zip';
       };
-      const selectAttachmentCategory = (cat) => {
-        attachmentCategoryFilter.value = cat;
-        const list = cat === 'all' ? attachmentList.value : attachmentList.value.filter(a => a.fileType === cat);
-        if (list.length > 0) {
-          activePreviewAtt.value = list[0];
+
+      // 分类头复选框状态计算：空分类看 defaultClientVisible；有文件分类看已有文件是否全选/半选
+      const isGroupAllVisible = (group) => {
+        if (!group.files || group.files.length === 0) {
+          return !!group.defaultClientVisible;
+        }
+        return group.files.every(f => f.clientVisible);
+      };
+
+      const isGroupIndeterminate = (group) => {
+        if (!group.files || group.files.length === 0) return false;
+        const visCount = group.files.filter(f => f.clientVisible).length;
+        return visCount > 0 && visCount < group.files.length;
+      };
+
+      const getGroupVisTooltip = (group) => {
+        if (!group.files || group.files.length === 0) {
+          return `空分类勾选「客户可见」：仅设置本次会话该分类上传默认值（当前默认：${group.defaultClientVisible ? '是' : '否'}），不调用保存接口`;
+        }
+        const visCount = group.files.filter(f => f.clientVisible).length;
+        return `点击将批量修改本分类已有 ${group.files.length} 个文件的客户可见状态（当前已可见 ${visCount}/${group.files.length}），成功后同时更新本次会话新上传默认值（当前新传默认：${group.defaultClientVisible ? '是' : '否'}）`;
+      };
+
+      // 分类头批量切换客户可见 (Section 4.3)
+      const handleGroupVisibleChange = (group, checked) => {
+        if (isAttachmentReadonly.value) return;
+        if (!group.files || group.files.length === 0) {
+          group.defaultClientVisible = checked;
+          antd.message.info(`已设置「${group.typeName}」本次会话新上传默认客户可见为：${checked ? '是' : '否'}`);
+          return;
+        }
+        group.updatingBatchVisible = true;
+        setTimeout(() => {
+          group.files.forEach(f => {
+            f.clientVisible = checked;
+          });
+          group.defaultClientVisible = checked;
+          group.updatingBatchVisible = false;
+          antd.message.success(`已批量更新「${group.typeName}」下 ${group.files.length} 个文件为「${checked ? '客户可见' : '仅内部'}」，并同步设新传默认值为「${checked ? '是' : '否'}」`);
+        }, 200);
+      };
+
+      // 单文件切换客户可见：即时更新该条关联，不联动改变分类上传默认值 (Section 4.3)
+      const handleSingleFileVisibleChange = (file, group, checked) => {
+        if (isAttachmentReadonly.value) return;
+        file.updatingVisible = true;
+        setTimeout(() => {
+          file.clientVisible = checked;
+          file.updatingVisible = false;
+          antd.message.success(`已即时更新「${file.baseName}.${file.ext}」为${checked ? '客户可见' : '仅内部可见'}（分类新上传默认值保持「${group.defaultClientVisible ? '是' : '否'}」不变）`);
+        }, 160);
+      };
+
+      // 行内铅笔改名：进入编辑、校验、保存、取消 (Section 4.5)
+      const startInlineRename = (file) => {
+        if (isAttachmentReadonly.value) return;
+        if (file.isSystemInvoice) {
+          antd.message.warning('系统生成发票文件不能改名');
+          return;
+        }
+        renamingFileId.value = file.id;
+        renameDraftBase.value = file.baseName;
+        renameErrorMsg.value = '';
+      };
+
+      const cancelInlineRename = () => {
+        renamingFileId.value = '';
+        renameDraftBase.value = '';
+        renameErrorMsg.value = '';
+      };
+
+      const submitInlineRename = (file) => {
+        if (isSubmittingRename.value) return;
+        const val = (renameDraftBase.value || '').trim();
+        if (!val) {
+          renameErrorMsg.value = '文件名称不能为空';
+          return;
+        }
+        if (/[\\/:*?"<>|]/.test(val)) {
+          renameErrorMsg.value = '包含非法字符 \ / : * ? " < > |，后端拒绝保存';
+          return;
+        }
+        const fullLen = val.length + 1 + (file.ext || '').length;
+        if (fullLen > 255) {
+          renameErrorMsg.value = `文件总长度 (${fullLen}) 超过 255 字符上限`;
+          return;
+        }
+        isSubmittingRename.value = true;
+        setTimeout(() => {
+          file.baseName = val;
+          isSubmittingRename.value = false;
+          renamingFileId.value = '';
+          renameErrorMsg.value = '';
+          antd.message.success(`已更新文件显示名称为「${file.baseName}.${file.ext}」（已即时持久化）`);
+        }, 180);
+      };
+
+      const triggerMockInvalidRename = () => {
+        const firstGroup = sortedAttachmentGroups.value[0];
+        if (firstGroup && firstGroup.files.length > 0) {
+          const target = firstGroup.files[0];
+          renamingFileId.value = target.id;
+          renameDraftBase.value = target.baseName + ':非法*字符?测试';
+          renameErrorMsg.value = '包含非法字符 \ / : * ? " < > |，后端拒绝保存';
+          antd.message.error('已演示改名包含非法字符被拦截，同时保留用户输入草稿！');
         }
       };
-      const selectPreviewAttachment = (att) => {
-        activePreviewAtt.value = att;
+
+      // 添加其他类型弹窗 (Section 4.2)
+      const openAddOtherAttachmentType = () => {
+        if (isAttachmentReadonly.value) return;
+        selectedNewAttTypeId.value = undefined;
+        showAddAttTypeModal.value = true;
       };
-      const mockQuickUploadTelex = () => {
-        if (ticketData.isLocked) return;
-        const newAtt = {
-          id: 'att-' + Date.now(),
-          fileName: '电放保函_青岛万达_盖章版.pdf',
-          fileType: 'other',
-          fileSize: '620 KB',
+
+      const confirmAddOtherAttachmentType = () => {
+        if (!selectedNewAttTypeId.value) {
+          antd.message.warning('请选择附件类型');
+          return; // 弹窗保留
+        }
+        const found = allOptionalAttTypes.value.find(t => t.typeId === selectedNewAttTypeId.value);
+        if (found) {
+          attachmentGroups.value.push({
+            typeId: found.typeId,
+            typeName: found.typeName,
+            sortNo: found.sortNo,
+            defaultClientVisible: false,
+            isManualSession: true,
+            isUncategorized: false,
+            isUploading: false,
+            updatingBatchVisible: false,
+            files: []
+          });
+          if (attachmentScenario.value === 'empty_no_config') {
+            attachmentScenario.value = 'configured';
+          }
+          antd.message.success(`已添加附件类型「${found.typeName}」`);
+        }
+        showAddAttTypeModal.value = false;
+      };
+
+      // 分类上传与拖拽/粘贴处理 (Section 4.1)
+      const handleGroupFileUpload = (file, group) => {
+        if (isAttachmentReadonly.value) return false;
+        const parts = (file.name || '').split('.');
+        const ext = parts.length > 1 ? parts.pop().toLowerCase() : '';
+        const baseName = parts.join('.') || file.name;
+
+        if (!ALLOWED_UPLOAD_EXTS.has(ext)) {
+          uploadQueueItems.value.unshift({
+            id: 'q-' + Date.now(),
+            badge: '🚫 格式拦截',
+            fileName: file.name,
+            detail: `扩展名 .${ext || '未知'} 不在本页 18 种支持白名单内，未发起上传`,
+            status: 'reject',
+            targetTypeId: group.typeId
+          });
+          antd.message.error(`不支持上传 .${ext} 格式文件！`);
+          return false;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+          uploadQueueItems.value.unshift({
+            id: 'q-' + Date.now(),
+            badge: '🚫 大小超限',
+            fileName: file.name,
+            detail: '单文件超过 10 MiB (1024×1024) 限制，未发起上传',
+            status: 'reject',
+            targetTypeId: group.typeId
+          });
+          antd.message.error('单文件大小不能超过 10 MiB！');
+          return false;
+        }
+
+        group.isUploading = true;
+        setTimeout(() => {
+          const newFile = {
+            id: 'file-' + Date.now(),
+            linkId: 'link-' + Date.now(),
+            baseName,
+            ext,
+            fileSize: Math.max(1, Math.round(file.size / 1024)) + ' KB',
+            uploader: '李操作',
+            uploadTime: window.dayjs().format('YYYY-MM-DD HH:mm'),
+            clientVisible: !!group.defaultClientVisible,
+            updatingVisible: false,
+            isSystemInvoice: false,
+            sharedRefCount: 1
+          };
+          group.files.push(newFile);
+          group.isUploading = false;
+          uploadQueueItems.value.unshift({
+            id: 'q-' + Date.now(),
+            badge: '✓ 已完成',
+            fileName: file.name,
+            detail: `已关联至「${group.typeName}」· 默认客户可见:${newFile.clientVisible ? '是' : '否'}`,
+            status: 'ok',
+            targetTypeId: group.typeId
+          });
+          antd.message.success(`文件「${file.name}」已上传并关联至「${group.typeName}」（即时保存生效）`);
+        }, 240);
+        return false;
+      };
+
+      const mockQuickUploadToGroup = (group) => {
+        if (isAttachmentReadonly.value) return;
+        const sampleFile = {
+          name: `${group.typeName.split(' ')[0]}_补交样本_${window.dayjs().format('HHmmss')}.pdf`,
+          size: 640 * 1024
+        };
+        handleGroupFileUpload(sampleFile, group);
+      };
+
+      const onGroupDragOver = (group) => {
+        if (!isAttachmentReadonly.value) dragOverGroupId.value = group.typeId;
+      };
+      const onGroupDragLeave = (group) => {
+        if (dragOverGroupId.value === group.typeId) dragOverGroupId.value = '';
+      };
+      const onGroupDrop = (group) => {
+        dragOverGroupId.value = '';
+        if (!isAttachmentReadonly.value) {
+          mockQuickUploadToGroup(group);
+        }
+      };
+
+      const retryFailedQueueItem = (q) => {
+        const targetGroup = attachmentGroups.value.find(g => g.typeId === q.targetTypeId) || attachmentGroups.value[0];
+        q.status = 'ok';
+        q.badge = '✓ 重试成功';
+        q.detail = `已重新关联至「${targetGroup.typeName}」`;
+        targetGroup.files.push({
+          id: 'file-retry-' + Date.now(),
+          linkId: 'link-retry-' + Date.now(),
+          baseName: q.fileName.replace(/\.[^.]+$/, ''),
+          ext: 'pdf',
+          fileSize: '890 KB',
           uploader: '李操作',
           uploadTime: window.dayjs().format('YYYY-MM-DD HH:mm'),
-          docNoText: '电放保函 · ' + form.blNo,
-          verifyNote: '客户签章与委托单位一致'
-        };
-        attachmentList.value.push(newAtt);
-        activePreviewAtt.value = newAtt;
-        if (!form.remark.includes('电放保函已收')) {
-          appendQuickRemark('电放保函已收');
-        } else {
-          antd.message.success('已上传「电放保函_青岛万达_盖章版.pdf」并自动打开右侧同屏预览！');
-        }
+          clientVisible: !!targetGroup.defaultClientVisible,
+          updatingVisible: false,
+          isSystemInvoice: false,
+          sharedRefCount: 1
+        });
+        antd.message.success(`已成功重试关联「${q.fileName}」至本票「${targetGroup.typeName}」！`);
       };
-      const syncVoucherToWorkbench = (att) => {
-        if (!att || ticketData.isLocked) return;
-        if (att.fileType === 'bl' || att.fileType === 'customs') {
-          form.blNo = 'TEST-GH178-20261109';
-          form.vesselName = 'COSCO PRIDE';
-          form.voyage = '024E';
-          form.pieces = 500;
-          form.weight = 2500.00;
-          form.volume = 15.5000;
-          markDirty('basic');
-          antd.message.success(`已将「${att.fileName}」票面提单号、船名航次与件毛体数据同步回填至左侧业务档案！`);
-        } else if (att.fileType === 'invoice') {
-          antd.message.success('发票金额 RMB 7.80 已与应付明细「码头操作费 (THC)」核对一致！');
-        } else {
-          appendQuickRemark('电放保函已核对归档');
-        }
+
+      const dismissQueueItem = (id) => {
+        uploadQueueItems.value = uploadQueueItems.value.filter(i => i.id !== id);
+        defaultQueueDemoList.value = defaultQueueDemoList.value.filter(i => i.id !== id);
       };
-      const downloadAllAttachments = () => {
-        antd.message.success(`已打包下载本票全部 ${attachmentList.value.length} 份单证凭证 (TEST130-0022_单证包.zip)！`);
+
+      // 移除本票关联确认弹窗 (Section 4.5)
+      const openRemoveConfirmModal = (file, group) => {
+        if (isAttachmentReadonly.value) return;
+        removingTargetFile.value = file;
+        removingTargetGroup.value = group;
+        showRemoveAttModal.value = true;
       };
+
+      const confirmRemoveAttachmentLink = () => {
+        if (!removingTargetFile.value || !removingTargetGroup.value) return;
+        const targetId = removingTargetFile.value.id;
+        const name = `${removingTargetFile.value.baseName}.${removingTargetFile.value.ext}`;
+        // 按文件 ID 从本票移除关联
+        attachmentGroups.value.forEach(g => {
+          g.files = g.files.filter(f => f.id !== targetId);
+        });
+        showRemoveAttModal.value = false;
+        removingTargetFile.value = null;
+        removingTargetGroup.value = null;
+        antd.message.success(`已从本票 (${ticketData.jobNo}) 移除「${name}」的附件关联（服务器原文件及其他票引用未受影响）`);
+      };
+
+      // 全局附件查看器与单文件下载 (Section 4.4)
+      const openGlobalViewer = (file, group) => {
+        viewerActiveFile.value = file;
+        viewerActiveGroup.value = group;
+        isViewerFullscreen.value = false;
+        showGlobalViewerModal.value = true;
+      };
+
+      const downloadSingleAttachment = (file) => {
+        if (!file) return;
+        antd.message.success(`正在以显示名称「${file.baseName}.${file.ext}」保存原文件 (Blob 下载)...`);
+      };
+
       const addMockChangeOrder = () => {
         const newCo = {
           id: 'co-' + Date.now(),
@@ -4956,45 +5725,6 @@ html = '''<!DOCTYPE html>
       const enterMergeModeAndSwitchFee = () => {
         activeTabKey.value = 'fee';
         enterMergeMode();
-      };
-      const openAddOtherAttachmentType = () => {
-        attachmentScenario.value = 'configured';
-        attachmentCategoryFilter.value = 'other';
-        antd.message.success('已启用「保函/装箱单/其他」扩展单证分类，可直接上传凭证！');
-      };
-      const handleFileUpload = (file) => {
-        if (file.size > 10 * 1024 * 1024) {
-          antd.message.error('单文件大小超过 10MB 限制！');
-          return false;
-        }
-        const newAtt = {
-          id: 'att-' + Date.now(),
-          fileName: file.name,
-          fileType: uploadTargetCategory.value || 'other',
-          fileSize: (file.size / 1024).toFixed(1) + ' KB',
-          uploader: '李操作',
-          uploadTime: window.dayjs().format('YYYY-MM-DD HH:mm'),
-          docNoText: '新上传单证 · ' + form.jobNo,
-          verifyNote: '已通过同公司权限校验'
-        };
-        attachmentList.value.push(newAtt);
-        activePreviewAtt.value = newAtt;
-        antd.message.success(`文件 ${file.name} 上传成功并已在右侧打开预览！`);
-        return false;
-      };
-      const previewAttachment = (att) => {
-        activePreviewAtt.value = att;
-        antd.message.info(`已在右侧预览窗切换显示: ${att.fileName}`);
-      };
-      const downloadAttachment = (att) => {
-        antd.message.success(`已开始下载原件: ${att.fileName}`);
-      };
-      const deleteAttachment = (id) => {
-        attachmentList.value = attachmentList.value.filter(a => a.id !== id);
-        if (activePreviewAtt.value && activePreviewAtt.value.id === id) {
-          activePreviewAtt.value = attachmentList.value[0] || null;
-        }
-        antd.message.success('附件凭证已移除。');
       };
 
       const handlePrevOrder = () => {
@@ -5065,12 +5795,34 @@ html = '''<!DOCTYPE html>
         applyScenario(newSc);
       });
 
+      watch(attachmentScenario, () => {
+        cancelInlineRename();
+      }, { flush: 'sync' });
+
+      watch(isAttachmentReadonly, (ro) => {
+        if (ro) cancelInlineRename();
+      }, { flush: 'sync' });
+
       if (typeof window !== 'undefined') {
         window.__workbench = {
           activeTabKey,
           currentScenario,
+          attachmentScenario,
+        selectedAttGroupId,
+        activeUploadGroup,
+        displayedCockpitFiles,
+        activePreviewFile,
+        activePreviewGroup,
+        selectCockpitPreview,
+          attachmentGroups,
           applyScenario,
-          ticketData
+          ticketData,
+          openGlobalViewer,
+          openRemoveConfirmModal,
+          openAddOtherAttachmentType,
+          startInlineRename,
+          cancelInlineRename,
+          triggerMockInvalidRename
         };
       }
 
@@ -5132,20 +5884,60 @@ html = '''<!DOCTYPE html>
         changeOrderList,
         changeOrderColumns,
         attachmentScenario,
-        attachmentCategoryFilter,
-        uploadTargetCategory,
+        selectedAttGroupId,
+        activeUploadGroup,
+        displayedCockpitFiles,
+        activePreviewFile,
+        activePreviewGroup,
+        selectCockpitPreview,
+        hoveredGroupId,
+        dragOverGroupId,
+        attachmentGroups,
+        allOptionalAttTypes,
+        unshownAttachmentTypes,
+        sortedAttachmentGroups,
+        totalAttachmentCount,
         attachmentList,
-        activePreviewAtt,
-        attachmentColumns,
-        filteredAttachments,
-        getCategoryCount,
-        getCategoryLabel,
-        getCategoryTagColor,
-        selectAttachmentCategory,
-        selectPreviewAttachment,
-        mockQuickUploadTelex,
-        syncVoucherToWorkbench,
-        downloadAllAttachments,
+        isAttachmentReadonly,
+        uploadQueueItems,
+        activeQueueDisplayList,
+        renamingFileId,
+        renameDraftBase,
+        renameErrorMsg,
+        isSubmittingRename,
+        showAddAttTypeModal,
+        selectedNewAttTypeId,
+        showRemoveAttModal,
+        removingTargetFile,
+        removingTargetGroup,
+        showGlobalViewerModal,
+        isViewerFullscreen,
+        viewerActiveFile,
+        viewerActiveGroup,
+        isImageExt,
+        canInlinePreview,
+        getExtThumbClass,
+        isGroupAllVisible,
+        isGroupIndeterminate,
+        getGroupVisTooltip,
+        handleGroupVisibleChange,
+        handleSingleFileVisibleChange,
+        startInlineRename,
+        cancelInlineRename,
+        submitInlineRename,
+        triggerMockInvalidRename,
+        confirmAddOtherAttachmentType,
+        handleGroupFileUpload,
+        mockQuickUploadToGroup,
+        onGroupDragOver,
+        onGroupDragLeave,
+        onGroupDrop,
+        retryFailedQueueItem,
+        dismissQueueItem,
+        openRemoveConfirmModal,
+        confirmRemoveAttachmentLink,
+        openGlobalViewer,
+        downloadSingleAttachment,
         addMockChangeOrder,
         enterMergeModeAndSwitchFee,
         showMasterOrderModal,
@@ -5206,10 +5998,6 @@ html = '''<!DOCTYPE html>
         handleExportFees,
         handleCurrencyExchange,
         openAddOtherAttachmentType,
-        handleFileUpload,
-        previewAttachment,
-        downloadAttachment,
-        deleteAttachment,
         handlePrevOrder,
         handleNextOrder,
         reloadTicket,
