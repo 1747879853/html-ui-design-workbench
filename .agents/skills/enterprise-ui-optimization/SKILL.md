@@ -39,6 +39,22 @@ Follow these principles strictly whenever optimizing, refactoring, or building e
   3. Timeline tab
   *(Repetitive status warnings scream amateurism and eat up valuable vertical space).*
 
+### 1.4 "Golden Balance: High-Craft Structure + Minimalist Copy" (结构高质感 + 文案极度克制)
+- **Richness comes from structural micro-components, NOT wordy helper text**:
+  - Use a soft slate canvas (`#f3f5f8`) to frame modular white sub-cards (`#ffffff`), 3-cell readonly ledger strips, interactive master-order ticket stubs, 2-column role capsule matrices, fused boarding-pass port selectors, and dark-slate in-place document previewers.
+  - Keep field labels pure and concise (e.g., `所属公司`, `关联主单`, `委托单位`, `船公司`, `船名`, `航次`, `毛重`, `尺码`). **Never clutter labels with right-aligned grey spec hints** (`限64字`, `4位小数`, `同公司校验·最多1票`, `sortNo:90`) or redundant bilingual brackets (`(Carrier)`, `(Vessel)`, `(Receivables)`).
+- **Eliminate 100% redundant static graphics above inputs**:
+  - Never place a static route card or static cargo summary directly above inputs that repeat the exact same values. Fuse the route graphic with the POL/POD selects into a single **Boarding-Pass Route Selector**, and use the cargo telemetry bar to show **computed incremental metrics** (e.g., `计费重 15.50 RT · 轻泡货 · 泡重比 1:6.2`).
+- **Beware of C-end vs B2B domain mismatches**:
+  - Do NOT add a Ctrip-style `[⇄ 互换港口]` button in the center of a freight forwarding route line (B2B shipments have a fixed one-way trade direction; use a clean directional arrow `───▶`).
+  - Do NOT use `"齐套 17/17"` to count form field completion ("齐套" in freight forwarding means document completeness, and most form fields are optional).
+- **Converge controls to the user's mental model layer**:
+  - Even if the backend stores `clientVisible` per attachment file, when the user's mental model is "by attachment type" (`按类型维度是否可见`), place the `客户可见` checkbox **strictly on the Attachment Type Card layer**—never repeat switches on every file row, in the upload bar, and in the preview card.
+- **Micro-Craft & Toolbar Precision**:
+  - **No Double-Border Nesting (Box-in-a-Box)**: Never put bordered `<a-button>` elements inside another bordered wrapper (like `[ < 上一票 | 1 / 5 | 下一票 > ]`). Build a single seamless `28px`-tall segmented pill (`border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden`) with `1px solid #f1f5f9` dividers and pure `#ffffff` button backgrounds (dimming only text/icon to `#cbd5e1` when disabled).
+  - **No `01 / 02 / 03` Numbered Boxes**: Use a 4-column recessed **Segmented Control** (`#f1f5f9` track + `#ffffff` active pill) for section quick-jump and **20×20px Semantic Color-Tinted Icon Badges** on card headers.
+  - See full reference in [`docs/WORKBENCH_UI_UX_PLAYBOOK.md`](../../../docs/WORKBENCH_UI_UX_PLAYBOOK.md).
+
 ---
 
 ## 2. Form Grid & Financial Calculation Standard (4列自适应表单网格)

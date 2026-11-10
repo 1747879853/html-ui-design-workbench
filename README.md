@@ -30,8 +30,10 @@
 │   ├── template-form-layout.html# 2. 复杂分组卡片式表单模板（栅格对齐、必填校验、底部吸底栏）
 │   └── template-detail-view.html# 3. 全息业务实体详情页模板（4维大盘指标、多Tab切换、时效流转）
 ├── pages/                       # 业务落地页面目录
+│   ├── comprehensive-business-edit.html # 标杆示范：综合业务编辑工作台 (#178 左右同屏双轨驾驶舱)
 │   └── demo-order-management.html # 业务示范：B2B大宗采购与订单履约调度中心 (附带抽屉核对表)
 └── docs/                        # SOP 与核对规范
+    ├── WORKBENCH_UI_UX_PLAYBOOK.md # 🌟 复杂业务工作台与单据编辑页 UI/交互重构沉淀指南 (核心必读)
     ├── WORKFLOW_GUIDE.md        # 完整优化工作流 SOP
     ├── AUDIT_CHECKLIST_TEMPLATE.md # 字段、按钮、列一致性核对报告模板
     └── VUE_SFC_MIGRATION_GUIDE.md  # 一键迁移至 Vue 3 SFC 开发指南
