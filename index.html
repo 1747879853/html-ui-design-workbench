@@ -233,28 +233,32 @@
       setup() {
         const stageRef = ref(null);
         const iframeRef = ref(null);
-        const currentPage = ref('pages/comprehensive-business-edit.html');
+        const currentPage = ref('pages/payment-application-detail-v2.html');
         const viewportMode = ref('fit');
         const showAuditModal = ref(false);
         const showSfcModal = ref(false);
         const currentScale = ref(1);
 
         const pageOptions = [
-          { label: '🚢 核心交付：综合业务编辑工作台 (#178 左右同屏精简与费用合一 + 3大独立保存域 + 合并更改单只读 + 更改单双侧保护 + 附件空态 + 8大沙盘)', value: 'pages/comprehensive-business-edit.html' },
-          { label: '🔥 核心交付：收费核销新建页交互原型 (WF346实测样本 + 8大沙盘 + 新建/已有流水双轨 + 异币折汇 + 自动核销8行确认 + 航线无边框排版)', value: 'pages/receive-settlement-add.html' },
-          { label: '🏦 最新交付：银行流水详情与编辑工作台 (SH261026025 · 7大业务场景沙盘 + 1920高密度三卡首屏 + 收费核销明细展开 + 批量删费 + 抽屉核销)', value: 'pages/bank-statement-edit.html' },
-          { label: '📊 青岛海鼎总裁经营看板 (汇总总览 + 销售TEU/利润 + 操作货类/直客同行)', value: 'pages/shipping-bi-dashboard.html' },
-          { label: '🏦 银企直连工作台 (状态决策大盘 + 1920高密度决策表 + 两步式回单倒计时 + 认领关联抽屉)', value: 'pages/bank-direct-workbench.html' },
-          { label: '⚙️ 原页面优化：自动锁账规则 (规则矩阵 + 试算沙盘 + 执行日志 + 16项条件编辑器)', value: 'pages/lock-account-rule.html' },
-          { label: '🛡️ 原页面优化：锁账设置 (公司期间 + 锁账检查模式 + 字段白名单 + 反结转防线)', value: 'pages/lock-account-setting.html' },
-          { label: '🔒 原页面优化：锁账工作台 (大盘联动 + 锁账预检 + 解锁凭证警示 + 锁账记录)', value: 'pages/lock-account-workbench.html' },
-          { label: '📅 原页面优化：期间结转 (结转向导 + 反结转 + 结转快照对比)', value: 'pages/lock-account-period.html' },
-          { label: '💰 原页面优化：报销付款管理 (双击详情抽屉 + 付款弹窗)', value: 'pages/expense-claim-pay.html' },
-          { label: '🔥 原页面优化：费用报销单详情 (BX202610180027)', value: 'pages/expense-claim-detail.html' },
-          { label: '🌟 业务实战优化：B2B 订单履约调度中心', value: 'pages/demo-order-management.html' },
-          { label: '📄 标准模板：高级查询表格列表页', value: 'templates/template-table-list.html' },
-          { label: '📝 标准模板：复杂分组卡片式表单页', value: 'templates/template-form-layout.html' },
-          { label: '🔍 标准模板：全息业务实体详情页', value: 'templates/template-detail-view.html' }
+          { label: '💎 最新交付：付费申请详情与提交工作台 (V2 系统同源 · 浮点浮卡 + 3列遥测格)', value: 'pages/payment-application-detail-v2.html' },
+          { label: '🌟 【方向 1】左右流式双栏 (Linear Split · 64%满高费用明细 + 36%右侧资金凭证)', value: 'pages/payment-app-dir1-linear-split.html' },
+          { label: '🏛️ 【方向 2】仿真金融支票凭证折 (Voucher Stub · 真实银行支票票面 + 4大标准对账Tabs)', value: 'pages/payment-app-dir2-voucher-card.html' },
+          { label: '🧭 【方向 3】向导式分步流转工作台 (Guided Wizard · 1选费排查 -> 2录票勾稽 -> 3账户签字送审)', value: 'pages/payment-app-dir3-stepper-wizard.html' },
+          { label: '📑 【方向 4】主从联动订单切换台 (Master-Detail Side · 左侧多票业务单点选 + 右侧深度明细)', value: 'pages/payment-app-dir4-master-detail-side.html' },
+          { label: '⚡ 【方向 5】彭博金融高密度全屏表格 (Bloomberg Grid · 32px极窄顶栏 + 95%沉浸式大表盲打)', value: 'pages/payment-app-dir5-high-density-excel.html' },
+          { label: '⚖️ 【方向 6】票费双联对账台 (Dual-Ledger Deck · 50%左费用 ⟷ 中央平衡差额仪 ⟷ 50%右发票)', value: 'pages/payment-app-dir6-invoice-matching-deck.html' },
+          { label: '🚢 【方向 7】集装箱货运卡片流 (Container Stubs · 物流提单视觉感知 + 航线箱量卡片)', value: 'pages/payment-app-dir7-kanban-cards.html' },
+          { label: '💼 【方向 8】Ant Design Pro 原生纯净 Tabs (Pro Pure · 68px白底平齐顶栏 + 4大全宽标签页)', value: 'pages/payment-app-dir8-compact-tabbed-pro.html' },
+          { label: '📊 【方向 9】全景大盘 + 侧滑沉浸式抽屉 (Dashboard + Drawers · 4大管理卡片总览 + 专属侧滑深度维护)', value: 'pages/payment-app-dir9-drawer-focused.html' },
+          { label: '🌐 【方向 10】国际多币别外贸对账凭证 (Global Multi-Currency · 外币头寸大盘 + 锁汇折算 + 进出口Invoice)', value: 'pages/payment-app-dir10-executive-bilingual.html' },
+          { label: '📋 【基准版】付费申请编辑详情工作台 (Flat Ledger · 4列平齐底账 + 单表合一 + 50/50双翼底栏)', value: 'pages/payment-application-edit.html' },
+          { label: '🚀 自定义导出 Excel 弹窗深度优化', value: 'pages/custom-excel-export-optimized.html' },
+          { label: '💎 查看费用弹窗深度优化 (view-order-fee-modal)', value: 'pages/view-order-fee-modal.html' },
+          { label: '🚢 综合业务编辑工作台 (#178 左右同屏精简与费用合一)', value: 'pages/comprehensive-business-edit.html' },
+          { label: '🔥 收费核销新建页交互原型 (WF346实测样本)', value: 'pages/receive-settlement-add.html' },
+          { label: '🏦 银行流水详情与编辑工作台 (SH261026025)', value: 'pages/bank-statement-edit.html' },
+          { label: '📊 青岛海鼎总裁经营看板', value: 'pages/shipping-bi-dashboard.html' },
+          { label: '🏦 银企直连工作台 (状态决策大盘)', value: 'pages/bank-direct-workbench.html' }
         ];
 
         // 计算 1920x1080 视口自适应缩放样式

@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>查看费用弹窗 (view-order-fee-modal) · UI/UX 深度优化原型</title>
+
+  <!-- 本地极速资源：零延迟无代理依赖 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+
+  <style>
+    :root {
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+      --primary-50: #eff6ff;
+      --primary-100: #dbeafe;
+      --primary-500: #3b82f6;
+      --primary-600: #2563eb;
+      --primary-700: #1d4ed8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #cbd5e1;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+      color: var(--slate-900);
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 顶部沙盘仿真控制台 */
+    .sandbox-bar {
+      height: 44px;
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #f8fafc;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .sandbox-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sandbox-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(59, 130, 246, 0.18);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .sandbox-group {
+      display: inline-flex;
+      align-items: center;
+      background: #1e293b;
+      padding: 2px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
+
+    .sandbox-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .sandbox-btn:hover {
+      color: #e2e8f0;
+    }
+
+    .sandbox-btn.is-active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    .sandbox-btn.is-legacy.is-active {
+      background: #d97706;
+      color: #ffffff;
+    }
+
+    /* 仿真底层海运出口列表背景 */
+    .workspace-backdrop {
+      flex: 1;
+      position: relative;
+      background: #f1f5f9;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+    }
+
+    .mock-bg-page {
+      position: absolute;
+      inset: 12px;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      padding: 16px;
+      filter: blur(1.5px);
+      opacity: 0.45;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mock-bg-bar {
+      height: 36px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+
+    .mock-bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.42);
+      backdrop-filter: blur(1px);
+    }
+
+    /* 弹窗容器主体 */
+    .fee-modal-shell {
+      position: relative;
+      z-index: 10;
+      width: 1120px;
+      max-width: calc(100vw - 40px);
+      max-height: calc(100vh - 64px);
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.38), 0 0 0 1px rgba(15, 23, 42, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fee-modal-shell.is-fullscreen {
+      width: calc(100vw - 24px);
+      height: calc(100vh - 60px);
+      max-width: calc(100vw - 24px);
+      max-height: calc(100vh - 60px);
+    }
+
+    /* 1. 弹窗头部 */
+    .fee-modal-header {
+      height: 44px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .order-no-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--slate-100);
+      border: 1px solid var(--slate-200);
+      padding: 1px 9px;
+      border-radius: 5px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--slate-900);
+      letter-spacing: 0.2px;
+    }
+
+    .order-no-pill .pill-prefix {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--slate-500);
+    }
+
+    .modal-main-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--slate-900);
+      margin: 0;
+    }
+
+    .header-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-win-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--slate-500);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .icon-win-btn:hover {
+      background: var(--slate-100);
+      color: var(--slate-800);
+    }
+
+    /* 2. 单据基础信息底账条 + 收支毛利驾驶舱 */
+    .identity-summary-zone {
+      background: #f8fafc;
+      border-bottom: 1px solid var(--slate-200);
+      padding: 8px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+
+    /* 第一行：业务底账元数据 */
+    .meta-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .meta-items-wrap {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 0;
+    }
+
+    .meta-kv {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      line-height: 18px;
+      padding-right: 14px;
+      margin-right: 14px;
+      border-right: 1px solid var(--slate-200);
+    }
+
+    .meta-kv:last-child {
+      border-right: none;
+      padding-right: 0;
+      margin-right: 0;
+    }
+
+    .meta-label {
+      color: var(--slate-500);
+    }
+
+    .meta-val {
+      color: var(--slate-900);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 第二行：收支与毛利汇总矩阵 + 表格控制工具栏 */
+    .financial-toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 6px;
+      padding: 5px 10px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+    }
+
+    .fin-kpi-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .fin-kpi-item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 7px;
+      padding-right: 12px;
+      border-right: 1px solid var(--slate-200);
+    }
+
+    .fin-kpi-item:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .fin-kpi-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--slate-600);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .fin-kpi-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .fin-kpi-dot.is-rec {
+      background: #2563eb;
+    }
+
+    .fin-kpi-dot.is-pay {
+      background: #f59e0b;
+    }
+
+    .fin-kpi-dot.is-profit {
+      background: #10b981;
+    }
+
+    .fin-kpi-dot.is-loss {
+      background: #ef4444;
+    }
+
+    .fin-currency-list {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .fin-money-pair {
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-900);
+      white-space: nowrap;
+    }
+
+    .fin-money-pair.is-negative {
+      color: #dc2626;
+    }
+
+    .fin-money-pair.is-positive {
+      color: #15803d;
+    }
+
+    .fin-money-pair small {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--slate-500);
+      margin-left: 2px;
+    }
+
+    /* 右侧一体化等高 28px 工具栏 */
+    .toolbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .seg-capsule {
+      display: inline-flex;
+      align-items: center;
+      background: var(--slate-100);
+      padding: 2px;
+      border-radius: 6px;
+      height: 28px;
+      border: 1px solid var(--slate-200);
+    }
+
+    .seg-capsule-btn {
+      height: 22px;
+      padding: 0 7px;
+      border: none;
+      background: transparent;
+      color: var(--slate-600);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .seg-capsule-btn:hover {
+      color: var(--slate-900);
+    }
+
+    .seg-capsule-btn.is-active {
+      background: #ffffff;
+      color: var(--primary-600);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+
+    .seg-count {
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      color: var(--slate-400);
+    }
+
+    .seg-capsule-btn.is-active .seg-count {
+      color: var(--primary-600);
+    }
+
+    .tool-action-btn {
+      height: 28px;
+      padding: 0 9px;
+      border-radius: 6px;
+      border: 1px solid var(--slate-200);
+      background: #ffffff;
+      color: var(--slate-700);
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+      white-space: nowrap;
+    }
+
+    .tool-action-btn:hover {
+      border-color: var(--slate-300);
+      color: var(--slate-900);
+      background: var(--slate-50);
+    }
+
+    .tool-action-btn.is-active {
+      background: var(--primary-50);
+      border-color: #93c5fd;
+      color: var(--primary-700);
+      font-weight: 600;
+    }
+
+    /* 3. 表格主体区域 */
+    .fee-modal-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 10px 18px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #ffffff;
+    }
+
+    .fee-modal-body.is-side-by-side {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .fee-section-card {
+      border: 1px solid var(--slate-200);
+      border-radius: 7px;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    /* 分组吸顶头 */
+    .fee-section-header {
+      height: 32px;
+      padding: 0 12px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+
+    .fee-section-header:hover {
+      background: #f1f5f9;
+    }
+
+    .fee-section-header.is-collapsed {
+      border-bottom: none;
+    }
+
+    .section-title-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .section-accent-bar {
+      width: 3px;
+      height: 13px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .section-accent-bar.is-rec {
+      background: #2563eb;
+    }
+
+    .section-accent-bar.is-pay {
+      background: #d97706;
+    }
+
+    .section-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-900);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .section-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 17px;
+      padding: 0 5px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    .section-count-badge.is-rec {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .section-count-badge.is-pay {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .section-unsettled-pill {
+      font-size: 11px;
+      color: var(--slate-500);
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      padding: 0 7px;
+      line-height: 18px;
+      border-radius: 4px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .section-unsettled-pill strong {
+      color: #d97706;
+      font-weight: 600;
+    }
+
+    .section-totals-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .section-total-item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 3px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .section-total-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .section-total-code {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--slate-500);
+    }
+
+    /* 高密度财务表格 */
+    .table-scroll-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .dense-fee-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12.5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dense-fee-table th {
+      height: 28px;
+      padding: 0 8px;
+      background: #f1f5f9;
+      color: var(--slate-600);
+      font-weight: 600;
+      font-size: 11.5px;
+      text-align: left;
+      border-bottom: 1px solid var(--slate-200);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .dense-fee-table td {
+      height: 29px;
+      padding: 2px 8px;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--slate-800);
+      vertical-align: middle;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background-color 0.12s ease;
+    }
+
+    .dense-fee-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .dense-fee-table tbody tr:hover td {
+      background: #f8fafc;
+    }
+
+    /* 跨表同名费用联动高亮态 */
+    .dense-fee-table tbody tr.is-linked-hover td {
+      background: #eff6ff !important;
+    }
+
+    .dense-fee-table tbody tr.is-linked-hover td:first-child {
+      box-shadow: inset 3px 0 0 #2563eb;
+    }
+
+    .dense-fee-table th.align-right,
+    .dense-fee-table td.align-right {
+      text-align: right;
+    }
+
+    /* 费用名称单元格 */
+    .fee-name-cell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .fee-name-text {
+      font-weight: 600;
+      color: var(--slate-900);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 费用状态语义标签（克制柔和 + 高对比度文字） */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 7px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      line-height: 18px;
+    }
+
+    .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    /* 审核通过：柔和蓝，代表已审待结 */
+    .status-pill.status-approved {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .status-pill.status-approved .status-dot {
+      background: #2563eb;
+    }
+
+    /* 部分结算：琥珀橙，高对比凸显尾款待跟进 */
+    .status-pill.status-partial {
+      background: #fffbeb;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+    .status-pill.status-partial .status-dot {
+      background: #d97706;
+    }
+
+    /* 结算完毕：柔和绿灰，代表历史已闭环 */
+    .status-pill.status-settled {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .status-pill.status-settled .status-dot {
+      background: #16a34a;
+    }
+
+    /* 金额与币别对齐排版 */
+    .money-cell {
+      display: inline-flex;
+      align-items: baseline;
+      justify-content: flex-end;
+      width: 100%;
+      gap: 4px;
+    }
+
+    .money-num {
+      font-weight: 600;
+      color: var(--slate-900);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .money-code {
+      display: inline-block;
+      width: 26px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--slate-500);
+    }
+
+    .money-code.is-usd {
+      color: #0284c7;
+    }
+
+    /* 数量与单位紧凑组合 */
+    .qty-unit-cell {
+      display: inline-flex;
+      align-items: baseline;
+      justify-content: flex-end;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .qty-num {
+      font-weight: 600;
+      color: var(--slate-800);
+    }
+
+    .unit-label {
+      display: inline-block;
+      min-width: 24px;
+      text-align: left;
+      font-size: 11px;
+      color: var(--slate-500);
+    }
+
+    /* 已结 / 未结进度单元格 */
+    .settle-progress-cell {
+      display: inline-flex;
+      align-items: baseline;
+      justify-content: flex-end;
+      gap: 4px;
+      font-size: 12px;
+      width: 100%;
+    }
+
+    .unsettled-val {
+      color: var(--slate-700);
+      font-weight: 500;
+    }
+
+    .unsettled-val.is-partial {
+      color: #b45309;
+      font-weight: 700;
+    }
+
+    .settled-sub {
+      font-size: 11px;
+      color: var(--slate-400);
+    }
+
+    .settled-done-text {
+      font-size: 11.5px;
+      color: #16a34a;
+      font-weight: 500;
+    }
+
+    /* 原版复刻视图样式（用于 Before / After 对比） */
+    .legacy-view-container {
+      padding: 16px 20px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .legacy-identity-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      background: rgba(59, 130, 246, 0.06);
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .legacy-table th {
+      background: rgba(59, 130, 246, 0.08);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      color: #1e293b;
+    }
+
+    .legacy-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+
+    .legacy-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .legacy-tag.approved {
+      background: #67c23a;
+    }
+
+    .legacy-tag.partial {
+      background: #87CEEB;
+      color: #ffffff;
+    }
+
+    .legacy-tag.settled {
+      background: #1E90FF;
+    }
+
+    /* 痛点标注气泡 */
+    .issue-callout {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 999px;
+      margin-left: 6px;
+      box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+    }
+
+    /* 应收开票明细切面 (OrderInvoiceSummary) */
+    .invoice-summary-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .invoice-fee-card {
+      border: 1px solid var(--slate-200);
+      border-radius: 7px;
+      padding: 10px 14px;
+      background: #ffffff;
+    }
+
+    .invoice-fee-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* 底部轻量状态说明栏 */
+    .fee-modal-footer {
+      height: 32px;
+      padding: 0 18px;
+      background: #f8fafc;
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--slate-500);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <a-config-provider :theme="{ token: { colorPrimary: '#2563eb', borderRadius: 6 } }">
+
+      <!-- 顶部沙盘控制栏 -->
+      <header class="sandbox-bar">
+        <div class="sandbox-left">
+          <span class="sandbox-badge">
+            <iconify-icon icon="ant-design:account-book-outlined"></iconify-icon>
+            查看费用弹窗 (view-order-fee-modal.vue) 专项优化
+          </span>
+
+          <!-- 优化前后切换 -->
+          <div class="sandbox-group">
+            <button
+              class="sandbox-btn"
+              :class="{ 'is-active': compareMode === 'optimized' }"
+              @click="compareMode = 'optimized'"
+            >
+              <iconify-icon icon="ant-design:check-circle-filled"></iconify-icon>
+              优化后高密度方案
+            </button>
+            <button
+              class="sandbox-btn is-legacy"
+              :class="{ 'is-active': compareMode === 'legacy' }"
+              @click="compareMode = 'legacy'"
+            >
+              <iconify-icon icon="ant-design:warning-filled"></iconify-icon>
+              原版截图复刻 (含6大痛点标注)
+            </button>
+          </div>
+
+          <!-- 样本数据切换 -->
+          <div class="sandbox-group">
+            <button
+              class="sandbox-btn"
+              :class="{ 'is-active': currentSampleKey === 'JHTSE261002048' }"
+              @click="switchSample('JHTSE261002048')"
+            >
+              样本1：原图 JHTSE261002048 (10收+10付全屏无滚动)
+            </button>
+            <button
+              class="sandbox-btn"
+              :class="{ 'is-active': currentSampleKey === 'JHTSE261009912' }"
+              @click="switchSample('JHTSE261009912')"
+            >
+              样本2：海出列表入口 (7项完整单据头·正向毛利)
+            </button>
+          </div>
+        </div>
+
+        <!-- 弹窗入口 view 切面切换 -->
+        <div class="sandbox-group">
+          <span style="font-size: 11px; color: #94a3b8; padding: 0 8px;">调用入口：</span>
+          <button
+            v-for="v in viewOptions"
+            :key="v.value"
+            class="sandbox-btn"
+            :class="{ 'is-active': activeView === v.value }"
+            @click="activeView = v.value"
+          >
+            {{ v.label }}
+          </button>
+        </div>
+      </header>
+
+      <!-- 仿真背景与居中弹窗舞台 -->
+      <main class="workspace-backdrop">
+        <div class="mock-bg-page">
+          <div class="mock-bg-bar"></div>
+          <div class="mock-bg-bar" style="height: 48px;"></div>
+          <div class="mock-bg-bar" style="flex: 1;"></div>
+        </div>
+        <div class="mock-bg-overlay"></div>
+
+        <!-- ============================================================== -->
+        <!-- 模式 A：优化后的高密度查看费用弹窗                              -->
+        <!-- ============================================================== -->
+        <section
+          v-if="compareMode === 'optimized'"
+          class="fee-modal-shell"
+          :class="{ 'is-fullscreen': isFullscreen }"
+        >
+          <!-- 1. 弹窗顶栏 -->
+          <header class="fee-modal-header">
+            <div class="modal-title-group">
+              <span class="order-no-pill">
+                <span class="pill-prefix">工作单号</span>
+                <span>{{ currentOrder.commissionNum }}</span>
+              </span>
+              <h2 class="modal-main-title">{{ viewTitleMap[activeView] }}</h2>
+            </div>
+
+            <div class="header-right-actions">
+              <a-tooltip :title="isFullscreen ? '退出全屏' : '全屏展开'">
+                <button class="icon-win-btn" @click="isFullscreen = !isFullscreen">
+                  <iconify-icon :icon="isFullscreen ? 'ant-design:fullscreen-exit-outlined' : 'ant-design:fullscreen-outlined'" style="font-size: 15px;"></iconify-icon>
+                </button>
+              </a-tooltip>
+              <button class="icon-win-btn" title="关闭">
+                <iconify-icon icon="ant-design:close-outlined" style="font-size: 15px;"></iconify-icon>
+              </button>
+            </div>
+          </header>
+
+          <!-- 2. 单据基础信息底账条 + 收支毛利汇总与表格工具条 -->
+          <div class="identity-summary-zone">
+            <!-- 第一层：去除重复“查看费用”后的结构化业务元数据 -->
+            <div class="meta-strip">
+              <div class="meta-items-wrap">
+                <div v-for="item in metaItems" :key="item.label" class="meta-kv">
+                  <span class="meta-label">{{ item.label }}</span>
+                  <span class="meta-val">{{ item.value }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第二层：收支毛利总览 + 表格过滤器与列切换（归位到表格上方） -->
+            <div v-if="activeView !== 'invoice'" class="financial-toolbar-row">
+              <!-- 左侧：应收 / 应付 / 毛利同屏总览 -->
+              <div class="fin-kpi-group">
+                <div class="fin-kpi-item">
+                  <span class="fin-kpi-label">
+                    <span class="fin-kpi-dot is-rec"></span>应收
+                  </span>
+                  <div class="fin-currency-list">
+                    <span v-for="item in recTotals" :key="item.code" class="fin-money-pair">
+                      {{ formatAmount(item.amount) }}<small>{{ item.code }}</small>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="fin-kpi-item">
+                  <span class="fin-kpi-label">
+                    <span class="fin-kpi-dot is-pay"></span>应付
+                  </span>
+                  <div class="fin-currency-list">
+                    <span v-for="item in payTotals" :key="item.code" class="fin-money-pair">
+                      {{ formatAmount(item.amount) }}<small>{{ item.code }}</small>
+                    </span>
+                  </div>
+                </div>
+
+                <div v-if="activeView === 'all'" class="fin-kpi-item">
+                  <span class="fin-kpi-label">
+                    <span class="fin-kpi-dot" :class="hasNegativeProfit ? 'is-loss' : 'is-profit'"></span>毛利
+                  </span>
+                  <div class="fin-currency-list">
+                    <span
+                      v-for="item in profitTotals"
+                      :key="item.code"
+                      class="fin-money-pair"
+                      :class="item.amount < 0 ? 'is-negative' : 'is-positive'"
+                    >
+                      {{ item.amount > 0 ? '+' : '' }}{{ formatAmount(item.amount) }}<small>{{ item.code }}</small>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 右侧：筛选胶囊 + 布局切换 + 税汇明细列开关 -->
+              <div class="toolbar-controls">
+                <!-- 状态快速过滤 -->
+                <div class="seg-capsule">
+                  <button
+                    v-for="st in statusFilterOptions"
+                    :key="st.value"
+                    class="seg-capsule-btn"
+                    :class="{ 'is-active': statusFilter === st.value }"
+                    @click="statusFilter = st.value"
+                  >
+                    <span>{{ st.label }}</span>
+                    <span class="seg-count">{{ st.count }}</span>
+                  </button>
+                </div>
+
+                <!-- 币种快速过滤 -->
+                <div class="seg-capsule">
+                  <button
+                    v-for="cur in ['ALL', 'RMB', 'USD']"
+                    :key="cur"
+                    class="seg-capsule-btn"
+                    :class="{ 'is-active': currencyFilter === cur }"
+                    @click="currencyFilter = cur"
+                  >
+                    {{ cur === 'ALL' ? '全部币别' : cur }}
+                  </button>
+                </div>
+
+                <!-- 同名费用对齐排序 -->
+                <button
+                  v-if="activeView === 'all'"
+                  class="tool-action-btn"
+                  :class="{ 'is-active': alignByFeeName }"
+                  @click="alignByFeeName = !alignByFeeName"
+                >
+                  <iconify-icon icon="ant-design:sort-ascending-outlined"></iconify-icon>
+                  <span>同名对齐</span>
+                </button>
+
+                <!-- 上下分栏 vs 左右同屏对账 -->
+                <button
+                  v-if="activeView === 'all'"
+                  class="tool-action-btn"
+                  :class="{ 'is-active': splitLayout === 'horizontal' }"
+                  @click="toggleSplitLayout"
+                >
+                  <iconify-icon :icon="splitLayout === 'horizontal' ? 'ant-design:column-width-outlined' : 'ant-design:column-height-outlined'"></iconify-icon>
+                  <span>{{ splitLayout === 'horizontal' ? '左右对账' : '上下分栏' }}</span>
+                </button>
+
+                <!-- 原“更多列”升级为明确的税汇列开关 -->
+                <button
+                  v-if="splitLayout !== 'horizontal'"
+                  class="tool-action-btn"
+                  :class="{ 'is-active': showDetail }"
+                  @click="showDetail = !showDetail"
+                >
+                  <iconify-icon icon="ant-design:insert-row-right-outlined"></iconify-icon>
+                  <span>{{ showDetail ? '收起税汇列' : '展开税汇列 (+5)' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. 费用双表主内容区 -->
+          <div
+            v-if="activeView !== 'invoice'"
+            class="fee-modal-body"
+            :class="{ 'is-side-by-side': activeView === 'all' && splitLayout === 'horizontal' }"
+          >
+            <!-- ==================== 应收费用区块 ==================== -->
+            <section
+              v-if="activeView === 'all' || activeView === 'receive'"
+              class="fee-section-card"
+            >
+              <header
+                class="fee-section-header"
+                :class="{ 'is-collapsed': recCollapsed }"
+                @click="recCollapsed = !recCollapsed"
+              >
+                <div class="section-title-left">
+                  <iconify-icon
+                    :icon="recCollapsed ? 'ant-design:right-outlined' : 'ant-design:down-outlined'"
+                    style="font-size: 11px; color: #64748b;"
+                  ></iconify-icon>
+                  <span class="section-accent-bar is-rec"></span>
+                  <span class="section-name">应收</span>
+                  <span class="section-count-badge is-rec">{{ filteredRecFees.length }}</span>
+                  <span class="section-unsettled-pill" @click.stop>
+                    未结：<strong>{{ formatUnsettledSummary(recFees) }}</strong>
+                  </span>
+                </div>
+
+                <div class="section-totals-right">
+                  <span v-for="item in recTotals" :key="item.code" class="section-total-item">
+                    <span class="section-total-num">{{ formatAmount(item.amount) }}</span>
+                    <span class="section-total-code">{{ item.code }}</span>
+                  </span>
+                </div>
+              </header>
+
+              <div v-show="!recCollapsed" class="table-scroll-container">
+                <table class="dense-fee-table">
+                  <thead>
+                    <tr>
+                      <th :style="{ width: splitLayout === 'horizontal' ? '130px' : (showDetail ? '132px' : '170px') }">费用名称</th>
+                      <th :style="{ width: splitLayout === 'horizontal' ? '96px' : (showDetail ? '100px' : '150px') }">结算单位</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" style="width: 72px;">客户类别</th>
+                      <th :style="{ width: splitLayout === 'horizontal' ? '92px' : (showDetail ? '92px' : '104px') }">费用状态</th>
+                      <th v-if="splitLayout !== 'horizontal'" class="align-right" :style="{ width: showDetail ? '84px' : '110px' }">单价</th>
+                      <th class="align-right" :style="{ width: splitLayout === 'horizontal' ? '68px' : (showDetail ? '74px' : '96px') }">数量/单位</th>
+                      <th class="align-right" :style="{ width: splitLayout === 'horizontal' ? '112px' : (showDetail ? '112px' : '140px') }">金额</th>
+                      <th v-if="splitLayout !== 'horizontal'" class="align-right" :style="{ width: showDetail ? '108px' : '160px' }">已结 / 未结余额</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="width: 66px;">汇率</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="width: 52px;">税率</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="width: 92px;">不含税单价</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="width: 94px;">不含税金额</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="row in filteredRecFees"
+                      :key="row.id"
+                      :class="{
+                        'is-linked-hover': hoveredFeeName && hoveredFeeName === row.feeName
+                      }"
+                      @mouseenter="hoveredFeeName = row.feeName"
+                      @mouseleave="hoveredFeeName = ''"
+                    >
+                      <!-- 1. 费用名称（第一列锚点） -->
+                      <td>
+                        <div class="fee-name-cell">
+                          <span class="fee-name-text" :title="row.feeName">{{ row.feeName }}</span>
+                        </div>
+                      </td>
+
+                      <!-- 2. 结算单位 -->
+                      <td>
+                        <a-tooltip :title="row.settlementFullName || row.settlementName">
+                          <span>{{ row.settlementName }}</span>
+                        </a-tooltip>
+                      </td>
+
+                      <!-- 可选展开：客户类别 -->
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" style="color: #64748b;">
+                        {{ row.industryLabel }}
+                      </td>
+
+                      <!-- 3. 费用状态（克制高对比语义胶囊） -->
+                      <td>
+                        <span class="status-pill" :class="getStatusClass(row.feeStatus)">
+                          <span class="status-dot"></span>
+                          <span>{{ getStatusLabel(row.feeStatus) }}</span>
+                        </span>
+                      </td>
+
+                      <!-- 4. 单价（默认直接展示，补齐计算链） -->
+                      <td v-if="splitLayout !== 'horizontal'" class="align-right" style="color: #334155;">
+                        {{ formatAmount(row.unitPrice) }}
+                      </td>
+
+                      <!-- 5. 数量与单位紧凑组合 -->
+                      <td class="align-right">
+                        <div class="qty-unit-cell">
+                          <span class="qty-num">{{ row.quantity }}</span>
+                          <span class="unit-label">{{ row.unit || '—' }}</span>
+                        </div>
+                      </td>
+
+                      <!-- 6. 金额 + 币别（等宽右对齐） -->
+                      <td class="align-right">
+                        <div class="money-cell">
+                          <span class="money-num">{{ formatAmount(row.amount) }}</span>
+                          <span class="money-code" :class="{ 'is-usd': row.currency === 'USD' }">{{ row.currency }}</span>
+                        </div>
+                      </td>
+
+                      <!-- 7. 已结 / 未结余额 -->
+                      <td v-if="splitLayout !== 'horizontal'" class="align-right">
+                        <div v-if="row.feeStatus === 4" class="settle-progress-cell">
+                          <span class="settled-done-text">✓ 已结清</span>
+                        </div>
+                        <a-tooltip
+                          v-else-if="row.feeStatus === 3"
+                          :title="`总额 ${formatAmount(row.amount)} · 已结 ${formatAmount(row.settledAmount)} · 未结 ${formatAmount(row.unSettledAmount)} ${row.currency}`"
+                        >
+                          <div class="settle-progress-cell">
+                            <span v-if="!showDetail" class="settled-sub">已结 {{ formatAmount(row.settledAmount) }}</span>
+                            <span class="unsettled-val is-partial">未结 {{ formatAmount(row.unSettledAmount) }}</span>
+                          </div>
+                        </a-tooltip>
+                        <div v-else class="settle-progress-cell">
+                          <span class="unsettled-val">未结 {{ formatAmount(row.unSettledAmount) }}</span>
+                        </div>
+                      </td>
+
+                      <!-- 可选展开：汇率 / 税率 / 不含税单价 / 不含税金额 -->
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="color: #64748b;">
+                        {{ row.exchangeRate.toFixed(4) }}
+                      </td>
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="color: #64748b;">
+                        {{ row.taxRate }}%
+                      </td>
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="color: #64748b;">
+                        {{ formatAmount(row.noTaxUnitPrice) }}
+                      </td>
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="color: #64748b;">
+                        {{ formatAmount(row.noTaxAmount) }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- ==================== 应付费用区块 ==================== -->
+            <section
+              v-if="activeView === 'all' || activeView === 'pay'"
+              class="fee-section-card"
+            >
+              <header
+                class="fee-section-header"
+                :class="{ 'is-collapsed': payCollapsed }"
+                @click="payCollapsed = !payCollapsed"
+              >
+                <div class="section-title-left">
+                  <iconify-icon
+                    :icon="payCollapsed ? 'ant-design:right-outlined' : 'ant-design:down-outlined'"
+                    style="font-size: 11px; color: #64748b;"
+                  ></iconify-icon>
+                  <span class="section-accent-bar is-pay"></span>
+                  <span class="section-name">应付</span>
+                  <span class="section-count-badge is-pay">{{ filteredPayFees.length }}</span>
+                  <span class="section-unsettled-pill" @click.stop>
+                    未结：<strong>{{ formatUnsettledSummary(payFees) }}</strong>
+                  </span>
+                </div>
+
+                <div class="section-totals-right">
+                  <span v-for="item in payTotals" :key="item.code" class="section-total-item">
+                    <span class="section-total-num">{{ formatAmount(item.amount) }}</span>
+                    <span class="section-total-code">{{ item.code }}</span>
+                  </span>
+                </div>
+              </header>
+
+              <div v-show="!payCollapsed" class="table-scroll-container">
+                <table class="dense-fee-table">
+                  <thead>
+                    <tr>
+                      <th :style="{ width: splitLayout === 'horizontal' ? '130px' : (showDetail ? '132px' : '170px') }">费用名称</th>
+                      <th :style="{ width: splitLayout === 'horizontal' ? '96px' : (showDetail ? '100px' : '150px') }">结算单位</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" style="width: 72px;">客户类别</th>
+                      <th :style="{ width: splitLayout === 'horizontal' ? '92px' : (showDetail ? '92px' : '104px') }">费用状态</th>
+                      <th v-if="splitLayout !== 'horizontal'" class="align-right" :style="{ width: showDetail ? '84px' : '110px' }">单价</th>
+                      <th class="align-right" :style="{ width: splitLayout === 'horizontal' ? '68px' : (showDetail ? '74px' : '96px') }">数量/单位</th>
+                      <th class="align-right" :style="{ width: splitLayout === 'horizontal' ? '112px' : (showDetail ? '112px' : '140px') }">金额</th>
+                      <th v-if="splitLayout !== 'horizontal'" class="align-right" :style="{ width: showDetail ? '108px' : '160px' }">已结 / 未结余额</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="width: 66px;">汇率</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="width: 52px;">税率</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="width: 92px;">不含税单价</th>
+                      <th v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="width: 94px;">不含税金额</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="row in filteredPayFees"
+                      :key="row.id"
+                      :class="{
+                        'is-linked-hover': hoveredFeeName && hoveredFeeName === row.feeName
+                      }"
+                      @mouseenter="hoveredFeeName = row.feeName"
+                      @mouseleave="hoveredFeeName = ''"
+                    >
+                      <td>
+                        <div class="fee-name-cell">
+                          <span class="fee-name-text" :title="row.feeName">{{ row.feeName }}</span>
+                        </div>
+                      </td>
+
+                      <td>
+                        <a-tooltip :title="row.settlementFullName || row.settlementName">
+                          <span>{{ row.settlementName }}</span>
+                        </a-tooltip>
+                      </td>
+
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" style="color: #64748b;">
+                        {{ row.industryLabel }}
+                      </td>
+
+                      <td>
+                        <span class="status-pill" :class="getStatusClass(row.feeStatus)">
+                          <span class="status-dot"></span>
+                          <span>{{ getStatusLabel(row.feeStatus) }}</span>
+                        </span>
+                      </td>
+
+                      <td v-if="splitLayout !== 'horizontal'" class="align-right" style="color: #334155;">
+                        {{ formatAmount(row.unitPrice) }}
+                      </td>
+
+                      <td class="align-right">
+                        <div class="qty-unit-cell">
+                          <span class="qty-num">{{ row.quantity }}</span>
+                          <span class="unit-label">{{ row.unit || '—' }}</span>
+                        </div>
+                      </td>
+
+                      <td class="align-right">
+                        <div class="money-cell">
+                          <span class="money-num">{{ formatAmount(row.amount) }}</span>
+                          <span class="money-code" :class="{ 'is-usd': row.currency === 'USD' }">{{ row.currency }}</span>
+                        </div>
+                      </td>
+
+                      <td v-if="splitLayout !== 'horizontal'" class="align-right">
+                        <div v-if="row.feeStatus === 4" class="settle-progress-cell">
+                          <span class="settled-done-text">✓ 已结清</span>
+                        </div>
+                        <a-tooltip
+                          v-else-if="row.feeStatus === 3"
+                          :title="`总额 ${formatAmount(row.amount)} · 已结 ${formatAmount(row.settledAmount)} · 未结 ${formatAmount(row.unSettledAmount)} ${row.currency}`"
+                        >
+                          <div class="settle-progress-cell">
+                            <span v-if="!showDetail" class="settled-sub">已结 {{ formatAmount(row.settledAmount) }}</span>
+                            <span class="unsettled-val is-partial">未结 {{ formatAmount(row.unSettledAmount) }}</span>
+                          </div>
+                        </a-tooltip>
+                        <div v-else class="settle-progress-cell">
+                          <span class="unsettled-val">未结 {{ formatAmount(row.unSettledAmount) }}</span>
+                        </div>
+                      </td>
+
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="color: #64748b;">
+                        {{ row.exchangeRate.toFixed(4) }}
+                      </td>
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="color: #64748b;">
+                        {{ row.taxRate }}%
+                      </td>
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="color: #64748b;">
+                        {{ formatAmount(row.noTaxUnitPrice) }}
+                      </td>
+                      <td v-if="showDetail && splitLayout !== 'horizontal'" class="align-right" style="color: #64748b;">
+                        {{ formatAmount(row.noTaxAmount) }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <!-- 4. 应收开票明细切面 (view === 'invoice') -->
+          <div v-else class="fee-modal-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; font-size: 12.5px;">
+              <span>应收费用 <strong>{{ recFees.length }}</strong> 笔 · 已关联开票记录 <strong>3</strong> 条</span>
+              <span style="color: #64748b;">申请与开出金额均为本费用的分摊金额</span>
+            </div>
+            <div class="invoice-summary-grid">
+              <div v-for="fee in recFees.slice(0, 4)" :key="fee.id" class="invoice-fee-card">
+                <div class="invoice-fee-top">
+                  <div>
+                    <strong style="font-size: 13.5px; color: #0f172a;">{{ fee.feeName }}</strong>
+                    <span style="margin-left: 12px; font-size: 12px; color: #64748b;">结算单位：{{ fee.settlementName }}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums;">
+                      {{ formatAmount(fee.amount) }} <small style="color: #64748b;">{{ fee.currency }}</small>
+                    </span>
+                    <a-tag :color="fee.feeStatus === 4 ? 'success' : 'processing'" style="margin: 0;">
+                      {{ fee.feeStatus === 4 ? '已开票' : '部分开票' }}
+                    </a-tag>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部状态辅助栏 -->
+          <footer class="fee-modal-footer">
+            <div>
+              <span>共 <strong>{{ recFees.length + payFees.length }}</strong> 笔费用（应收 {{ recFees.length }} 笔 / 应付 {{ payFees.length }} 笔）</span>
+              <span v-if="hoveredFeeName" style="margin-left: 14px; color: #2563eb; font-weight: 600;">
+                同名收支对比 · {{ hoveredFeeName }}：{{ getFeeDiffTooltip(hoveredFeeName) }}
+              </span>
+            </div>
+          </footer>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- 模式 B：原版截图 1:1 复刻 + 6 大 UI/UX 痛点现场标注             -->
+        <!-- ============================================================== -->
+        <section v-else class="fee-modal-shell">
+          <header class="fee-modal-header">
+            <div class="modal-title-group">
+              <h2 class="modal-main-title">{{ currentOrder.commissionNum }} 查看费用</h2>
+              <span class="issue-callout">痛点1：无整体收支与毛利汇总，亏损票需滚屏心算</span>
+            </div>
+            <div class="header-right-actions">
+              <button class="icon-win-btn"><iconify-icon icon="ant-design:fullscreen-outlined"></iconify-icon></button>
+              <button class="icon-win-btn"><iconify-icon icon="ant-design:close-outlined"></iconify-icon></button>
+            </div>
+          </header>
+
+          <div class="legacy-view-container">
+            <div class="legacy-identity-bar">
+              <div>
+                <span style="color: #64748b; font-size: 12px; margin-right: 12px;">
+                  查看费用
+                  <span class="issue-callout">痛点2：与上方弹窗标题100%重复</span>
+                </span>
+                <span style="color: #64748b; margin-right: 6px;">主提单号</span>
+                <strong style="margin-right: 16px;">{{ currentOrder.mblNum }}</strong>
+                <span style="color: #64748b; margin-right: 6px;">委托单位</span>
+                <strong>{{ currentOrder.clientName }}</strong>
+              </div>
+              <a style="color: #2563eb; font-size: 13px; cursor: pointer;" @click="showDetail = !showDetail">
+                更多列
+                <span class="issue-callout">痛点3：表格列开关错放在单据信息条内，且藏起了关键“单价”</span>
+              </a>
+            </div>
+
+            <!-- 原版应收 -->
+            <div style="margin-bottom: 20px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="width: 3px; height: 14px; background: #2563eb; border-radius: 2px;"></span>
+                <strong>应收</strong>
+                <span style="background: #dbeafe; color: #2563eb; font-size: 12px; padding: 0 6px; border-radius: 999px;">10</span>
+                <div style="margin-left: auto; display: flex; gap: 14px; font-weight: 700;">
+                  <span>2,400.00 <small style="color: #64748b;">RMB</small></span>
+                  <span>900.00 <small style="color: #64748b;">USD</small></span>
+                </div>
+              </div>
+
+              <table class="dense-fee-table legacy-table">
+                <thead>
+                  <tr>
+                    <th>费用状态 <span class="issue-callout">痛点4：高饱和色块墙抢占首列，浅蓝底白字看不清</span></th>
+                    <th>费用名称</th>
+                    <th>结算单位</th>
+                    <th>单位</th>
+                    <th>数量 <span class="issue-callout">痛点5：列间大片留白，缺乏单价与未结余额</span></th>
+                    <th class="align-right">金额</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in recFees" :key="row.id">
+                    <td>
+                      <span
+                        class="legacy-tag"
+                        :class="row.feeStatus === 2 ? 'approved' : row.feeStatus === 3 ? 'partial' : 'settled'"
+                      >
+                        {{ getStatusLabel(row.feeStatus) }}
+                      </span>
+                    </td>
+                    <td>{{ row.feeName }}</td>
+                    <td>{{ row.settlementName }}</td>
+                    <td>{{ row.unit }}</td>
+                    <td>{{ row.quantity }}</td>
+                    <td class="align-right">
+                      <strong>{{ formatAmount(row.amount) }}</strong>
+                      <span style="color: #64748b; font-size: 12px; margin-left: 4px;">{{ row.currency }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 原版应付 -->
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="width: 3px; height: 14px; background: #2563eb; border-radius: 2px;"></span>
+                <strong>应付</strong>
+                <span style="background: #dbeafe; color: #2563eb; font-size: 12px; padding: 0 6px; border-radius: 999px;">10</span>
+                <span class="issue-callout">痛点6：行高过宽导致应付表被截断在首屏外，且同名费用顺序错乱无法直观发现亏损</span>
+                <div style="margin-left: auto; display: flex; gap: 14px; font-weight: 700;">
+                  <span>2,900.00 <small style="color: #64748b;">RMB</small></span>
+                  <span>1,700.00 <small style="color: #64748b;">USD</small></span>
+                </div>
+              </div>
+
+              <table class="dense-fee-table legacy-table">
+                <thead>
+                  <tr>
+                    <th>费用状态</th>
+                    <th>费用名称</th>
+                    <th>结算单位</th>
+                    <th>单位</th>
+                    <th>数量</th>
+                    <th class="align-right">金额</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in payFees" :key="row.id">
+                    <td>
+                      <span
+                        class="legacy-tag"
+                        :class="row.feeStatus === 2 ? 'approved' : row.feeStatus === 3 ? 'partial' : 'settled'"
+                      >
+                        {{ getStatusLabel(row.feeStatus) }}
+                      </span>
+                    </td>
+                    <td>{{ row.feeName }}</td>
+                    <td>{{ row.settlementName }}</td>
+                    <td>{{ row.unit }}</td>
+                    <td>{{ row.quantity }}</td>
+                    <td class="align-right">
+                      <strong>{{ formatAmount(row.amount) }}</strong>
+                      <span style="color: #64748b; font-size: 12px; margin-left: 4px;">{{ row.currency }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </a-config-provider>
+  </div>
+
+  <script>
+    const { createApp, ref, computed } = Vue;
+
+    createApp({
+      setup() {
+        const compareMode = ref('optimized');
+        const currentSampleKey = ref('JHTSE261002048');
+        const activeView = ref('all');
+        const isFullscreen = ref(false);
+        const showDetail = ref(false);
+        const splitLayout = ref('vertical'); // 'vertical' | 'horizontal'
+        const alignByFeeName = ref(false);
+        const statusFilter = ref('ALL');
+        const currencyFilter = ref('ALL');
+        const recCollapsed = ref(false);
+        const payCollapsed = ref(false);
+        const hoveredFeeName = ref('');
+
+        const viewOptions = [
+          { value: 'all', label: '查看费用 (all)' },
+          { value: 'receive', label: '应收费用 (receive)' },
+          { value: 'pay', label: '应付费用 (pay)' },
+          { value: 'invoice', label: '应收开票明细 (invoice)' },
+        ];
+
+        const viewTitleMap = {
+          all: '查看费用',
+          receive: '应收费用',
+          pay: '应付费用',
+          invoice: '应收开票明细',
+        };
+
+        // 真实样本数据集（100% 还原原图 JHTSE261002048 的 10 笔应收 + 10 笔应付）
+        const samples = {
+          JHTSE261002048: {
+            order: {
+              commissionNum: 'JHTSE261002048',
+              mblNum: '费用测试',
+              clientName: '东风风光',
+              etd: '',
+              vessel: '',
+              voyage: '',
+              totalCtn: '',
+              frtName: '',
+              bookingAgentName: '',
+            },
+            rec: [
+              { id: 'r1', feeName: '产地证', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 500, amount: 500, settledAmount: 0, unSettledAmount: 500, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 471.70, noTaxAmount: 471.70 },
+              { id: 'r2', feeName: '场地使用费', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 3, unit: '票', quantity: 1, unitPrice: 400, amount: 400, settledAmount: 200, unSettledAmount: 200, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 377.36, noTaxAmount: 377.36 },
+              { id: 'r3', feeName: '海运费', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 300, amount: 300, settledAmount: 0, unSettledAmount: 300, currency: 'USD', exchangeRate: 7.1850, taxRate: 0, noTaxUnitPrice: 300.00, noTaxAmount: 300.00 },
+              { id: 'r4', feeName: '超长附加费', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 4, unit: '票', quantity: 1, unitPrice: 200, amount: 200, settledAmount: 200, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 188.68, noTaxAmount: 188.68 },
+              { id: 'r5', feeName: '磁检费', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 4, unit: '票', quantity: 1, unitPrice: 100, amount: 100, settledAmount: 100, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 94.34, noTaxAmount: 94.34 },
+              { id: 'r6', feeName: '保险费', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 500, amount: 500, settledAmount: 0, unSettledAmount: 500, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 471.70, noTaxAmount: 471.70 },
+              { id: 'r7', feeName: '包干费', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 400, amount: 400, settledAmount: 0, unSettledAmount: 400, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 377.36, noTaxAmount: 377.36 },
+              { id: 'r8', feeName: 'AFR', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 4, unit: '-', quantity: 2, unitPrice: 300, amount: 600, settledAmount: 600, unSettledAmount: 0, currency: 'USD', exchangeRate: 7.1850, taxRate: 0, noTaxUnitPrice: 300.00, noTaxAmount: 600.00 },
+              { id: 'r9', feeName: '变更卸货港附加费', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 200, amount: 200, settledAmount: 0, unSettledAmount: 200, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 188.68, noTaxAmount: 188.68 },
+              { id: 'r10', feeName: '安保费', settlementName: '东风风光', settlementFullName: '东风小康汽车有限公司风光事业部', industryLabel: '委托单位', feeStatus: 3, unit: 'TEU', quantity: 1, unitPrice: 100, amount: 100, settledAmount: 50, unSettledAmount: 50, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 94.34, noTaxAmount: 94.34 },
+            ],
+            pay: [
+              { id: 'p1', feeName: '产地证', settlementName: '测试结算', settlementFullName: '青岛测试报关行有限公司', industryLabel: '报关行', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 200, amount: 200, settledAmount: 0, unSettledAmount: 200, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 188.68, noTaxAmount: 188.68 },
+              { id: 'p2', feeName: '变更卸货港附加费', settlementName: '测试结算', settlementFullName: '青岛测试国际船代有限公司', industryLabel: '船代', feeStatus: 4, unit: '票', quantity: 1, unitPrice: 200, amount: 200, settledAmount: 200, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 188.68, noTaxAmount: 188.68 },
+              { id: 'p3', feeName: '超长附加费', settlementName: '测试结算', settlementFullName: '青岛测试集装箱场站有限公司', industryLabel: '场站', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 700, amount: 700, settledAmount: 0, unSettledAmount: 700, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 660.38, noTaxAmount: 660.38 },
+              { id: 'p4', feeName: '磁检费', settlementName: '测试结算', settlementFullName: '青岛测试检测技术服务有限公司', industryLabel: '供应商', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 600, amount: 600, settledAmount: 0, unSettledAmount: 600, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 566.04, noTaxAmount: 566.04 },
+              { id: 'p5', feeName: '场地使用费', settlementName: '测试结算', settlementFullName: '青岛测试集装箱场站有限公司', industryLabel: '场站', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 300, amount: 300, settledAmount: 0, unSettledAmount: 300, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 283.02, noTaxAmount: 283.02 },
+              { id: 'p6', feeName: '海运费', settlementName: '测试结算', settlementFullName: '中远海运集装箱运输有限公司', industryLabel: '订舱代理', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 1200, amount: 1200, settledAmount: 0, unSettledAmount: 1200, currency: 'USD', exchangeRate: 7.1850, taxRate: 0, noTaxUnitPrice: 1200.00, noTaxAmount: 1200.00 },
+              { id: 'p7', feeName: '保险费', settlementName: '测试结算', settlementFullName: '中国平安财产保险青岛分公司', industryLabel: '保险公司', feeStatus: 4, unit: '票', quantity: 1, unitPrice: 350, amount: 350, settledAmount: 350, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 330.19, noTaxAmount: 330.19 },
+              { id: 'p8', feeName: '包干费', settlementName: '测试结算', settlementFullName: '青岛测试物流车队有限公司', industryLabel: '车队', feeStatus: 3, unit: '票', quantity: 1, unitPrice: 450, amount: 450, settledAmount: 200, unSettledAmount: 250, currency: 'RMB', exchangeRate: 1.0000, taxRate: 9, noTaxUnitPrice: 412.84, noTaxAmount: 412.84 },
+              { id: 'p9', feeName: 'AFR', settlementName: '测试结算', settlementFullName: '中远海运集装箱运输有限公司', industryLabel: '订舱代理', feeStatus: 2, unit: '-', quantity: 2, unitPrice: 250, amount: 500, settledAmount: 0, unSettledAmount: 500, currency: 'USD', exchangeRate: 7.1850, taxRate: 0, noTaxUnitPrice: 250.00, noTaxAmount: 500.00 },
+              { id: 'p10', feeName: '安保费', settlementName: '测试结算', settlementFullName: '青岛前湾集装箱码头有限责任公司', industryLabel: '码头', feeStatus: 4, unit: 'TEU', quantity: 1, unitPrice: 100, amount: 100, settledAmount: 100, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 94.34, noTaxAmount: 94.34 },
+            ]
+          },
+          JHTSE261009912: {
+            order: {
+              commissionNum: 'JHTSE261009912',
+              mblNum: 'COSU6398120410',
+              clientName: '歌尔股份有限公司',
+              etd: '2026-11-08',
+              vessel: 'COSCO SHIPPING PISCES',
+              voyage: '028E',
+              totalCtn: '2*40HQ 1*20GP',
+              frtName: 'FREIGHT PREPAID',
+              bookingAgentName: '中远海运集运青岛',
+            },
+            rec: [
+              { id: 'b_r1', feeName: '海运费', settlementName: '歌尔股份', settlementFullName: '歌尔股份有限公司', industryLabel: '委托单位', feeStatus: 2, unit: '40HQ', quantity: 2, unitPrice: 1850, amount: 3700, settledAmount: 0, unSettledAmount: 3700, currency: 'USD', exchangeRate: 7.1850, taxRate: 0, noTaxUnitPrice: 1850.00, noTaxAmount: 3700.00 },
+              { id: 'b_r2', feeName: '码头操作费 (THC)', settlementName: '歌尔股份', settlementFullName: '歌尔股份有限公司', industryLabel: '委托单位', feeStatus: 3, unit: '票', quantity: 1, unitPrice: 2450, amount: 2450, settledAmount: 1000, unSettledAmount: 1450, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 2311.32, noTaxAmount: 2311.32 },
+              { id: 'b_r3', feeName: '拖车费', settlementName: '歌尔股份', settlementFullName: '歌尔股份有限公司', industryLabel: '委托单位', feeStatus: 4, unit: '票', quantity: 1, unitPrice: 3200, amount: 3200, settledAmount: 3200, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 9, noTaxUnitPrice: 2935.78, noTaxAmount: 2935.78 },
+              { id: 'b_r4', feeName: '报关费', settlementName: '歌尔股份', settlementFullName: '歌尔股份有限公司', industryLabel: '委托单位', feeStatus: 4, unit: '票', quantity: 1, unitPrice: 300, amount: 300, settledAmount: 300, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 283.02, noTaxAmount: 283.02 },
+              { id: 'b_r5', feeName: '文件费 (DOC)', settlementName: '歌尔股份', settlementFullName: '歌尔股份有限公司', industryLabel: '委托单位', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 500, amount: 500, settledAmount: 0, unSettledAmount: 500, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 471.70, noTaxAmount: 471.70 },
+            ],
+            pay: [
+              { id: 'b_p1', feeName: '海运费', settlementName: '中远海运青岛', settlementFullName: '中远海运集装箱运输有限公司青岛分部', industryLabel: '订舱代理', feeStatus: 2, unit: '40HQ', quantity: 2, unitPrice: 1500, amount: 3000, settledAmount: 0, unSettledAmount: 3000, currency: 'USD', exchangeRate: 7.1850, taxRate: 0, noTaxUnitPrice: 1500.00, noTaxAmount: 3000.00 },
+              { id: 'b_p2', feeName: '码头操作费 (THC)', settlementName: '前湾集装箱码头', settlementFullName: '青岛前湾集装箱码头有限责任公司', industryLabel: '码头', feeStatus: 4, unit: '票', quantity: 1, unitPrice: 2100, amount: 2100, settledAmount: 2100, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 1981.13, noTaxAmount: 1981.13 },
+              { id: 'b_p3', feeName: '拖车费', settlementName: '海骏物流车队', settlementFullName: '青岛海骏供应链车队有限公司', industryLabel: '车队', feeStatus: 3, unit: '票', quantity: 1, unitPrice: 2600, amount: 2600, settledAmount: 1300, unSettledAmount: 1300, currency: 'RMB', exchangeRate: 1.0000, taxRate: 9, noTaxUnitPrice: 2385.32, noTaxAmount: 2385.32 },
+              { id: 'b_p4', feeName: '报关费', settlementName: '振华报关行', settlementFullName: '青岛振华通达报关行有限公司', industryLabel: '报关行', feeStatus: 4, unit: '票', quantity: 1, unitPrice: 150, amount: 150, settledAmount: 150, unSettledAmount: 0, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 141.51, noTaxAmount: 141.51 },
+              { id: 'b_p5', feeName: '文件费 (DOC)', settlementName: '中远海运青岛', settlementFullName: '中远海运集装箱运输有限公司青岛分部', industryLabel: '订舱代理', feeStatus: 2, unit: '票', quantity: 1, unitPrice: 450, amount: 450, settledAmount: 0, unSettledAmount: 450, currency: 'RMB', exchangeRate: 1.0000, taxRate: 6, noTaxUnitPrice: 424.53, noTaxAmount: 424.53 },
+            ]
+          }
+        };
+
+        const currentOrder = computed(() => samples[currentSampleKey.value].order);
+        const recFees = computed(() => samples[currentSampleKey.value].rec);
+        const payFees = computed(() => samples[currentSampleKey.value].pay);
+
+        const switchSample = (key) => {
+          currentSampleKey.value = key;
+          statusFilter.value = 'ALL';
+          currencyFilter.value = 'ALL';
+        };
+
+        const toggleSplitLayout = () => {
+          splitLayout.value = splitLayout.value === 'vertical' ? 'horizontal' : 'vertical';
+        };
+
+        // 与真实代码 view-order-fee-modal.vue 100%对齐的 metaItems 计算
+        const metaItems = computed(() => {
+          const row = currentOrder.value;
+          const vesselVoyage = [row.vessel, row.voyage].filter(Boolean).join(' / ');
+          const list = [
+            { label: '主提单号', value: row.mblNum },
+            { label: '委托单位', value: row.clientName },
+            { label: '开航日期', value: row.etd },
+            { label: '船名航次', value: vesselVoyage },
+            { label: '箱型箱量', value: row.totalCtn },
+            { label: '付费方式', value: row.frtName },
+            { label: '订舱代理', value: row.bookingAgentName },
+          ];
+          return list.filter((item) => Boolean(item.value));
+        });
+
+        const sumByCurrency = (rows) => {
+          const totals = new Map();
+          for (const fee of rows) {
+            totals.set(fee.currency, (totals.get(fee.currency) ?? 0) + Number(fee.amount));
+          }
+          return [...totals.entries()].map(([code, amount]) => ({ code, amount }));
+        };
+
+        const recTotals = computed(() => sumByCurrency(recFees.value));
+        const payTotals = computed(() => sumByCurrency(payFees.value));
+
+        // 计算分币种毛利（应收 - 应付）
+        const profitTotals = computed(() => {
+          const map = new Map();
+          for (const item of recTotals.value) {
+            map.set(item.code, (map.get(item.code) ?? 0) + item.amount);
+          }
+          for (const item of payTotals.value) {
+            map.set(item.code, (map.get(item.code) ?? 0) - item.amount);
+          }
+          return [...map.entries()].map(([code, amount]) => ({ code, amount }));
+        });
+
+        const hasNegativeProfit = computed(() =>
+          profitTotals.value.some((item) => item.amount < 0)
+        );
+
+        const feeDiffMap = computed(() => {
+          const map = new Map();
+          for (const r of recFees.value) {
+            const cur = map.get(r.feeName) || { rec: 0, pay: 0, currency: r.currency };
+            cur.rec += r.amount;
+            map.set(r.feeName, cur);
+          }
+          for (const p of payFees.value) {
+            const cur = map.get(p.feeName) || { rec: 0, pay: 0, currency: p.currency };
+            cur.pay += p.amount;
+            map.set(p.feeName, cur);
+          }
+          return map;
+        });
+
+        const getFeeDiffTooltip = (feeName) => {
+          const info = feeDiffMap.value.get(feeName);
+          if (!info) return '';
+          const diff = info.rec - info.pay;
+          return `应收 ${info.rec.toFixed(2)} - 应付 ${info.pay.toFixed(2)} = 差额 ${diff > 0 ? '+' : ''}${diff.toFixed(2)} ${info.currency}`;
+        };
+
+        // 状态筛选计数
+        const statusFilterOptions = computed(() => {
+          const allRows = [...recFees.value, ...payFees.value];
+          return [
+            { value: 'ALL', label: '全部', count: allRows.length },
+            { value: 'UNSETTLED', label: '未结清', count: allRows.filter((r) => r.feeStatus !== 4).length },
+            { value: 'PARTIAL', label: '部分结算', count: allRows.filter((r) => r.feeStatus === 3).length },
+            { value: 'SETTLED', label: '结算完毕', count: allRows.filter((r) => r.feeStatus === 4).length },
+          ];
+        });
+
+        const filterAndSortRows = (rows) => {
+          let list = rows.filter((r) => {
+            if (currencyFilter.value !== 'ALL' && r.currency !== currencyFilter.value) return false;
+            if (statusFilter.value === 'UNSETTLED' && r.feeStatus === 4) return false;
+            if (statusFilter.value === 'PARTIAL' && r.feeStatus !== 3) return false;
+            if (statusFilter.value === 'SETTLED' && r.feeStatus !== 4) return false;
+            return true;
+          });
+          if (alignByFeeName.value) {
+            list = [...list].sort((a, b) => a.feeName.localeCompare(b.feeName, 'zh-CN'));
+          }
+          return list;
+        };
+
+        const filteredRecFees = computed(() => filterAndSortRows(recFees.value));
+        const filteredPayFees = computed(() => filterAndSortRows(payFees.value));
+
+        const formatAmount = (val) => {
+          if (val === undefined || val === null || Number.isNaN(Number(val))) return '—';
+          return Number(val).toLocaleString('zh-CN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+        };
+
+        const formatUnsettledSummary = (rows) => {
+          const map = new Map();
+          for (const r of rows) {
+            if (r.unSettledAmount > 0) {
+              map.set(r.currency, (map.get(r.currency) ?? 0) + r.unSettledAmount);
+            }
+          }
+          if (map.size === 0) return '0.00';
+          return [...map.entries()]
+            .map(([code, amt]) => `${formatAmount(amt)} ${code}`)
+            .join(' · ');
+        };
+
+        const getStatusLabel = (status) => {
+          const map = {
+            0: '录入状态',
+            1: '提交审核',
+            2: '审核通过',
+            3: '部分结算',
+            4: '结算完毕',
+            5: '驳回',
+          };
+          return map[status] || '—';
+        };
+
+        const getStatusClass = (status) => {
+          if (status === 3) return 'status-partial';
+          if (status === 4) return 'status-settled';
+          return 'status-approved';
+        };
+
+        return {
+          compareMode,
+          currentSampleKey,
+          activeView,
+          isFullscreen,
+          showDetail,
+          splitLayout,
+          alignByFeeName,
+          statusFilter,
+          currencyFilter,
+          recCollapsed,
+          payCollapsed,
+          hoveredFeeName,
+          viewOptions,
+          viewTitleMap,
+          currentOrder,
+          recFees,
+          payFees,
+          metaItems,
+          recTotals,
+          payTotals,
+          profitTotals,
+          hasNegativeProfit,
+          statusFilterOptions,
+          filteredRecFees,
+          filteredPayFees,
+          switchSample,
+          toggleSplitLayout,
+          formatAmount,
+          formatUnsettledSummary,
+          getStatusLabel,
+          getStatusClass,
+          getFeeDiffTooltip,
+        };
+      }
+    }).use(antd).mount('#app');
+  </script>
+</body>
+</html>

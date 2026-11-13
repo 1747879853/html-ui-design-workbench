@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自定义导出 Excel 弹窗 · UI/UX 深度优化</title>
+
+  <!-- 本地极速核心依赖 -->
+  <link rel="stylesheet" href="../assets/vendor/reset.css">
+  <link rel="stylesheet" href="../assets/css/common.css">
+
+  <script src="../assets/vendor/dayjs-bundle.min.js"></script>
+  <script src="../assets/vendor/vue.global.prod.js"></script>
+  <script src="../assets/vendor/antd.min.js"></script>
+  <script src="../assets/vendor/iconify-icon.min.js"></script>
+  <script src="../assets/js/common.js"></script>
+
+  <style>
+    /* ==========================================================================
+       自定义导出 Excel 弹窗 (Custom Excel Export Modal) - 企业级高密度纯净重构
+       设计规范：Ant Design Vue 4.x + 8px 网格 + 工业级双栏穿梭拖拽
+       ========================================================================== */
+
+    :root {
+      --primary-color: #1677ff;
+      --primary-hover: #4096ff;
+      --primary-active: #0958d9;
+      --primary-bg: #e6f4ff;
+      --success-color: #52c41a;
+      --warning-color: #faad14;
+      --danger-color: #ff4d4f;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+      color: var(--slate-800);
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #app {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 顶部工作台操控条 (用于切模式、看沙盘) */
+    .top-workbench-bar {
+      height: 46px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #f8fafc;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    .brand-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      background: rgba(22, 119, 255, 0.2);
+      border: 1px solid rgba(22, 119, 255, 0.5);
+      color: #91caff;
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .mode-switch-group {
+      display: inline-flex;
+      background: #0f172a;
+      padding: 3px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .mode-btn:hover {
+      color: #ffffff;
+    }
+
+    .mode-btn.active {
+      background: #1677ff;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 弹窗舞台视口 (居中遮罩与底层模拟业务表格) */
+    .modal-stage {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: hidden;
+      background: #334155;
+    }
+
+    /* 底层模拟业务背景（高斯模糊，营造真实弹窗感） */
+    .underlying-page-backdrop {
+      position: absolute;
+      inset: 0;
+      background: #f1f4f8;
+      padding: 24px;
+      filter: blur(2px);
+      opacity: 0.35;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .mock-bg-header {
+      height: 48px;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .mock-bg-table {
+      flex: 1;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* 半透明暗黑蒙层 */
+    .dialog-mask-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+    }
+
+    /* ========================================================
+       标准弹窗外壳 (Dialog Shell)
+       ======================================================== */
+    .excel-modal-shell {
+      position: relative;
+      z-index: 20;
+      width: 860px;
+      max-width: calc(100vw - 32px);
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.35), 0 0 1px 1px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.97) translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* 1. 弹窗头部 */
+    .dialog-header {
+      height: 52px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .dialog-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dialog-icon-capsule {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: #f6ffed;
+      border: 1px solid #b7eb8f;
+      color: #52c41a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .dialog-title-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--slate-900);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .dialog-close-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--slate-400);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+
+    .dialog-close-btn:hover {
+      background: var(--slate-100);
+      color: var(--slate-700);
+    }
+
+    /* 2. 弹窗主体区 (Body) */
+    .dialog-body {
+      padding: 16px 20px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: calc(88vh - 120px);
+      overflow-y: auto;
+    }
+
+    /* 范围选择与统计提示条 */
+    .scope-selector-strip {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 6px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .scope-radio-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scope-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--slate-600);
+      white-space: nowrap;
+    }
+
+    .scope-options-group {
+      display: inline-flex;
+      background: var(--slate-200);
+      padding: 2px;
+      border-radius: 5px;
+      gap: 2px;
+    }
+
+    .scope-option-btn {
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      color: var(--slate-600);
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .scope-option-btn:hover {
+      color: var(--slate-900);
+    }
+
+    .scope-option-btn.active {
+      background: #ffffff;
+      color: var(--primary-color);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    .scope-estimate-pill {
+      font-size: 12px;
+      color: var(--slate-500);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .scope-estimate-pill b {
+      color: var(--primary-color);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 模板生命周期管理条 */
+    .template-mgmt-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--slate-200);
+    }
+
+    .template-selector-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .form-inline-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--slate-700);
+      white-space: nowrap;
+    }
+
+    .template-select-box {
+      width: 250px;
+      height: 30px;
+      border: 1px solid var(--slate-300);
+      border-radius: 5px;
+      padding: 0 8px;
+      font-size: 12.5px;
+      color: var(--slate-800);
+      background: #ffffff;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .template-select-box:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.15);
+    }
+
+    .status-tag-capsule {
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-tag-capsule.dirty {
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      color: #d46b08;
+    }
+
+    .status-tag-capsule.clean {
+      background: #f6ffed;
+      border: 1px solid #b7eb8f;
+      color: #389e0d;
+    }
+
+    .text-action-link {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .text-action-link:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+
+    .text-action-link.danger {
+      color: var(--danger-color);
+    }
+
+    .text-action-link.danger:hover {
+      color: #ff7875;
+    }
+
+    /* 3. 核心字段双栏穿梭看板 (Two-Column Transfer Hub) */
+    .transfer-hub-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      height: 380px;
+    }
+
+    .transfer-col-box {
+      border: 1px solid var(--slate-200);
+      border-radius: 7px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .col-header-bar {
+      height: 38px;
+      background: var(--slate-50);
+      border-bottom: 1px solid var(--slate-200);
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .col-header-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-800);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .count-pill {
+      font-size: 11px;
+      background: var(--slate-200);
+      color: var(--slate-600);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .count-pill.primary {
+      background: var(--primary-bg);
+      color: var(--primary-color);
+    }
+
+    /* 左侧：搜索与业务分类 */
+    .search-filter-row {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--slate-100);
+      background: #ffffff;
+    }
+
+    .custom-search-input {
+      width: 100%;
+      height: 28px;
+      border: 1px solid var(--slate-300);
+      border-radius: 4px;
+      padding: 0 8px 0 26px;
+      font-size: 12px;
+      color: var(--slate-800);
+      background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") no-repeat 8px center;
+      outline: none;
+    }
+
+    .custom-search-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.12);
+    }
+
+    .category-tabs-bar {
+      display: flex;
+      gap: 4px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--slate-200);
+      overflow-x: auto;
+    }
+
+    .category-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: var(--slate-100);
+      color: var(--slate-600);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .category-chip:hover {
+      background: var(--slate-200);
+      color: var(--slate-800);
+    }
+
+    .category-chip.active {
+      background: var(--primary-bg);
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    /* 滚动字段列表容器 */
+    .field-scroll-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+
+    .field-select-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--slate-50);
+      transition: background 0.12s;
+    }
+
+    .field-select-row:hover {
+      background: var(--slate-100);
+    }
+
+    .field-select-row.is-selected {
+      background: #f0f7ff;
+    }
+
+    .field-info-cluster {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .custom-checkbox {
+      width: 15px;
+      height: 15px;
+      border-radius: 3px;
+      border: 1px solid var(--slate-400);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+
+    .field-select-row.is-selected .custom-checkbox {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #ffffff;
+    }
+
+    .field-name-text {
+      font-size: 13px;
+      color: var(--slate-800);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dynamic-col-badge {
+      font-size: 10px;
+      background: #fff7e6;
+      border: 1px solid #ffd591;
+      color: #d46b08;
+      padding: 0 5px;
+      border-radius: 3px;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    .field-sub-meta {
+      font-size: 11px;
+      color: var(--slate-400);
+      white-space: nowrap;
+    }
+
+    /* 右侧：拖拽排序列 */
+    .sortable-card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--slate-100);
+      transition: background 0.15s, border 0.15s;
+    }
+
+    .sortable-card-row:hover {
+      background: var(--slate-50);
+    }
+
+    .sortable-card-row.is-dragging {
+      opacity: 0.35;
+      background: var(--primary-bg);
+      border: 1px dashed var(--primary-color);
+    }
+
+    .sortable-card-row.drag-over {
+      border-top: 2px solid var(--primary-color);
+    }
+
+    .sort-drag-handle {
+      cursor: grab;
+      color: var(--slate-400);
+      padding: 2px 4px;
+      display: flex;
+      align-items: center;
+      border-radius: 3px;
+    }
+
+    .sort-drag-handle:hover {
+      color: var(--primary-color);
+      background: var(--primary-bg);
+    }
+
+    .sort-order-index {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--slate-500);
+      width: 22px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row-hover-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      opacity: 0.3;
+      transition: opacity 0.15s;
+    }
+
+    .sortable-card-row:hover .row-hover-actions {
+      opacity: 1;
+    }
+
+    .micro-icon-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 3px;
+      border: none;
+      background: transparent;
+      color: var(--slate-500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.12s;
+    }
+
+    .micro-icon-btn:hover {
+      background: var(--slate-200);
+      color: var(--slate-800);
+    }
+
+    .micro-icon-btn.remove-btn:hover {
+      background: #fee2e2;
+      color: #ef4444;
+    }
+
+    /* 4. 折叠式高级导出设置 */
+    .collapsible-advanced-bar {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 6px;
+      padding: 8px 12px;
+      transition: all 0.2s;
+    }
+
+    .advanced-bar-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--slate-700);
+    }
+
+    .advanced-bar-content {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--slate-300);
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .compact-text-input {
+      width: 100%;
+      height: 28px;
+      border: 1px solid var(--slate-300);
+      border-radius: 4px;
+      padding: 0 8px;
+      font-size: 12px;
+      color: var(--slate-800);
+      outline: none;
+    }
+
+    .compact-text-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.12);
+    }
+
+    /* 5. 弹窗操作底栏 (Footer) */
+    .dialog-footer {
+      height: 52px;
+      padding: 0 20px;
+      border-top: 1px solid var(--slate-200);
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .footer-stat-text {
+      font-size: 12.5px;
+      color: var(--slate-600);
+    }
+
+    .footer-stat-text b {
+      color: var(--slate-900);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-standard {
+      height: 32px;
+      padding: 0 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      border: 1px solid var(--slate-300);
+      color: var(--slate-700);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(22, 119, 255, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .btn-primary:active {
+      background: var(--primary-active);
+    }
+
+    /* ========================================================
+       原版问题对照模式外壳 (Legacy Problem Reproduction)
+       ======================================================== */
+    .legacy-modal-shell {
+      position: relative;
+      z-index: 20;
+      width: 620px;
+      max-width: calc(100vw - 32px);
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 20px 48px rgba(0,0,0,0.3);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .defect-callout-strip {
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #d46b08;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.5;
+    }
+
+    .defect-callout-strip b {
+      color: #b35c00;
+    }
+
+    .legacy-field-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legacy-field-label {
+      width: 72px;
+      text-align: right;
+      color: #333333;
+      font-size: 13px;
+    }
+
+    .legacy-list-container {
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      height: 220px;
+      overflow-y: scroll;
+      padding: 4px 8px;
+    }
+
+    .legacy-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 4px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .mini-txt-btn {
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      font-size: 12px;
+      padding: 1px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    .mini-txt-btn:hover {
+      border-color: #1677ff;
+      color: #1677ff;
+    }
+
+    /* 另存为新模板极简 Popover 弹窗 */
+    .save-template-pop-mask {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .save-template-box {
+      width: 360px;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    
+    <!-- 顶部工作台操控条 -->
+    <header class="top-workbench-bar">
+      <div class="brand-title-wrap">
+        <iconify-icon icon="ant-design:file-excel-outlined" style="color: #52c41a; font-size: 20px;"></iconify-icon>
+        <span style="font-weight: 600; font-size: 14px;">自定义导出 Excel 弹窗 · UI/UX 深度优化工作台</span>
+        <span class="brand-badge">Vue 3 + Ant Design 规范</span>
+      </div>
+
+      <!-- 模式切换控制器 -->
+      <div class="mode-switch-group">
+        <button 
+          class="mode-btn" 
+          :class="{ active: currentViewMode === 'optimized' }"
+          @click="currentViewMode = 'optimized'"
+        >
+          <iconify-icon icon="ant-design:thunderbolt-outlined"></iconify-icon>
+          优化后全新弹窗 (双栏拖拽+秒搜)
+        </button>
+        <button 
+          class="mode-btn" 
+          :class="{ active: currentViewMode === 'legacy' }"
+          @click="currentViewMode = 'legacy'"
+        >
+          <iconify-icon icon="ant-design:warning-outlined"></iconify-icon>
+          原版问题复刻与缺陷诊断
+        </button>
+      </div>
+    </header>
+
+    <!-- 弹窗舞台视口 (居中展示) -->
+    <main class="modal-stage">
+      
+      <!-- 底层模拟业务页面（营造真实中后台遮罩氛围） -->
+      <div class="underlying-page-backdrop">
+        <div class="mock-bg-header"></div>
+        <div class="mock-bg-table"></div>
+      </div>
+
+      <!-- 弹窗半透明蒙层 -->
+      <div class="dialog-mask-overlay"></div>
+
+      <!-- ========================================================
+           方案 A：优化后全新「自定义导出 Excel」弹窗 (Optimized Modal)
+           ======================================================== -->
+      <div v-if="currentViewMode === 'optimized'" class="excel-modal-shell">
+        
+        <!-- 弹窗头部 -->
+        <div class="dialog-header">
+          <div class="dialog-title-group">
+            <div class="dialog-icon-capsule">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#52c41a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="8" y1="13" x2="16" y2="17"></line>
+                <line x1="16" y1="13" x2="8" y2="17"></line>
+              </svg>
+            </div>
+            <div>
+              <h3 class="dialog-title-text">自定义导出 Excel</h3>
+            </div>
+          </div>
+          <button class="dialog-close-btn" title="关闭" @click="handleSimulateClose">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="4" x2="12" y2="12"></line>
+              <line x1="12" y1="4" x2="4" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 弹窗内容主体 -->
+        <div class="dialog-body">
+
+          <!-- 1. 导出数据范围明确选择栏 -->
+          <div class="scope-selector-strip">
+            <div class="scope-radio-wrap">
+              <span class="scope-label">导出数据范围：</span>
+              <div class="scope-options-group">
+                <button 
+                  class="scope-option-btn" 
+                  :class="{ active: exportScope === 'filtered' }"
+                  @click="exportScope = 'filtered'"
+                >
+                  全部筛选结果 (1,280条)
+                </button>
+                <button 
+                  class="scope-option-btn" 
+                  :class="{ active: exportScope === 'selected' }"
+                  @click="exportScope = 'selected'"
+                >
+                  当前勾选单据 (6条)
+                </button>
+                <button 
+                  class="scope-option-btn" 
+                  :class="{ active: exportScope === 'current_page' }"
+                  @click="exportScope = 'current_page'"
+                >
+                  仅当前页 (20条)
+                </button>
+              </div>
+            </div>
+
+            <div class="scope-estimate-pill">
+              <span>预估导出数据：</span>
+              <b>{{ estimatedRecords }}</b> 笔
+              <iconify-icon 
+                icon="ant-design:cloud-sync-outlined" 
+                style="color: #1677ff; font-size: 14px; margin-left: 6px;" 
+                title="模板配置自动随账号多端同步"
+              ></iconify-icon>
+            </div>
+          </div>
+
+          <!-- 2. 模板生命周期归位区 -->
+          <div class="template-mgmt-strip">
+            <div class="template-selector-cluster">
+              <span class="form-inline-label">使用模板：</span>
+              <select class="template-select-box" v-model="selectedTemplate" @change="onTemplateChange">
+                <option value="none">不使用模板 (按当前页面设置)</option>
+                <option value="default">默认常规全字段模板 (14列)</option>
+                <option value="finance">财务月结审批专用模板 (8列)</option>
+                <option value="tax">发票税务核对对账模板 (10列)</option>
+              </select>
+
+              <!-- 脏状态指示器 -->
+              <span v-if="isModifiedFromTemplate" class="status-tag-capsule dirty">
+                ● 已修改列设置
+              </span>
+              <span v-else class="status-tag-capsule clean">
+                ✓ 与模板一致
+              </span>
+
+              <!-- 覆盖保存与另存 -->
+              <button 
+                v-if="isModifiedFromTemplate && selectedTemplate !== 'none'" 
+                class="text-action-link"
+                @click="saveOverrideCurrentTemplate"
+              >
+                覆盖保存
+              </button>
+              <button class="text-action-link" @click="showSaveModal = true">
+                + 另存为新模板
+              </button>
+              <button 
+                v-if="selectedTemplate !== 'none' && selectedTemplate !== 'default'"
+                class="text-action-link danger"
+                @click="deleteTemplate"
+              >
+                删除模板
+              </button>
+            </div>
+
+            <div>
+              <button class="text-action-link" @click="resetToDefaultColumns">
+                <iconify-icon icon="ant-design:undo-outlined"></iconify-icon>
+                恢复表格默认列
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. 核心字段双栏穿梭与拖拽看板 (Transfer Hub) -->
+          <div class="transfer-hub-grid">
+            
+            <!-- 左栏：待选字段池 (分类 + 实时秒搜) -->
+            <div class="transfer-col-box">
+              <div class="col-header-bar">
+                <div class="col-header-title">
+                  <span>可选字段池</span>
+                  <span class="count-pill">{{ filteredAvailableFields.length }}</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="text-action-link" @click="selectAllFields">全选</button>
+                  <span style="color: #cbd5e1;">|</span>
+                  <button class="text-action-link" @click="clearAllSelected">清空</button>
+                </div>
+              </div>
+
+              <!-- 搜索框 -->
+              <div class="search-filter-row">
+                <input 
+                  type="text" 
+                  class="custom-search-input" 
+                  v-model="searchKeyword" 
+                  placeholder="搜索字段名称、税号、发票..."
+                >
+              </div>
+
+              <!-- 业务分类胶囊 -->
+              <div class="category-tabs-bar">
+                <span 
+                  class="category-chip" 
+                  :class="{ active: currentCategory === 'all' }"
+                  @click="currentCategory = 'all'"
+                >全部</span>
+                <span 
+                  class="category-chip" 
+                  :class="{ active: currentCategory === 'basic' }"
+                  @click="currentCategory = 'basic'"
+                >单据基础</span>
+                <span 
+                  class="category-chip" 
+                  :class="{ active: currentCategory === 'invoice' }"
+                  @click="currentCategory = 'invoice'"
+                >发票税务</span>
+                <span 
+                  class="category-chip" 
+                  :class="{ active: currentCategory === 'finance' }"
+                  @click="currentCategory = 'finance'"
+                >金额结算</span>
+                <span 
+                  class="category-chip" 
+                  :class="{ active: currentCategory === 'bank' }"
+                  @click="currentCategory = 'bank'"
+                >银行账户</span>
+              </div>
+
+              <!-- 可选字段滚屏列表 -->
+              <div class="field-scroll-list">
+                <div 
+                  v-for="field in filteredAvailableFields" 
+                  :key="field.key"
+                  class="field-select-row"
+                  :class="{ 'is-selected': isFieldChecked(field.key) }"
+                  @click="toggleFieldSelect(field)"
+                >
+                  <div class="field-info-cluster">
+                    <span class="custom-checkbox">
+                      <svg v-if="isFieldChecked(field.key)" viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 8 6.5 11.5 13 4.5"></polyline>
+                      </svg>
+                    </span>
+                    <span class="field-name-text">{{ field.title }}</span>
+                    <span v-if="field.isDynamic" class="dynamic-col-badge" title="将按当前页实际币别分别展开为独立列">
+                      多币种展开
+                    </span>
+                  </div>
+                  <span class="field-sub-meta">{{ field.categoryLabel }}</span>
+                </div>
+
+                <div v-if="filteredAvailableFields.length === 0" style="text-align: center; padding: 36px 0; color: #94a3b8; font-size: 12px;">
+                  未找到相关字段
+                </div>
+              </div>
+            </div>
+
+            <!-- 右栏：已选导出列顺序与预览 (原生流畅拖拽 + 微操) -->
+            <div class="transfer-col-box">
+              <div class="col-header-bar">
+                <div class="col-header-title">
+                  <span>导出列及顺序</span>
+                  <span class="count-pill primary">{{ selectedColumns.length }} 列</span>
+                </div>
+                <div style="font-size: 11px; color: var(--slate-400);">
+                  按住左侧手柄拖拽排序
+                </div>
+              </div>
+
+              <div style="background: var(--slate-50); padding: 5px 12px; font-size: 11px; color: var(--slate-500); border-bottom: 1px solid var(--slate-200); display: flex; justify-content: space-between;">
+                <span>从上至下对应 Excel 从左至右</span>
+                <button class="text-action-link" style="font-size: 11px;" @click="clearAllSelected">清空全部</button>
+              </div>
+
+              <!-- 拖拽排序列容器 -->
+              <div class="field-scroll-list" @dragover.prevent @dragenter.prevent>
+                <div 
+                  v-for="(col, idx) in selectedColumns" 
+                  :key="col.key"
+                  class="sortable-card-row"
+                  :class="{ 'is-dragging': draggingIdx === idx, 'drag-over': dragOverIdx === idx }"
+                  draggable="true"
+                  @dragstart="onDragStart(idx, $event)"
+                  @dragover="onDragOver(idx, $event)"
+                  @dragend="onDragEnd"
+                  @drop="onDrop(idx, $event)"
+                >
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="sort-drag-handle" title="按住拖动调序">
+                      <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
+                        <circle cx="5" cy="4" r="1.3"></circle>
+                        <circle cx="11" cy="4" r="1.3"></circle>
+                        <circle cx="5" cy="8" r="1.3"></circle>
+                        <circle cx="11" cy="8" r="1.3"></circle>
+                        <circle cx="5" cy="12" r="1.3"></circle>
+                        <circle cx="11" cy="12" r="1.3"></circle>
+                      </svg>
+                    </div>
+                    <span class="sort-order-index">#{{ (idx + 1).toString().padStart(2, '0') }}</span>
+                    <span style="font-size: 13px; font-weight: 500; color: var(--slate-800);">{{ col.title }}</span>
+                    <span v-if="col.isDynamic" class="dynamic-col-badge" title="将按实际币种分别拆分展开为独立列">
+                      多币种展开
+                    </span>
+                  </div>
+
+                  <!-- 悬停快捷微操 (置顶/上移/下移/移除) -->
+                  <div class="row-hover-actions">
+                    <button class="micro-icon-btn" title="置顶首列" v-if="idx > 0" @click="moveToTop(idx)">
+                      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="3" x2="13" y2="3"></line>
+                        <polyline points="4 11 8 7 12 11"></polyline>
+                      </svg>
+                    </button>
+                    <button class="micro-icon-btn" title="上移" v-if="idx > 0" @click="moveUp(idx)">
+                      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="4 10 8 6 12 10"></polyline>
+                      </svg>
+                    </button>
+                    <button class="micro-icon-btn" title="下移" v-if="idx < selectedColumns.length - 1" @click="moveDown(idx)">
+                      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="4 6 8 10 12 6"></polyline>
+                      </svg>
+                    </button>
+                    <button class="micro-icon-btn remove-btn" title="移除此列" @click="removeField(col.key)">
+                      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="4" x2="12" y2="12"></line>
+                        <line x1="12" y1="4" x2="4" y2="12"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="selectedColumns.length === 0" style="text-align: center; padding: 60px 0; color: #94a3b8;">
+                  <iconify-icon icon="ant-design:inbox-outlined" style="font-size: 32px; color: #cbd5e1; margin-bottom: 6px;"></iconify-icon>
+                  <div style="font-size: 12px;">请从左侧勾选需要导出的列</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 4. 高级配置收折区 -->
+          <div class="collapsible-advanced-bar">
+            <div class="advanced-bar-trigger" @click="isAdvancedOpen = !isAdvancedOpen">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <iconify-icon icon="ant-design:setting-outlined" style="color: var(--slate-500);"></iconify-icon>
+                <span>高级导出设置</span>
+                <span style="font-size: 11px; color: var(--slate-400); font-weight: normal;">(表格首行大标题、格式、自适应列宽)</span>
+              </div>
+              <iconify-icon :icon="isAdvancedOpen ? 'ant-design:up-outlined' : 'ant-design:down-outlined'"></iconify-icon>
+            </div>
+
+            <div v-show="isAdvancedOpen" class="advanced-bar-content">
+              <div>
+                <div style="font-size: 11.5px; color: var(--slate-500); margin-bottom: 3px;">表格第一行大标题 (选填)：</div>
+                <input 
+                  type="text" 
+                  class="compact-text-input" 
+                  v-model="excelSheetTitle"
+                  placeholder="如：付款申请台账明细表 (2026-11)"
+                >
+              </div>
+
+              <div>
+                <div style="font-size: 11.5px; color: var(--slate-500); margin-bottom: 3px;">导出文件格式：</div>
+                <select class="compact-text-input" v-model="exportFileFormat">
+                  <option value="xlsx">Excel 工作簿 (*.xlsx)</option>
+                  <option value="csv">逗号分隔符 (*.csv)</option>
+                </select>
+              </div>
+
+              <div style="padding-top: 16px;">
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate-700); cursor: pointer;">
+                  <input type="checkbox" v-model="freezeFirstRow" style="accent-color: var(--primary-color);">
+                  <span>冻结首行标题</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 弹窗底部操作条 -->
+        <div class="dialog-footer">
+          <div class="footer-stat-text">
+            本次导出：<b>{{ selectedColumns.length }}</b> 列 · 预估 <b>{{ estimatedRecords }}</b> 笔申请记录
+          </div>
+
+          <div class="btn-group">
+            <button class="btn-standard btn-secondary" @click="handleSimulateClose">关闭</button>
+            <button 
+              class="btn-standard btn-primary" 
+              :disabled="selectedColumns.length === 0"
+              @click="handleDoExportAction"
+            >
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="8" y1="13" x2="16" y2="17"></line>
+                <line x1="16" y1="13" x2="8" y2="17"></line>
+              </svg>
+              导出 Excel ({{ selectedColumns.length }}列)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- ========================================================
+           方案 B：原版设计缺陷诊断与复刻 (Legacy Problem View)
+           ======================================================== -->
+      <div v-else class="legacy-modal-shell">
+        
+        <div class="defect-callout-strip">
+          <iconify-icon icon="ant-design:warning-outlined" style="font-size: 16px; flex-shrink: 0; margin-top: 2px;"></iconify-icon>
+          <div>
+            <b>原版 4 大交互硬伤复刻诊断：</b><br>
+            1. <b>46 个上下移按钮</b>：每行挂 `[上移][下移]`，23 列极其杂乱，无法批量或拖拽；<br>
+            2. <b>模板动线割裂</b>：顶部选模板，底部平铺 3 个按钮修改模板，逻辑冲突；<br>
+            3. <b>写死当前页 20 条</b>：剥夺用户对“全部筛选结果”的控制权。
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600;">自定义导出 Excel (原版)</h3>
+          <span style="color: #999; cursor: pointer;">✕</span>
+        </div>
+
+        <div style="font-size: 12px; color: #666;">
+          将导出当前页的 20 条申请。模板按当前用户保存，可在其他电脑登录后使用。
+        </div>
+
+        <div class="legacy-field-row">
+          <span class="legacy-field-label">使用模板</span>
+          <select style="flex: 1; height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 8px;">
+            <option>不使用模板，按当前页面列设置</option>
+          </select>
+          <button class="mini-txt-btn" style="height: 32px; padding: 0 12px;">重置</button>
+        </div>
+
+        <div class="legacy-field-row">
+          <span class="legacy-field-label">表格标题</span>
+          <input type="text" placeholder="选填，显示在 Excel 第一行" style="flex: 1; height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 8px;">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <span style="font-weight: 600;">导出列 (已选 23 列)</span>
+          <div style="display: flex; gap: 8px;">
+            <button class="mini-txt-btn">全选</button>
+            <button class="mini-txt-btn">清空</button>
+          </div>
+        </div>
+
+        <!-- 46个上下移按钮的原版死穴 -->
+        <div class="legacy-list-container">
+          <div v-for="item in allFields.slice(0, 8)" :key="item.key" class="legacy-list-item">
+            <label style="display: flex; align-items: center; gap: 6px;">
+              <input type="checkbox" checked>
+              <span>{{ item.title }}</span>
+            </label>
+            <div style="display: flex; gap: 4px;">
+              <button class="mini-txt-btn">上移</button>
+              <button class="mini-txt-btn">下移</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; color: #888;">
+          选列与顺序仅影响本次导出；申请合计、银行账号按当前页币别分别展开。
+        </div>
+
+        <div class="legacy-field-row">
+          <span class="legacy-field-label">模板名称</span>
+          <input type="text" placeholder="输入名称后保存，方便下次使用" style="flex: 1; height: 32px; border: 1px solid #1677ff; border-radius: 4px; padding: 0 8px;">
+        </div>
+
+        <div style="margin-left: 82px; display: flex; gap: 8px;">
+          <button class="mini-txt-btn" style="height: 28px; padding: 0 10px;">另存为新模板</button>
+          <button class="mini-txt-btn" style="height: 28px; padding: 0 10px;">更新此模板</button>
+          <button class="mini-txt-btn" style="height: 28px; padding: 0 10px;">删除模板</button>
+        </div>
+
+        <div style="border-top: 1px solid #f0f0f0; padding-top: 12px; display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
+          <button class="mini-txt-btn" style="height: 32px; padding: 0 16px;">关闭</button>
+          <button class="btn-standard btn-primary" style="height: 32px;">导出 Excel</button>
+        </div>
+
+      </div>
+
+      <!-- 另存为模板内嵌确认浮窗 -->
+      <div v-if="showSaveModal" class="save-template-pop-mask">
+        <div class="save-template-box">
+          <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600;">另存为新列配置模板</h4>
+          <div style="font-size: 12px; color: var(--slate-500); margin-bottom: 6px;">模板名称：</div>
+          <input 
+            type="text" 
+            class="compact-text-input" 
+            v-model="newTemplateName" 
+            placeholder="如：财务核账精简模板"
+            style="margin-bottom: 14px;"
+          >
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button class="btn-standard btn-secondary" style="height: 28px; font-size: 12px;" @click="showSaveModal = false">取消</button>
+            <button class="btn-standard btn-primary" style="height: 28px; font-size: 12px;" @click="handleSaveNewTemplate">确认保存</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const { createApp, ref, computed } = Vue;
+
+    const app = createApp({
+      setup() {
+        const currentViewMode = ref('optimized'); // 'optimized' | 'legacy'
+        const exportScope = ref('filtered'); // 'filtered' | 'selected' | 'current_page'
+        const searchKeyword = ref('');
+        const currentCategory = ref('all');
+        const selectedTemplate = ref('default');
+        const isModifiedFromTemplate = ref(false);
+        const isAdvancedOpen = ref(false);
+        const excelSheetTitle = ref('');
+        const exportFileFormat = ref('xlsx');
+        const freezeFirstRow = ref(true);
+        const showSaveModal = ref(false);
+        const newTemplateName = ref('');
+
+        // 100%覆盖并提炼的业务字段全集 (带业务分类与展开标识)
+        const allFields = ref([
+          { key: 'applyNo', title: '申请单号', category: 'basic', categoryLabel: '单据基础' },
+          { key: 'blNo', title: '主提单号', category: 'basic', categoryLabel: '单据基础' },
+          { key: 'entrustNo', title: '委托编号', category: 'basic', categoryLabel: '单据基础' },
+          { key: 'applyStatus', title: '申请状态', category: 'basic', categoryLabel: '单据基础' },
+          { key: 'businessType', title: '业务类型', category: 'basic', categoryLabel: '单据基础' },
+          { key: 'clientName', title: '委托单位/客户', category: 'basic', categoryLabel: '单据基础' },
+          { key: 'applyDate', title: '申请日期', category: 'basic', categoryLabel: '单据基础' },
+          { key: 'creator', title: '申请人/创建人', category: 'basic', categoryLabel: '单据基础' },
+
+          { key: 'invoiceProcess', title: '发票流程', category: 'invoice', categoryLabel: '发票税务' },
+          { key: 'invoiceNo', title: '发票号', category: 'invoice', categoryLabel: '发票税务' },
+          { key: 'invoiceType', title: '发票种类', category: 'invoice', categoryLabel: '发票税务' },
+          { key: 'invoiceDate', title: '开票日期', category: 'invoice', categoryLabel: '发票税务' },
+          { key: 'sellerName', title: '销售方抬头', category: 'invoice', categoryLabel: '发票税务' },
+          { key: 'sellerTaxNo', title: '销售方税号', category: 'invoice', categoryLabel: '发票税务' },
+          { key: 'buyerTaxNo', title: '购买方税号', category: 'invoice', categoryLabel: '发票税务' },
+          { key: 'taxAmount', title: '税额', category: 'invoice', categoryLabel: '发票税务' },
+          { key: 'untaxedAmount', title: '不含税金额', category: 'invoice', categoryLabel: '发票税务' },
+
+          { key: 'currency', title: '申报币别', category: 'finance', categoryLabel: '金额结算' },
+          { key: 'applyAmount', title: '申报金额 (原币)', category: 'finance', categoryLabel: '金额结算' },
+          { key: 'exchangeRate', title: '折合汇率', category: 'finance', categoryLabel: '金额结算' },
+          { key: 'localAmount', title: '本位币金额 (RMB)', category: 'finance', categoryLabel: '金额结算' },
+          { key: 'applyTotalSummary', title: '申请合计', category: 'finance', categoryLabel: '金额结算', isDynamic: true },
+          { key: 'remarks', title: '备注说明', category: 'finance', categoryLabel: '金额结算' },
+
+          { key: 'payeeAccountName', title: '收款方户名', category: 'bank', categoryLabel: '银行账户' },
+          { key: 'payeeBankName', title: '收款开户行', category: 'bank', categoryLabel: '银行账户' },
+          { key: 'payeeBankAccount', title: '银行账号', category: 'bank', categoryLabel: '银行账户', isDynamic: true },
+          { key: 'bankCode', title: '大额联行号', category: 'bank', categoryLabel: '银行账户' },
+        ]);
+
+        // 当前选中的导出列清单 (有序数组，从上至下对应从左至右)
+        const selectedColumns = ref([
+          { key: 'applyNo', title: '申请单号', isDynamic: false },
+          { key: 'blNo', title: '主提单号', isDynamic: false },
+          { key: 'entrustNo', title: '委托编号', isDynamic: false },
+          { key: 'applyStatus', title: '申请状态', isDynamic: false },
+          { key: 'invoiceProcess', title: '发票流程', isDynamic: false },
+          { key: 'invoiceNo', title: '发票号', isDynamic: false },
+          { key: 'invoiceDate', title: '开票日期', isDynamic: false },
+          { key: 'sellerName', title: '销售方抬头', isDynamic: false },
+          { key: 'currency', title: '申报币别', isDynamic: false },
+          { key: 'applyAmount', title: '申报金额 (原币)', isDynamic: false },
+          { key: 'localAmount', title: '本位币金额 (RMB)', isDynamic: false },
+          { key: 'applyTotalSummary', title: '申请合计', isDynamic: true },
+          { key: 'payeeAccountName', title: '收款方户名', isDynamic: false },
+          { key: 'payeeBankAccount', title: '银行账号', isDynamic: true },
+        ]);
+
+        // 预估记录条数联动
+        const estimatedRecords = computed(() => {
+          if (exportScope.value === 'selected') return 6;
+          if (exportScope.value === 'current_page') return 20;
+          return '1,280';
+        });
+
+        // 待选字段过滤 (业务分类 + 模糊秒搜)
+        const filteredAvailableFields = computed(() => {
+          return allFields.value.filter(item => {
+            const matchCat = currentCategory.value === 'all' || item.category === currentCategory.value;
+            const kw = searchKeyword.value.trim().toLowerCase();
+            const matchKw = !kw || item.title.toLowerCase().includes(kw) || item.categoryLabel.includes(kw);
+            return matchCat && matchKw;
+          });
+        });
+
+        // 判定字段是否已被勾选
+        const isFieldChecked = (key) => {
+          return selectedColumns.value.some(col => col.key === key);
+        };
+
+        // 勾选/取消勾选单项
+        const toggleFieldSelect = (field) => {
+          isModifiedFromTemplate.value = true;
+          const idx = selectedColumns.value.findIndex(col => col.key === field.key);
+          if (idx >= 0) {
+            selectedColumns.value.splice(idx, 1);
+          } else {
+            selectedColumns.value.push({
+              key: field.key,
+              title: field.title,
+              isDynamic: !!field.isDynamic
+            });
+          }
+        };
+
+        // 全选当前过滤下的字段
+        const selectAllFields = () => {
+          isModifiedFromTemplate.value = true;
+          filteredAvailableFields.value.forEach(field => {
+            if (!isFieldChecked(field.key)) {
+              selectedColumns.value.push({
+                key: field.key,
+                title: field.title,
+                isDynamic: !!field.isDynamic
+              });
+            }
+          });
+        };
+
+        // 清空已选
+        const clearAllSelected = () => {
+          isModifiedFromTemplate.value = true;
+          selectedColumns.value = [];
+        };
+
+        // 移除单列
+        const removeField = (key) => {
+          isModifiedFromTemplate.value = true;
+          const idx = selectedColumns.value.findIndex(col => col.key === key);
+          if (idx >= 0) selectedColumns.value.splice(idx, 1);
+        };
+
+        // 置顶
+        const moveToTop = (idx) => {
+          if (idx > 0) {
+            isModifiedFromTemplate.value = true;
+            const item = selectedColumns.value.splice(idx, 1)[0];
+            selectedColumns.value.unshift(item);
+          }
+        };
+
+        // 上移
+        const moveUp = (idx) => {
+          if (idx > 0) {
+            isModifiedFromTemplate.value = true;
+            const temp = selectedColumns.value[idx];
+            selectedColumns.value[idx] = selectedColumns.value[idx - 1];
+            selectedColumns.value[idx - 1] = temp;
+          }
+        };
+
+        // 下移
+        const moveDown = (idx) => {
+          if (idx < selectedColumns.value.length - 1) {
+            isModifiedFromTemplate.value = true;
+            const temp = selectedColumns.value[idx];
+            selectedColumns.value[idx] = selectedColumns.value[idx + 1];
+            selectedColumns.value[idx + 1] = temp;
+          }
+        };
+
+        // HTML5 拖拽排序逻辑 (原生极速)
+        const draggingIdx = ref(null);
+        const dragOverIdx = ref(null);
+
+        const onDragStart = (idx, event) => {
+          draggingIdx.value = idx;
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', idx);
+        };
+
+        const onDragOver = (idx, event) => {
+          event.preventDefault();
+          dragOverIdx.value = idx;
+        };
+
+        const onDragEnd = () => {
+          draggingIdx.value = null;
+          dragOverIdx.value = null;
+        };
+
+        const onDrop = (targetIdx, event) => {
+          event.preventDefault();
+          if (draggingIdx.value !== null && draggingIdx.value !== targetIdx) {
+            isModifiedFromTemplate.value = true;
+            const item = selectedColumns.value.splice(draggingIdx.value, 1)[0];
+            selectedColumns.value.splice(targetIdx, 0, item);
+          }
+          draggingIdx.value = null;
+          dragOverIdx.value = null;
+        };
+
+        // 恢复表格默认列
+        const resetToDefaultColumns = () => {
+          selectedColumns.value = [
+            { key: 'applyNo', title: '申请单号', isDynamic: false },
+            { key: 'blNo', title: '主提单号', isDynamic: false },
+            { key: 'entrustNo', title: '委托编号', isDynamic: false },
+            { key: 'applyStatus', title: '申请状态', isDynamic: false },
+            { key: 'invoiceProcess', title: '发票流程', isDynamic: false },
+            { key: 'invoiceNo', title: '发票号', isDynamic: false },
+            { key: 'invoiceDate', title: '开票日期', isDynamic: false },
+            { key: 'sellerName', title: '销售方抬头', isDynamic: false },
+            { key: 'currency', title: '申报币别', isDynamic: false },
+            { key: 'applyAmount', title: '申报金额 (原币)', isDynamic: false },
+            { key: 'localAmount', title: '本位币金额 (RMB)', isDynamic: false },
+            { key: 'applyTotalSummary', title: '申请合计', isDynamic: true },
+            { key: 'payeeAccountName', title: '收款方户名', isDynamic: false },
+            { key: 'payeeBankAccount', title: '银行账号', isDynamic: true },
+          ];
+          isModifiedFromTemplate.value = false;
+          if (window.antd && window.antd.message) {
+            antd.message.success('已恢复表格默认列设置');
+          }
+        };
+
+        // 切换模板
+        const onTemplateChange = () => {
+          isModifiedFromTemplate.value = false;
+          if (selectedTemplate.value === 'finance') {
+            selectedColumns.value = [
+              { key: 'applyNo', title: '申请单号', isDynamic: false },
+              { key: 'applyStatus', title: '申请状态', isDynamic: false },
+              { key: 'sellerName', title: '销售方抬头', isDynamic: false },
+              { key: 'currency', title: '申报币别', isDynamic: false },
+              { key: 'applyAmount', title: '申报金额 (原币)', isDynamic: false },
+              { key: 'localAmount', title: '本位币金额 (RMB)', isDynamic: false },
+              { key: 'applyTotalSummary', title: '申请合计', isDynamic: true },
+              { key: 'payeeAccountName', title: '收款方户名', isDynamic: false },
+            ];
+          } else if (selectedTemplate.value === 'tax') {
+            selectedColumns.value = [
+              { key: 'applyNo', title: '申请单号', isDynamic: false },
+              { key: 'invoiceProcess', title: '发票流程', isDynamic: false },
+              { key: 'invoiceNo', title: '发票号', isDynamic: false },
+              { key: 'invoiceType', title: '发票种类', isDynamic: false },
+              { key: 'invoiceDate', title: '开票日期', isDynamic: false },
+              { key: 'sellerName', title: '销售方抬头', isDynamic: false },
+              { key: 'sellerTaxNo', title: '销售方税号', isDynamic: false },
+              { key: 'untaxedAmount', title: '不含税金额', isDynamic: false },
+              { key: 'taxAmount', title: '税额', isDynamic: false },
+              { key: 'localAmount', title: '本位币金额 (RMB)', isDynamic: false },
+            ];
+          } else {
+            resetToDefaultColumns();
+          }
+        };
+
+        const saveOverrideCurrentTemplate = () => {
+          isModifiedFromTemplate.value = false;
+          alert('已成功覆盖更新当前模板设置！');
+        };
+
+        const handleSaveNewTemplate = () => {
+          if (!newTemplateName.value.trim()) {
+            alert('请输入模板名称');
+            return;
+          }
+          alert(`模板【${newTemplateName.value.trim()}】已保存！`);
+          showSaveModal.value = false;
+          isModifiedFromTemplate.value = false;
+        };
+
+        const deleteTemplate = () => {
+          if (confirm('确认删除当前自定义模板？')) {
+            selectedTemplate.value = 'default';
+            resetToDefaultColumns();
+          }
+        };
+
+        const handleDoExportAction = () => {
+          alert(`🎉 导出任务已触发！\n已生成包含 ${selectedColumns.value.length} 列、${estimatedRecords.value} 笔记录的报表，文件格式为 .${exportFileFormat.value}`);
+        };
+
+        const handleSimulateClose = () => {
+          alert('关闭弹窗，返回原母页面');
+        };
+
+        return {
+          currentViewMode,
+          exportScope,
+          searchKeyword,
+          currentCategory,
+          selectedTemplate,
+          isModifiedFromTemplate,
+          isAdvancedOpen,
+          excelSheetTitle,
+          exportFileFormat,
+          freezeFirstRow,
+          showSaveModal,
+          newTemplateName,
+          allFields,
+          selectedColumns,
+          estimatedRecords,
+          filteredAvailableFields,
+          isFieldChecked,
+          toggleFieldSelect,
+          selectAllFields,
+          clearAllSelected,
+          removeField,
+          moveToTop,
+          moveUp,
+          moveDown,
+          draggingIdx,
+          dragOverIdx,
+          onDragStart,
+          onDragOver,
+          onDragEnd,
+          onDrop,
+          resetToDefaultColumns,
+          onTemplateChange,
+          saveOverrideCurrentTemplate,
+          handleSaveNewTemplate,
+          deleteTemplate,
+          handleDoExportAction,
+          handleSimulateClose
+        };
+      }
+    });
+
+    if (window.antd) {
+      app.use(antd);
+    }
+    app.mount('#app');
+  </script>
+</body>
+</html>
